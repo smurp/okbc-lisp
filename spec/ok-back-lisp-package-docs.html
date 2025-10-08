@@ -1,0 +1,1481 @@
+
+<HTML>
+<TITLE>Documentation for the OK-BACK package</TITLE>
+<H2>Documentation for the OK-BACK package</H2>
+
+This document contains documentation for the exported symbols in the
+<code>OK-BACK</code> Lisp package.  The functions, variables and classes
+described are expected to be used by OKBC back end authors.  It is almost
+certainly an error for any OKBC application to use any of these symbols.<P>
+
+<B>It is an error for any application to intern <i>any</i> symbol in the
+<code>OK-BACK</code> package.</B>  Back end authors should not write any code
+in the <code>OK-BACK</code> package.  No symbols should be interned in the
+<code>OK-BACK</code> package unless they are exported, documented, and
+the only symbols that should be so interned are KB class names.<P>
+
+Note:  This documentation covers all external <code>OK-BACK</code> symbols
+<i>except for those that are covered by the specification</i>.  For all
+operations in the
+<A HREF="http://ontolingua.stanford.edu/doc/release/okbc/okbc-spec/index.html">
+OKBC specification</A> that are implementable in the back end, there exists a
+generic function in the back end API with the same name with
+"<code>-INTERNAL</code>" appended to it, and homed in the
+<code>OK-BACK</code> package.  All arguments to these generic functions are
+positional, and may be specialized.  Thus, the front end API operation
+<code>okbc:get-slot-values</code> defined as:<BR>
+<TABLE width=100%><DT>
+ <TR>
+  <TD valign=top>
+   <TABLE>
+    <TR>
+     <TD valign=top> <code><B>okbc:get-behavior-values</B></code> </TD>
+     <TD valign=top align=left>((behavior :value) &key (kb (current-kb)))
+    </TR>
+   </TABLE>
+  <TD valign=top align=right> <I>[operation]</I>
+ </TR>
+</TABLE>
+is mirrored by a generic function in the back end API:<BR>
+<TABLE width=100%><DT>
+ <TR>
+  <TD valign=top>
+   <TABLE>
+    <TR>
+     <TD valign=top>
+       <code><B>ok-back:get-behavior-values-internal</B></code> </TD>
+     <TD valign=top align=left>(behavior kb)
+    </TR>
+   </TABLE>
+  <TD valign=top align=right> <I>[generic function]</I>
+ </TR>
+</TABLE>
+
+Which operation the back end author will need to implement can be determined
+by using
+<A href="ok-utils-lisp-package-docs.html#compliant-okbc-implementation-p">
+ok-utils:compliant-okbc-implementation-p</A>.
+
+<HR>
+<H3>Table of Contents:</H3>
+<OL>
+  <LI><A HREF="#*abstract-kb-class-names*"><code>*abstract-kb-class-names*</code></A>
+  <LI><A HREF="#*all-known-okbc-compliance-classes*"><code>*all-known-okbc-compliance-classes*</code></A>
+  <LI><A HREF="#*current-kb*"><code>*current-kb*</code></A>
+  <LI><A HREF="#*current-kb-for-io-syntax*"><code>*current-kb-for-io-syntax*</code></A>
+  <LI><A HREF="#*current-location*"><code>*current-location*</code></A>
+  <LI><A HREF="#*current-purpose-for-io-syntax*"><code>*current-purpose-for-io-syntax*</code></A>
+  <LI><A HREF="#*evaluable-predicate-symbols*"><code>*evaluable-predicate-symbols*</code></A>
+  <LI><A HREF="#*existing-connections*"><code>*existing-connections*</code></A>
+  <LI><A HREF="#*keyword-package*"><code>*keyword-package*</code></A>
+  <LI><A HREF="#*kif-meta-extension-symbols*"><code>*kif-meta-extension-symbols*</code></A>
+  <LI><A HREF="#*kif-operator-symbols*"><code>*kif-operator-symbols*</code></A>
+  <LI><A HREF="#*location-list*"><code>*location-list*</code></A>
+  <LI><A HREF="#*network-okbc-kb-mixins*"><code>*network-okbc-kb-mixins*</code></A>
+  <LI><A HREF="#*okbc-class-relation-symbols*"><code>*okbc-class-relation-symbols*</code></A>
+  <LI><A HREF="#*okbc-package*"><code>*okbc-package*</code></A>
+  <LI><A HREF="#*okbc-relation-symbols*"><code>*okbc-relation-symbols*</code></A>
+  <LI><A HREF="#*okbc-standard-class-direct-superclass-alist*"><code>*okbc-standard-class-direct-superclass-alist*</code></A>
+  <LI><A HREF="#*okbc-standard-class-names*"><code>*okbc-standard-class-names*</code></A>
+  <LI><A HREF="#*okbc-standard-facet-names*"><code>*okbc-standard-facet-names*</code></A>
+  <LI><A HREF="#*okbc-standard-names*"><code>*okbc-standard-names*</code></A>
+  <LI><A HREF="#*okbc-standard-slot-names*"><code>*okbc-standard-slot-names*</code></A>
+  <LI><A HREF="#*print-pretty-frame-handles*"><code>*print-pretty-frame-handles*</code></A>
+  <LI><A HREF="#*undefined-value*"><code>*undefined-value*</code></A>
+  <LI><A HREF="#abstract-handle"><code>abstract-handle</code></A>
+  <LI><A HREF="#abstract-kb-class-name-from-kb"><code>abstract-kb-class-name-from-kb</code></A>
+  <LI><A HREF="#abstract-kb-locator"><code>abstract-kb-locator</code></A>
+  <LI><A HREF="#abstract-network-connection"><code>abstract-network-connection</code></A>
+  <LI><A HREF="#add-notifications-for-okbc-side-effect"><code>add-notifications-for-okbc-side-effect</code></A>
+  <LI><A HREF="#assert-form-given-kb"><code>assert-form-given-kb</code></A>
+  <LI><A HREF="#assert-frame-definition"><code>assert-frame-definition</code></A>
+  <LI><A HREF="#caching-mixin"><code>caching-mixin</code></A>
+  <LI><A HREF="#caching-structure-kb"><code>caching-structure-kb</code></A>
+  <LI><A HREF="#clos-kb"><code>clos-kb</code></A>
+  <LI><A HREF="#clos-only-okbc-mixin"><code>clos-only-okbc-mixin</code></A>
+  <LI><A HREF="#concrete-kb-class-from-abstract-kb-class-name"><code>concrete-kb-class-from-abstract-kb-class-name</code></A>
+  <LI><A HREF="#connection"><code>connection</code></A>
+  <LI><A HREF="#connection"><code>connection</code></A>
+  <LI><A HREF="#connection-p"><code>connection-p</code></A>
+  <LI><A HREF="#continuable-error-p"><code>continuable-error-p</code></A>
+  <LI><A HREF="#create-frame-handle"><code>create-frame-handle</code></A>
+  <LI><A HREF="#create-frame-primitive-p-sentences"><code>create-frame-primitive-p-sentences</code></A>
+  <LI><A HREF="#current-kb"><code>current-kb</code></A>
+  <LI><A HREF="#decontextualize-aux"><code>decontextualize-aux</code></A>
+  <LI><A HREF="#default-inheritance-mixin"><code>default-inheritance-mixin</code></A>
+  <LI><A HREF="#default-inheritance-structure-kb"><code>default-inheritance-structure-kb</code></A>
+  <LI><A HREF="#default-notification-callback-function"><code>default-notification-callback-function</code></A>
+  <LI><A HREF="#defblock-of-okbc-methods"><code>defblock-of-okbc-methods</code></A>
+  <LI><A HREF="#define-default-inheritance-methods"><code>define-default-inheritance-methods</code></A>
+  <LI><A HREF="#defnetwork-okbc-kb"><code>defnetwork-okbc-kb</code></A>
+  <LI><A HREF="#defnetwork-okbc-structure-kb"><code>defnetwork-okbc-structure-kb</code></A>
+  <LI><A HREF="#defokbcclass"><code>defokbcclass</code></A>
+  <LI><A HREF="#defokbcop"><code>defokbcop</code></A>
+  <LI><A HREF="#directly-get-frame-slots"><code>directly-get-frame-slots</code></A>
+  <LI><A HREF="#ensure-has-facet"><code>ensure-has-facet</code></A>
+  <LI><A HREF="#ensure-has-slot"><code>ensure-has-slot</code></A>
+  <LI><A HREF="#enumerator"><code>enumerator</code></A>
+  <LI><A HREF="#exhaustive-enumerator"><code>exhaustive-enumerator</code></A>
+  <LI><A HREF="#fast-hash-key"><code>fast-hash-key</code></A>
+  <LI><A HREF="#file-kb-locator"><code>file-kb-locator</code></A>
+  <LI><A HREF="#file-kb-locator-pathname"><code>file-kb-locator-pathname</code></A>
+  <LI><A HREF="#file-mixin"><code>file-mixin</code></A>
+  <LI><A HREF="#file-structure-kb"><code>file-structure-kb</code></A>
+  <LI><A HREF="#file-tell&ask-defaults-structure-kb"><code>file-tell&ask-defaults-structure-kb</code></A>
+  <LI><A HREF="#find-connection"><code>find-connection</code></A>
+  <LI><A HREF="#find-connection-key"><code>find-connection-key</code></A>
+  <LI><A HREF="#find-or-create-frame-handle"><code>find-or-create-frame-handle</code></A>
+  <LI><A HREF="#frame-handle"><code>frame-handle</code></A>
+  <LI><A HREF="#frame-handle-frame-type"><code>frame-handle-frame-type</code></A>
+  <LI><A HREF="#frame-handle-id"><code>frame-handle-id</code></A>
+  <LI><A HREF="#frame-handle-kb-id"><code>frame-handle-kb-id</code></A>
+  <LI><A HREF="#frame-handle-p"><code>frame-handle-p</code></A>
+  <LI><A HREF="#frame-handle-plist"><code>frame-handle-plist</code></A>
+  <LI><A HREF="#frame-handle-reader"><code>frame-handle-reader</code></A>
+  <LI><A HREF="#frame-handle-thing"><code>frame-handle-thing</code></A>
+  <LI><A HREF="#frame-name-interning-mixin"><code>frame-name-interning-mixin</code></A>
+  <LI><A HREF="#frames-have-clos-slots-as-okbc-slots-mixin"><code>frames-have-clos-slots-as-okbc-slots-mixin</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#get-frames-matching-for-frame-names-required"><code>get-frames-matching-for-frame-names-required</code></A>
+  <LI><A HREF="#get-frames-matching-the-hard-way"><code>get-frames-matching-the-hard-way</code></A>
+  <LI><A HREF="#handle-number-of-values-mixin"><code>handle-number-of-values-mixin</code></A>
+  <LI><A HREF="#handle-simple-query"><code>handle-simple-query</code></A>
+  <LI><A HREF="#handle-unhandled-query"><code>handle-unhandled-query</code></A>
+  <LI><A HREF="#handle-unhandled-sentence"><code>handle-unhandled-sentence</code></A>
+  <LI><A HREF="#handles-in-tree-p"><code>handles-in-tree-p</code></A>
+  <LI><A HREF="#host"><code>host</code></A>
+  <LI><A HREF="#inference-level-for-tell&ask-defaults"><code>inference-level-for-tell&ask-defaults</code></A>
+  <LI><A HREF="#instance-recording-clos-kb"><code>instance-recording-clos-kb</code></A>
+  <LI><A HREF="#intern-frame-handles-if-necessary"><code>intern-frame-handles-if-necessary</code></A>
+  <LI><A HREF="#intern-procedure"><code>intern-procedure</code></A>
+  <LI><A HREF="#intern-quasi-symbol"><code>intern-quasi-symbol</code></A>
+  <LI><A HREF="#intern-remote-value"><code>intern-remote-value</code></A>
+  <LI><A HREF="#kb"><code>kb</code></A>
+  <LI><A HREF="#kb-has-been-modified-p"><code>kb-has-been-modified-p</code></A>
+  <LI><A HREF="#kb-locator-class-for-kb-type"><code>kb-locator-class-for-kb-type</code></A>
+  <LI><A HREF="#kb-network-kb"><code>kb-network-kb</code></A>
+  <LI><A HREF="#kb-type"><code>kb-type</code></A>
+  <LI><A HREF="#load-kb-from-file"><code>load-kb-from-file</code></A>
+  <LI><A HREF="#load-okbc-kb-from-stream"><code>load-okbc-kb-from-stream</code></A>
+  <LI><A HREF="#load-okbc-kb-internal"><code>load-okbc-kb-internal</code></A>
+  <LI><A HREF="#local-connection"><code>local-connection</code></A>
+  <LI><A HREF="#local-connection"><code>local-connection</code></A>
+  <LI><A HREF="#local-connection-p"><code>local-connection-p</code></A>
+  <LI><A HREF="#make-file-kb-locator"><code>make-file-kb-locator</code></A>
+  <LI><A HREF="#make-structure-tuple-kb"><code>make-structure-tuple-kb</code></A>
+  <LI><A HREF="#name"><code>name</code></A>
+  <LI><A HREF="#network-coercion-mixin"><code>network-coercion-mixin</code></A>
+  <LI><A HREF="#network-enumerator"><code>network-enumerator</code></A>
+  <LI><A HREF="#network-kb"><code>network-kb</code></A>
+  <LI><A HREF="#network-structure-kb"><code>network-structure-kb</code></A>
+  <LI><A HREF="#notification-callback-function"><code>notification-callback-function</code></A>
+  <LI><A HREF="#okbc-forwarding-mixin"><code>okbc-forwarding-mixin</code></A>
+  <LI><A HREF="#okbc-kb-mixin"><code>okbc-kb-mixin</code></A>
+  <LI><A HREF="#okbc-side-effects-cause-error-mixin"><code>okbc-side-effects-cause-error-mixin</code></A>
+  <LI><A HREF="#open-p"><code>open-p</code></A>
+  <LI><A HREF="#plist"><code>plist</code></A>
+  <LI><A HREF="#port"><code>port</code></A>
+  <LI><A HREF="#possibilities-for-pattern-matching"><code>possibilities-for-pattern-matching</code></A>
+  <LI><A HREF="#print-abstract-handle-for-kb"><code>print-abstract-handle-for-kb</code></A>
+  <LI><A HREF="#print-cons-to-stream"><code>print-cons-to-stream</code></A>
+  <LI><A HREF="#print-frame-handle"><code>print-frame-handle</code></A>
+  <LI><A HREF="#print-frame-to-stream"><code>print-frame-to-stream</code></A>
+  <LI><A HREF="#print-quasi-symbol-in-kb"><code>print-quasi-symbol-in-kb</code></A>
+  <LI><A HREF="#print-value-to-stream"><code>print-value-to-stream</code></A>
+  <LI><A HREF="#procedure"><code>procedure</code></A>
+  <LI><A HREF="#procedure"><code>procedure</code></A>
+  <LI><A HREF="#procedure-p"><code>procedure-p</code></A>
+  <LI><A HREF="#quasi-symbol"><code>quasi-symbol</code></A>
+  <LI><A HREF="#quasi-symbol-name"><code>quasi-symbol-name</code></A>
+  <LI><A HREF="#quasi-symbol-package"><code>quasi-symbol-package</code></A>
+  <LI><A HREF="#quasi-symbol-reader"><code>quasi-symbol-reader</code></A>
+  <LI><A HREF="#relation-transitive-closure"><code>relation-transitive-closure</code></A>
+  <LI><A HREF="#remote-value"><code>remote-value</code></A>
+  <LI><A HREF="#simple-network-connection"><code>simple-network-connection</code></A>
+  <LI><A HREF="#standard-defaults-kb"><code>standard-defaults-kb</code></A>
+  <LI><A HREF="#structure-kb"><code>structure-kb</code></A>
+  <LI><A HREF="#structure-tuple-kb"><code>structure-tuple-kb</code></A>
+  <LI><A HREF="#target-kb"><code>target-kb</code></A>
+  <LI><A HREF="#tell&ask-defaults-kb"><code>tell&ask-defaults-kb</code></A>
+  <LI><A HREF="#tell&ask-defaults-structure-kb"><code>tell&ask-defaults-structure-kb</code></A>
+  <LI><A HREF="#timeout-for-tell&ask-defaults"><code>timeout-for-tell&ask-defaults</code></A>
+  <LI><A HREF="#tuple-kb"><code>tuple-kb</code></A>
+  <LI><A HREF="#type-of-name"><code>type-of-name</code></A>
+  <LI><A HREF="#unique-id"><code>unique-id</code></A>
+  <LI><A HREF="#walk-form-for-interning-given-kb"><code>walk-form-for-interning-given-kb</code></A>
+  <LI><A HREF="#with-current-kb"><code>with-current-kb</code></A>
+  <LI><A HREF="#with-kb-io-syntax"><code>with-kb-io-syntax</code></A>
+</OL>
+<HR>
+<H3>Table of Variables:</H3>
+<OL>
+  <LI><A HREF="#*abstract-kb-class-names*"><code>*abstract-kb-class-names*</code></A>
+  <LI><A HREF="#*all-known-okbc-compliance-classes*"><code>*all-known-okbc-compliance-classes*</code></A>
+  <LI><A HREF="#*current-kb*"><code>*current-kb*</code></A>
+  <LI><A HREF="#*current-kb-for-io-syntax*"><code>*current-kb-for-io-syntax*</code></A>
+  <LI><A HREF="#*current-location*"><code>*current-location*</code></A>
+  <LI><A HREF="#*current-purpose-for-io-syntax*"><code>*current-purpose-for-io-syntax*</code></A>
+  <LI><A HREF="#*evaluable-predicate-symbols*"><code>*evaluable-predicate-symbols*</code></A>
+  <LI><A HREF="#*existing-connections*"><code>*existing-connections*</code></A>
+  <LI><A HREF="#*keyword-package*"><code>*keyword-package*</code></A>
+  <LI><A HREF="#*kif-meta-extension-symbols*"><code>*kif-meta-extension-symbols*</code></A>
+  <LI><A HREF="#*kif-operator-symbols*"><code>*kif-operator-symbols*</code></A>
+  <LI><A HREF="#*location-list*"><code>*location-list*</code></A>
+  <LI><A HREF="#*network-okbc-kb-mixins*"><code>*network-okbc-kb-mixins*</code></A>
+  <LI><A HREF="#*okbc-class-relation-symbols*"><code>*okbc-class-relation-symbols*</code></A>
+  <LI><A HREF="#*okbc-package*"><code>*okbc-package*</code></A>
+  <LI><A HREF="#*okbc-relation-symbols*"><code>*okbc-relation-symbols*</code></A>
+  <LI><A HREF="#*okbc-standard-class-direct-superclass-alist*"><code>*okbc-standard-class-direct-superclass-alist*</code></A>
+  <LI><A HREF="#*okbc-standard-class-names*"><code>*okbc-standard-class-names*</code></A>
+  <LI><A HREF="#*okbc-standard-facet-names*"><code>*okbc-standard-facet-names*</code></A>
+  <LI><A HREF="#*okbc-standard-names*"><code>*okbc-standard-names*</code></A>
+  <LI><A HREF="#*okbc-standard-slot-names*"><code>*okbc-standard-slot-names*</code></A>
+  <LI><A HREF="#*print-pretty-frame-handles*"><code>*print-pretty-frame-handles*</code></A>
+  <LI><A HREF="#*undefined-value*"><code>*undefined-value*</code></A>
+</OL>
+<HR>
+<H3>Table of Classes and Defstructs:</H3>
+<OL>
+  <LI><A HREF="#abstract-handle"><code>abstract-handle</code></A>
+  <LI><A HREF="#abstract-kb-locator"><code>abstract-kb-locator</code></A>
+  <LI><A HREF="#abstract-network-connection"><code>abstract-network-connection</code></A>
+  <LI><A HREF="#caching-mixin"><code>caching-mixin</code></A>
+  <LI><A HREF="#caching-structure-kb"><code>caching-structure-kb</code></A>
+  <LI><A HREF="#clos-kb"><code>clos-kb</code></A>
+  <LI><A HREF="#clos-only-okbc-mixin"><code>clos-only-okbc-mixin</code></A>
+  <LI><A HREF="#connection"><code>connection</code></A>
+  <LI><A HREF="#connection"><code>connection</code></A>
+  <LI><A HREF="#default-inheritance-mixin"><code>default-inheritance-mixin</code></A>
+  <LI><A HREF="#default-inheritance-structure-kb"><code>default-inheritance-structure-kb</code></A>
+  <LI><A HREF="#enumerator"><code>enumerator</code></A>
+  <LI><A HREF="#exhaustive-enumerator"><code>exhaustive-enumerator</code></A>
+  <LI><A HREF="#file-kb-locator"><code>file-kb-locator</code></A>
+  <LI><A HREF="#file-mixin"><code>file-mixin</code></A>
+  <LI><A HREF="#file-structure-kb"><code>file-structure-kb</code></A>
+  <LI><A HREF="#file-tell&ask-defaults-structure-kb"><code>file-tell&ask-defaults-structure-kb</code></A>
+  <LI><A HREF="#frame-handle"><code>frame-handle</code></A>
+  <LI><A HREF="#frame-name-interning-mixin"><code>frame-name-interning-mixin</code></A>
+  <LI><A HREF="#frames-have-clos-slots-as-okbc-slots-mixin"><code>frames-have-clos-slots-as-okbc-slots-mixin</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#handle-number-of-values-mixin"><code>handle-number-of-values-mixin</code></A>
+  <LI><A HREF="#instance-recording-clos-kb"><code>instance-recording-clos-kb</code></A>
+  <LI><A HREF="#kb"><code>kb</code></A>
+  <LI><A HREF="#kb-network-kb"><code>kb-network-kb</code></A>
+  <LI><A HREF="#local-connection"><code>local-connection</code></A>
+  <LI><A HREF="#local-connection"><code>local-connection</code></A>
+  <LI><A HREF="#network-coercion-mixin"><code>network-coercion-mixin</code></A>
+  <LI><A HREF="#network-enumerator"><code>network-enumerator</code></A>
+  <LI><A HREF="#network-kb"><code>network-kb</code></A>
+  <LI><A HREF="#network-structure-kb"><code>network-structure-kb</code></A>
+  <LI><A HREF="#okbc-forwarding-mixin"><code>okbc-forwarding-mixin</code></A>
+  <LI><A HREF="#okbc-kb-mixin"><code>okbc-kb-mixin</code></A>
+  <LI><A HREF="#okbc-side-effects-cause-error-mixin"><code>okbc-side-effects-cause-error-mixin</code></A>
+  <LI><A HREF="#procedure"><code>procedure</code></A>
+  <LI><A HREF="#procedure"><code>procedure</code></A>
+  <LI><A HREF="#quasi-symbol"><code>quasi-symbol</code></A>
+  <LI><A HREF="#remote-value"><code>remote-value</code></A>
+  <LI><A HREF="#simple-network-connection"><code>simple-network-connection</code></A>
+  <LI><A HREF="#standard-defaults-kb"><code>standard-defaults-kb</code></A>
+  <LI><A HREF="#structure-kb"><code>structure-kb</code></A>
+  <LI><A HREF="#structure-tuple-kb"><code>structure-tuple-kb</code></A>
+  <LI><A HREF="#tell&ask-defaults-kb"><code>tell&ask-defaults-kb</code></A>
+  <LI><A HREF="#tell&ask-defaults-structure-kb"><code>tell&ask-defaults-structure-kb</code></A>
+  <LI><A HREF="#tuple-kb"><code>tuple-kb</code></A>
+</OL>
+<HR>
+<H3>Table of Functions:</H3>
+<OL>
+  <LI><A HREF="#abstract-kb-class-name-from-kb"><code>abstract-kb-class-name-from-kb</code></A>
+  <LI><A HREF="#add-notifications-for-okbc-side-effect"><code>add-notifications-for-okbc-side-effect</code></A>
+  <LI><A HREF="#assert-form-given-kb"><code>assert-form-given-kb</code></A>
+  <LI><A HREF="#assert-frame-definition"><code>assert-frame-definition</code></A>
+  <LI><A HREF="#concrete-kb-class-from-abstract-kb-class-name"><code>concrete-kb-class-from-abstract-kb-class-name</code></A>
+  <LI><A HREF="#connection"><code>connection</code></A>
+  <LI><A HREF="#connection"><code>connection</code></A>
+  <LI><A HREF="#connection-p"><code>connection-p</code></A>
+  <LI><A HREF="#continuable-error-p"><code>continuable-error-p</code></A>
+  <LI><A HREF="#create-frame-handle"><code>create-frame-handle</code></A>
+  <LI><A HREF="#create-frame-primitive-p-sentences"><code>create-frame-primitive-p-sentences</code></A>
+  <LI><A HREF="#current-kb"><code>current-kb</code></A>
+  <LI><A HREF="#decontextualize-aux"><code>decontextualize-aux</code></A>
+  <LI><A HREF="#default-notification-callback-function"><code>default-notification-callback-function</code></A>
+  <LI><A HREF="#directly-get-frame-slots"><code>directly-get-frame-slots</code></A>
+  <LI><A HREF="#ensure-has-facet"><code>ensure-has-facet</code></A>
+  <LI><A HREF="#ensure-has-slot"><code>ensure-has-slot</code></A>
+  <LI><A HREF="#fast-hash-key"><code>fast-hash-key</code></A>
+  <LI><A HREF="#file-kb-locator-pathname"><code>file-kb-locator-pathname</code></A>
+  <LI><A HREF="#find-connection-key"><code>find-connection-key</code></A>
+  <LI><A HREF="#find-or-create-frame-handle"><code>find-or-create-frame-handle</code></A>
+  <LI><A HREF="#frame-handle-frame-type"><code>frame-handle-frame-type</code></A>
+  <LI><A HREF="#frame-handle-id"><code>frame-handle-id</code></A>
+  <LI><A HREF="#frame-handle-kb-id"><code>frame-handle-kb-id</code></A>
+  <LI><A HREF="#frame-handle-p"><code>frame-handle-p</code></A>
+  <LI><A HREF="#frame-handle-plist"><code>frame-handle-plist</code></A>
+  <LI><A HREF="#frame-handle-reader"><code>frame-handle-reader</code></A>
+  <LI><A HREF="#frame-handle-thing"><code>frame-handle-thing</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#get-frames-matching-for-frame-names-required"><code>get-frames-matching-for-frame-names-required</code></A>
+  <LI><A HREF="#get-frames-matching-the-hard-way"><code>get-frames-matching-the-hard-way</code></A>
+  <LI><A HREF="#handle-simple-query"><code>handle-simple-query</code></A>
+  <LI><A HREF="#handle-unhandled-query"><code>handle-unhandled-query</code></A>
+  <LI><A HREF="#handle-unhandled-sentence"><code>handle-unhandled-sentence</code></A>
+  <LI><A HREF="#handles-in-tree-p"><code>handles-in-tree-p</code></A>
+  <LI><A HREF="#host"><code>host</code></A>
+  <LI><A HREF="#inference-level-for-tell&ask-defaults"><code>inference-level-for-tell&ask-defaults</code></A>
+  <LI><A HREF="#intern-frame-handles-if-necessary"><code>intern-frame-handles-if-necessary</code></A>
+  <LI><A HREF="#intern-procedure"><code>intern-procedure</code></A>
+  <LI><A HREF="#intern-quasi-symbol"><code>intern-quasi-symbol</code></A>
+  <LI><A HREF="#intern-remote-value"><code>intern-remote-value</code></A>
+  <LI><A HREF="#kb-has-been-modified-p"><code>kb-has-been-modified-p</code></A>
+  <LI><A HREF="#kb-locator-class-for-kb-type"><code>kb-locator-class-for-kb-type</code></A>
+  <LI><A HREF="#kb-type"><code>kb-type</code></A>
+  <LI><A HREF="#load-kb-from-file"><code>load-kb-from-file</code></A>
+  <LI><A HREF="#load-okbc-kb-from-stream"><code>load-okbc-kb-from-stream</code></A>
+  <LI><A HREF="#load-okbc-kb-internal"><code>load-okbc-kb-internal</code></A>
+  <LI><A HREF="#local-connection"><code>local-connection</code></A>
+  <LI><A HREF="#local-connection"><code>local-connection</code></A>
+  <LI><A HREF="#local-connection-p"><code>local-connection-p</code></A>
+  <LI><A HREF="#make-file-kb-locator"><code>make-file-kb-locator</code></A>
+  <LI><A HREF="#make-structure-tuple-kb"><code>make-structure-tuple-kb</code></A>
+  <LI><A HREF="#name"><code>name</code></A>
+  <LI><A HREF="#notification-callback-function"><code>notification-callback-function</code></A>
+  <LI><A HREF="#open-p"><code>open-p</code></A>
+  <LI><A HREF="#plist"><code>plist</code></A>
+  <LI><A HREF="#port"><code>port</code></A>
+  <LI><A HREF="#possibilities-for-pattern-matching"><code>possibilities-for-pattern-matching</code></A>
+  <LI><A HREF="#print-abstract-handle-for-kb"><code>print-abstract-handle-for-kb</code></A>
+  <LI><A HREF="#print-cons-to-stream"><code>print-cons-to-stream</code></A>
+  <LI><A HREF="#print-frame-handle"><code>print-frame-handle</code></A>
+  <LI><A HREF="#print-frame-to-stream"><code>print-frame-to-stream</code></A>
+  <LI><A HREF="#print-quasi-symbol-in-kb"><code>print-quasi-symbol-in-kb</code></A>
+  <LI><A HREF="#print-value-to-stream"><code>print-value-to-stream</code></A>
+  <LI><A HREF="#procedure-p"><code>procedure-p</code></A>
+  <LI><A HREF="#quasi-symbol-name"><code>quasi-symbol-name</code></A>
+  <LI><A HREF="#quasi-symbol-package"><code>quasi-symbol-package</code></A>
+  <LI><A HREF="#quasi-symbol-reader"><code>quasi-symbol-reader</code></A>
+  <LI><A HREF="#relation-transitive-closure"><code>relation-transitive-closure</code></A>
+  <LI><A HREF="#target-kb"><code>target-kb</code></A>
+  <LI><A HREF="#timeout-for-tell&ask-defaults"><code>timeout-for-tell&ask-defaults</code></A>
+  <LI><A HREF="#type-of-name"><code>type-of-name</code></A>
+  <LI><A HREF="#unique-id"><code>unique-id</code></A>
+  <LI><A HREF="#walk-form-for-interning-given-kb"><code>walk-form-for-interning-given-kb</code></A>
+</OL>
+<HR>
+<H3>Table of Macros:</H3>
+<OL>
+  <LI><A HREF="#defblock-of-okbc-methods"><code>defblock-of-okbc-methods</code></A>
+  <LI><A HREF="#define-default-inheritance-methods"><code>define-default-inheritance-methods</code></A>
+  <LI><A HREF="#defnetwork-okbc-kb"><code>defnetwork-okbc-kb</code></A>
+  <LI><A HREF="#defnetwork-okbc-structure-kb"><code>defnetwork-okbc-structure-kb</code></A>
+  <LI><A HREF="#defokbcclass"><code>defokbcclass</code></A>
+  <LI><A HREF="#defokbcop"><code>defokbcop</code></A>
+  <LI><A HREF="#find-connection"><code>find-connection</code></A>
+  <LI><A HREF="#procedure"><code>procedure</code></A>
+  <LI><A HREF="#procedure"><code>procedure</code></A>
+  <LI><A HREF="#with-current-kb"><code>with-current-kb</code></A>
+  <LI><A HREF="#with-kb-io-syntax"><code>with-kb-io-syntax</code></A>
+</OL>
+<HR>
+<DL>
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*abstract-kb-class-names*">*abstract-kb-class-names*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of OKBC KB classes and mixins that are known to be abstract.  Nobody
+   Should ever instantiate these.  This list is used by the get-kbs-of-type
+   to make sure that the right KBs are found.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*all-known-okbc-compliance-classes*">*all-known-okbc-compliance-classes*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of the different compliance classes.  Each element is either
+   a keyword denoting the compliance class or a list of the form
+   <code>(&lt;&lt;compliance-class-keyword&gt;&gt; &rest
+   &lt;&lt;behavior-value-pairs&gt;&gt;)</code>
+   where <code>&lt;&lt;behavior-value-pairs&gt;&gt;</code> are two-lists of
+   behavior keywords,and the necessary values which must be present of an
+   implementation for this compliance class to be meaningful.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*current-kb*">*current-kb*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>An internal variable whose value is the current KB.  This is set by
+   <code>goto-kb</code>.  Back end implementors may have some reason to
+   bind this, but should ideally use <code><A HREF="#current-kb">current-kb</A></code> and
+   <code><A HREF="#with-current-kb">with-current-kb</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*current-kb-for-io-syntax*">*current-kb-for-io-syntax*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A variable used to determine the current KB to use for the purpose of IO
+   Syntax determination.  This is important because sometimes an implementation
+   has a need to read, or print things with respect to a KB other than the
+   <code><A HREF="#current-kb">current-kb</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*current-location*">*current-location*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A counter used in the implementation of <code>value-as-string</code>,
+   <code><A HREF="#print-value-to-stream">print-value-to-stream</A></code>, <code><A HREF="#print-cons-to-stream">print-cons-to-stream</A></code>, and
+   <code><A HREF="#print-frame-to-stream">print-frame-to-stream</A></code>.  It is the responsibility of any method
+   on any of these generic functions to increment this counter by the number
+   of characters it prints to the stream.  See also
+   <code><A HREF="#*location-list*">*location-list*</A></code>
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*current-purpose-for-io-syntax*">*current-purpose-for-io-syntax*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A special bound inside <code><A HREF="#with-kb-io-syntax">with-kb-io-syntax</A></code> and similar forms
+   to specify the user's selection of IO syntax purpose.  This is important
+   because <code>print-object</code> methods need to be sensitive to the
+   user's IO syntax purpose selection.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*evaluable-predicate-symbols*">*evaluable-predicate-symbols*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of the names of evaluable predicate symbols known by the OKBC default
+   tell&ask implementation.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*existing-connections*">*existing-connections*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>The hash table mapping connection specifications to all of the known
+   connections.  This is used by <code>establish-connection</code> to make sure
+   that an existing connection is returned if it is called with the same
+   args on multiple occasions.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*keyword-package*">*keyword-package*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A variable bound to the keyword package.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*kif-meta-extension-symbols*">*kif-meta-extension-symbols*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of the names of magic symbols that extend KIF.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*kif-operator-symbols*">*kif-operator-symbols*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of symbols known to OKBC's default tell&ask implementation that
+   represent KIF operators according to the KIF grammar.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*location-list*">*location-list*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of frame location specifications generated during the printing of
+   values by <code>value-as-string</code>,
+   <code><A HREF="#print-value-to-stream">print-value-to-stream</A></code>, <code><A HREF="#print-cons-to-stream">print-cons-to-stream</A></code>, and
+   <code><A HREF="#print-frame-to-stream">print-frame-to-stream</A></code>.  Each element in the list is of the
+   form <code>(&lt;&lt;start-index&gt;&gt; &lt;&lt;end-index&gt;&gt;
+   &lt;&lt;frame&gt;&gt;)</code>, where &lt;&lt;start-index&gt;&gt; is the
+   index in the output stream as measured by <code><A HREF="#*current-location*">*current-location*</A></code>
+   of the start of the printed representation of the frame, and
+   <code>&lt;&lt;end-index&gt;&gt;</code> is the index of the character
+   following the printed representation of the frame.  A specification
+   must be pushed onto this list for each frame reference printed.  The
+   order of the list is important.  It is built up by pushing frame
+   specifications on as they are encountered in the printing process.
+   When printing is finished the list is reversed.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*network-okbc-kb-mixins*">*network-okbc-kb-mixins*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of the default mixin classes to add to network stub KBs.
+     See <code><A HREF="#defnetwork-okbc-kb">defnetwork-okbc-kb</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*okbc-class-relation-symbols*">*okbc-class-relation-symbols*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of symbols naming OKBC class relations that are part of the
+   tell&ask language and the knowledge model.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*okbc-package*">*okbc-package*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A variable bound to the OKBC package.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*okbc-relation-symbols*">*okbc-relation-symbols*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of the non-class relation symbols known to the OKBC default
+   OKBC tell&ask implementation.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*okbc-standard-class-direct-superclass-alist*">*okbc-standard-class-direct-superclass-alist*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>An alist of the form <code>((class . superclasses)...)</code> that maps
+   an OKBC knowledge model class onto its required superclasses.  This is
+   used in bootstrapping the kernel OKBC ontology in some back ends.  The
+   special key <code>:othersise</code> is used to find the superclasses for
+   all classes not found in the alist.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*okbc-standard-class-names*">*okbc-standard-class-names*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of all of the standard class names as specified in the OKBC knowledge
+   model section 2.10.1.  Note that this does not include all of the classes
+   that are really entailed by the knowledge model.  Other classes can also
+   be found in <code><A HREF="#*okbc-class-relation-symbols*">*okbc-class-relation-symbols*</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*okbc-standard-facet-names*">*okbc-standard-facet-names*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of all of the standard facet names defined in the OKBC knowledge
+   model specification in section 2.10.2.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*okbc-standard-names*">*okbc-standard-names*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of all of the standard name symbols in the OKBC knowledge model and
+   tell&ask language.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*okbc-standard-slot-names*">*okbc-standard-slot-names*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A list of all of the standard slot names defined in the OKBC knowledge
+   model specification in section 2.10.3.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*print-pretty-frame-handles*">*print-pretty-frame-handles*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A flag used to tell implementors of ok-back:print-abstract-handle-for-kb
+   to print frame handles as prettily as possible.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*undefined-value*">*undefined-value*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A magic value used in <code><A HREF="#abstract-handle">abstract-handle</A></code>s to indicate that it is
+   not known within the current implementation what real-world object is
+   denoted by the handle.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="abstract-handle">abstract-handle</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The abstract superclass structure class of all "handle" objects used
+   by the OKBC implementation (e.g., <code>frame-handle</code> and
+   <code>remote-value</code>).  Handles are uniquely identified by a pair
+   of fixnums, the ID and the KB-ID.  A slot called THING provides a back
+   pointer to the real object denoted by the handle (this is never the case
+   for handles received by clients from network-based servers).<P>
+
+   Note that there is nothing magical about the KB-ID slot.  The fact that
+   a handle object contains the kb-id of a particular KB in the slot does
+   <i>not</i> necessarily mean that the object resides in the KB.<P>
+
+   A special KB-ID of -1 is used to denote handles for OKBC defined handles,
+   such as for the OKBC standard names.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="abstract-kb-class-name-from-kb">abstract-kb-class-name-from-kb</A></B></code>  </TD><TD valign=top align=left> (kb) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Given a <code><A HREF="#kb">kb</A></code> instance returns the abstract
+   class name for it.  For each KB class that the back end author defines,
+   an abstract KB class must be defined, named in the ok-back package, so that
+   the network transport layer can communicate the right abstract notion of
+   the KB to clients.  For a KB called <code>foo</code>, an abstract KB class
+   called <code>ok-back::abstract-foo-kb</code> should be defined, and should
+   be the left-most mixin to <code>foo</code>.  This generic function
+   establishes the mapping between the KB and the abstract KB class.<P>
+
+   Back end authors should be careful to define fill in this protocol, since
+   a KB class can be made "compliant" by satisfying all of the required
+   official OKBC API requirements, but without a suitable mapping between
+   concrete and abstract KB classes, the KB will not show up as an available
+   kb-type over network connections.  See also
+   <code><A HREF="#concrete-kb-class-from-abstract-kb-class-name">concrete-kb-class-from-abstract-kb-class-name</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="abstract-kb-locator">abstract-kb-locator</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The abstract superclass structure class for KB locators.  it is not required
+   that KB locator classes be subclasses of this class, but making it so will
+   allow the reuse of more OKBC-provided code.  An
+   <code>abstract-kb-locator</code> contains a name for the KB denoted and a
+   KB-type name.  This allows multiple locators of the same name for KBs of
+   different types.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="abstract-network-connection">abstract-network-connection</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The abstract superclass of all OKBC network connections.
+   If you plan to define your own class of network connection, you <i>must</i>
+   make it a subclass of this class.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="add-notifications-for-okbc-side-effect">add-notifications-for-okbc-side-effect</A></B></code>  </TD><TD valign=top align=left> (stream function args server-type) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>This is a hook to allow particular OKBC server
+   implementations to log side effects and notify addordingly.
+   <code>Stream</code> is the TCP stream being used by the server.
+   <code>Function</code> and <code>args</code> are the function and arguments
+   being executed by the server.  <code>Server-type</code> is some unique
+   identifying key known to the server implementor.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="assert-form-given-kb">assert-form-given-kb</A></B></code>  </TD><TD valign=top align=left> (form frame-handle-mapping-table handle-to-name-mapping-table kb value-selector kb-local-only-p action sentence-action language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Internal protocol used by
+   <code>load-okbc-kb</code>.  You can define methods for
+   <code><A HREF="#walk-form-for-interning-given-kb">walk-form-for-interning-given-kb</A></code> and for
+   <code><A HREF="#assert-form-given-kb">assert-form-given-kb</A></code> in order to handle arbitrary definitional
+   forms, such as KIF sentences.  The contract of methods specialized on this
+   generic function is to return non-NIL if it able successfully to recognise
+   and assert the form.  It is the responsibilty of methods that handle forms
+   to make any necessary frame handle substitutions by looking in the
+   frame-handle-mapping-table.<P>
+
+   Note: This generic function uses <code>OR</code> method combination.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="assert-frame-definition">assert-frame-definition</A></B></code>  </TD><TD valign=top align=left> (form frame-handle-mapping-table handle-to-name-mapping-table kb value-selector kb-local-only-p action sentence-action language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Is passed a <code>define-OKBC-frame</code> <code>form</code>,
+   and asserts that frame into <code><A HREF="#kb">kb</A></code>.
+   <code>Frame-handlemapping-table</code> is used to map symbols found in the
+   form into frame handles, and is side-effected for any new frame handles
+   allocated during the frame definition loading process.  See
+   <code><A HREF="ok-utils-lisp-package-docs.html#load-okbc-kb">ok-utils:load-okbc-kb</A></code> and
+   <code><A HREF="#load-okbc-kb-internal">load-okbc-kb-internal</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="caching-mixin">caching-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>A mixin KB class that provides a cache wrapper for OKBC
+   operations.  This class is useful when the underlying KB implementation is
+   slow, inefficient, or for which <code>default-inheritance-mixin</code> is
+   being used.<P>
+
+   Calls to all side-effect free back-end operations are cached against the
+   arguments to those calls in a <code>trie</code> held in the
+   <code>cache</code> slot.  Caching can be enabled or disabled for the KB
+   using the <code>allow-caching-p</code> slot, and caching can be globally
+   disabled using <code>*allow-okbc-caching-p*</code>.<P>
+
+   What causes a cache flush is controlled by the <code>caching-policy</code>
+   slot.  If the value of this slot is <code>:defensive</code> (the default)
+   then the cache will be flushed before any side-effecting operation, and
+   will be disabled during the dynamic extent of the side-effect.
+   If <code>caching-policy</code> has the value <code>:agressive</code>, then
+   caching is permitted at all times, and the cache is only flushed either by
+   explicit calls to <code>ok-cache:flush-cache</code>, or by calls to
+   <code>ok-cache:register-side-effect</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="caching-structure-kb">caching-structure-kb</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>A defstruct <code>KB</code> class that is the <code>structure-class</code>
+   equivalent of a KB class built on <code>caching-mixin</code>,
+   and <code>kb</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="clos-kb">clos-kb</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>A class of OKBC kb that views all CLOS standard-object
+   instances and all defstruct structure-object instances as frames.  The
+   respective CLOS or defstruct slots appear as OKBC slots.  Note that this
+   KB class is useful for looking inside random CLOS objects with OKBC tools,
+   but it is not in itself a compliant OKBC KB.  You can't expect everything
+   to work.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="clos-only-okbc-mixin">clos-only-okbc-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>A mixin class of OKBC kb that views all CLOS standard-object
+   instances and all defstruct structure-object instances as frames.  This
+   is a subclass of <code>frame-name-interning-mixin</code>, from which it
+   gets the ability to look inside CLOS and defstruct objects, but if you
+   mix this class in, the only sorts of slots that will be found will be the
+   CLOS/defstruct ones.  This mixin cannot sensibly be mixed into a KB class
+   that wants to find frames, slots or facets elsewhere.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="concrete-kb-class-from-abstract-kb-class-name">concrete-kb-class-from-abstract-kb-class-name</A></B></code>  </TD><TD valign=top align=left> (name) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>This is the inverse operation of
+   <code><A HREF="#abstract-kb-class-name-from-kb">abstract-kb-class-name-from-kb</A></code> and maps an abstract KB name
+   to a concrete KB class name, for example, <code>abstract-foo-kb</code>
+   would be mapped to <code>foo</code>.<P>
+
+   Back end authors should be careful to <code>EQL</code> specialize this
+   generic function for their KB classes, otherwise the network layer will not
+   hook up properly.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="connection">connection</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The abstract superclass of all connections known to OKBC.
+   Interesting subclasses are <code>local-connection</code> and
+   <code>network-connection</code>.  Back end implementors who need to
+   impose their own multithreading or authentication model will need to
+   define their own <code>connection</code> classes.<P>
+
+   The <code>notification-callback-function</code> is a function of
+   <code>(arg &optional (stream *trace-output*))</code> that is called
+   by the OKBC implementation (particularly the network transport layer)
+   in order to pass warnings and notifications back to the client.
+   Applications can register their own ways of handling notifications,
+   perhaps by dribbling into a special window, by overriding this
+   function.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>connection</B></code>  </TD><TD valign=top align=left> (kb) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>Returns the <code><A HREF="#connection">connection</A></code> associated with the
+   <code><A HREF="#kb">kb</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="connection">connection</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The abstract superclass of all connections known to OKBC.
+   Interesting subclasses are <code>local-connection</code> and
+   <code>network-connection</code>.  Back end implementors who need to
+   impose their own multithreading or authentication model will need to
+   define their own <code>connection</code> classes.<P>
+
+   The <code>notification-callback-function</code> is a function of
+   <code>(arg &optional (stream *trace-output*))</code> that is called
+   by the OKBC implementation (particularly the network transport layer)
+   in order to pass warnings and notifications back to the client.
+   Applications can register their own ways of handling notifications,
+   perhaps by dribbling into a special window, by overriding this
+   function.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>connection</B></code>  </TD><TD valign=top align=left> (kb) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>Returns the <code><A HREF="#connection">connection</A></code> associated with the
+   <code><A HREF="#kb">kb</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="connection-p">connection-p</A></B></code>  </TD><TD valign=top align=left> (thing) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Is   if   thing  is a connection, and   otherwise.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="continuable-error-p">continuable-error-p</A></B></code>  </TD><TD valign=top align=left> (thing) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Returns   if   thing  is a continuable error, and   
+otherwise.  An error is said to be continuable only if the state of the KB
+is known not to have been damaged by the error in such a way that the
+behavior of subsequent OKBC operations becomes undefined.  Thus, although
+the signalling of a continuable error will interrupt any processing
+currently being performed, subsequent OKBC calls will be well defined.
+After a noncontinuable error, the state of the KB and the behavior of the
+KRS and application are undefined.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="create-frame-handle">create-frame-handle</A></B></code>  </TD><TD valign=top align=left> (for-thing kb &optional (unique-key nil) (object-trie-node nil)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Internal protocol used to create FRS-independent frame handles.
+   <code>For-thing</code> is the object being represented by the frame
+   handle in <code><A HREF="#kb">kb</A></code>.  <code>Unique-key</code> is a key used to
+   identify the thing, usually itself.  <code>Object-trie-node</code>, if
+   supplied, is a node in a trie in an object to frame handle mapping table
+   for the thing.<P>
+
+   This is deep internal protocol.  Back end implementors should almost
+   certainly <i>not</i> call this function, but should call
+   <code>okbc:frs-independent-frame-handle</code> instead.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="create-frame-primitive-p-sentences">create-frame-primitive-p-sentences</A></B></code>  </TD><TD valign=top align=left> (frame primitive-p kb) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>The sentences to assert during a create-frame operation that are a
+    consequence of the setting of the primitive-p argument.  The sentences
+    returned should be closed.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="current-kb">current-kb</A></B></code>  </TD><TD valign=top align=left> () </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Returns the current KB.  The current KB is set using   goto-kb .
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="decontextualize-aux">decontextualize-aux</A></B></code>  </TD><TD valign=top align=left> (value from-context kb) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A useful generic function that implements most of the hard
+   part of decontextualization for the back end author.  To use this
+   function, the back end author should specialize
+   <code><A HREF="#decontextualize-internal">decontextualize-internal</A></code> as follows:<PRE>
+   (defmethod <A HREF="#decontextualize-internal">decontextualize-internal</A>
+      ((value t) (from-context t) (<A HREF="#kb">kb</A> foo-kb))
+     (<A HREF="#decontextualize-aux">decontextualize-aux</A> value from-context <A HREF="#kb">kb</A>))</PRE>
+   The back end author will then need to supply <code><A HREF="#decontextualize-aux">decontextualize-aux</A></code>
+   methods only for the specific objects that will need to be decontextualized.
+   For example, if frames are implemented in the <code>foo-kb</code> class as
+   instances of the class <code><A HREF="#frame">frame</A></code>, decontextualization can be
+   handled as follows:<PRE>
+   (defmethod <A HREF="#decontextualize-aux">ok-back:decontextualize-aux</A>
+              ((value <A HREF="#frame">frame</A>) (from-context t) (<A HREF="#kb">kb</A> foo-kb))
+     (<A HREF="#frs-independent-frame-handle-internal">ok-back:frs-independent-frame-handle-internal</A> value <A HREF="#kb">kb</A> nil))</PRE>
+   Back end authors should also be careful to handle the correct
+   decontextualizations for standard frames.  Thus, it may be necessary to
+   write the above method as:<PRE>
+   (defmethod <A HREF="#decontextualize-aux">ok-back:decontextualize-aux</A>
+              ((value <A HREF="#frame">frame</A>) (from-context t) (<A HREF="#kb">kb</A> foo-kb))
+      (multiple-value-bind (<A HREF="#frame">frame</A>? found-p)
+	(<A HREF="#coerce-to-frame-internal">coerce-to-frame-internal</A> value <A HREF="#kb">kb</A> nil nil)
+	(if found-p
+	    (let ((<A HREF="#name">name</A> (<A HREF="#get-frame-name-internal">get-frame-name-internal</A> <A HREF="#frame">frame</A>? <A HREF="#kb">kb</A> nil)))
+	      (or (first (member <A HREF="#name">name</A> <A HREF="#*okbc-standard-names*">*okbc-standard-names*</A>))
+		  (<A HREF="#frs-independent-frame-handle-internal">ok-back:frs-independent-frame-handle-internal</A> value <A HREF="#kb">kb</A> nil)))
+	    (<A HREF="#frs-independent-frame-handle-internal">ok-back:frs-independent-frame-handle-internal</A>
+              value <A HREF="#kb">kb</A> nil))))</PRE>
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="default-inheritance-mixin">default-inheritance-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>A mixin class for OKBC KBs that provides default
+   implementations of the OKBC knowledge model's inheritance axioms.  Mixing
+   in this class will give a complete implementation of methods for the
+   inference levels <code>:taxonomic</code>, and <code>:all-inferable</code>
+   for all of the operations requiring inheritance.  The back end implementor
+   need only define methods for these oprtations <code>:eql</code> specialized
+   on the inference-level <code>:direct</code> to achieve compliance.  See
+   also <code>define-default-inheritance-methods</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="default-inheritance-structure-kb">default-inheritance-structure-kb</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>A defstruct <code>KB</code> class that is the <code>structure-class</code>
+   equivalent of a KB class built on <code>default-inheritance-mixin</code>
+   <code>caching-mixin</code>, and <code>kb</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="default-notification-callback-function">default-notification-callback-function</A></B></code>  </TD><TD valign=top align=left> (arg &optional (stream *trace-output*)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>A default implementation of the <code><A HREF="#notification-callback-function">notification-callback-function</A></code>
+   on <code><A HREF="#connection">connection</A></code>s.  It simply prints out the value of
+   <code>arg</code> to the specified <code>stream</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="defblock-of-okbc-methods">defblock-of-okbc-methods</A></B></code>  </TD><TD valign=top align=left> (class (&key modifier condition) &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>This macro is used to generate a set of methods on a particular KB class
+   for some subset of the OKBC operations.  It is particularly useful is
+   a back end implementor wants to implement a set of daemon or wrapper
+   methods to do operations like notification or caching.  <code>modifier</code>
+   is a defmethod modifier, and <code>condition</code> is a predicate or one
+   argument called with the name of an OKBC operation used to
+   determine whether a method should be defined.  <code>Body</code> can be
+   either a set of forms to put in the body of the method, or a function
+   name to call at macroexpansion to compute the code for the method body.
+   Within the body of the method, the arguments for the method will have
+   the appropriate names specified in the specification.  These can be computed
+   using <code><A HREF="ok-utils-lisp-package-docs.html#okbcop-args">ok-utils:okbcop-args</A></code>.
+   For example,<PRE>
+   (ok-back::defblock-of-okbc-methods my-kb
+      (:modifier :after :condition <A HREF="ok-utils-lisp-package-docs.html#causes-side-effects-p">ok-utils:causes-side-effects-p</A>)
+      (format t "~%Some side effect just happened."))</PRE>
+   will define one <code>:after</code> daemon method on the class
+   <code>my-kb</code> for every side-effecting
+   OKBC operation that prints out a message after the side-effect has happened.
+   In the following example, a tailored trace message is printed out for
+   all non-side-effect causing operations.<PRE>
+   (defun doesnt-cause-side-effects-p (x)
+     (not (<A HREF="ok-utils-lisp-package-docs.html#causes-side-effects-p">ok-utils:causes-side-effects-p</A> x)))
+
+   (defun trace-message-body (op-name)
+     (format t "~%Entering ~S" op-name)
+     (let ((results (multiple-value-list (call-next-method))))
+       (format t "~%Exiting ~S with results ~{~S~^, ~}" op-name results)
+       (values-list results)))
+
+   (ok-back::defblock-of-okbc-methods my-kb
+      (:modifier :around :condition doesnt-cause-side-effects-p)
+      trace-message-body)</PRE>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="define-default-inheritance-methods">define-default-inheritance-methods</A></B></code>  </TD><TD valign=top align=left> ((&rest exclude) &rest classes) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Defines a collection of default inheritance methods for the specified
+   <code>classes</code>.  The methods generated are functionally equivalent to
+   those generated for <code><A HREF="#default-inheritance-mixin">default-inheritance-mixin</A></code>.  This macro
+   is useful either if you are defining your own KB class and it is
+   inconvenient to mix in <code><A HREF="#default-inheritance-mixin">default-inheritance-mixin</A></code> and still
+   get the right method combination, or for some reason some of the
+   default inheritance methods are undesirable.  If this latter case applies,
+   the <code>exclude</code> option can be used.  Any back end generic function
+   named in the <code>exclude</code> list will not have a default
+   inheritance method defined for the specified classes.  The
+   <code>exclude</code> list can contain any of the following symbols:<pre>
+   <A HREF="#frame-has-slot-p-internal">frame-has-slot-p-internal</A>
+   <A HREF="#get-class-instances-internal">get-class-instances-internal</A>
+   <A HREF="#get-class-subclasses-internal">get-class-subclasses-internal</A>
+   <A HREF="#get-class-superclasses-internal">get-class-superclasses-internal</A>
+   <A HREF="#get-facet-values-in-detail-internal">get-facet-values-in-detail-internal</A>
+   <A HREF="#get-frame-slots-internal">get-frame-slots-internal</A>
+   <A HREF="#get-frames-with-facet-value-internal">get-frames-with-facet-value-internal</A>
+   <A HREF="#get-frames-with-slot-value-internal">get-frames-with-slot-value-internal</A>
+   <A HREF="#get-instance-types-internal">get-instance-types-internal</A>
+   <A HREF="#get-slot-facets-internal">get-slot-facets-internal</A>
+   <A HREF="#get-slot-values-in-detail-internal">get-slot-values-in-detail-internal</A>
+   <A HREF="#slot-has-facet-p-internal">slot-has-facet-p-internal</A>
+   <A HREF="#subclass-of-p-internal">subclass-of-p-internal</A></PRE>
+
+   In addition, the following symbols may also be provided.  These will
+   inhibit the generation of methods to compute the <code>:direct</code>
+   inference-level versions of <code><A HREF="#get-frames-with-slot-value-internal">get-frames-with-slot-value-internal</A></code>
+   and <code><A HREF="#get-frames-with-facet-value-internal">get-frames-with-facet-value-internal</A></code> respectively.  These
+   latter options are useful for sentential systems that have an efficiently
+   indexed way to perform the direct check.<PRE>
+   <A HREF="#get-frames-with-slot-value-internal-direct">get-frames-with-slot-value-internal-direct</A>
+   <A HREF="#get-frames-with-facet-value-internal-direct">get-frames-with-facet-value-internal-direct</A></PRE>
+
+   For example,<PRE>
+     (<A HREF="#define-default-inheritance-methods">define-default-inheritance-methods</A>
+       (<A HREF="#get-frames-with-slot-value-internal-direct">ok-back:get-frames-with-slot-value-internal-direct</A>
+        <A HREF="#get-frames-with-facet-value-internal-direct">ok-back:get-frames-with-facet-value-internal-direct</A>)
+       <A HREF="#tuple-kb">tuple-kb</A>
+       <A HREF="#structure-tuple-kb">structure-tuple-kb</A>)</PRE>
+   defines inheritance mthods for the classes <code><A HREF="#tuple-kb">tuple-kb</A></code> and
+   <code><A HREF="#structure-tuple-kb">structure-tuple-kb</A></code> except for the direct inference-level
+   versions of <code><A HREF="#get-frames-with-slot-value-internal">get-frames-with-slot-value-internal</A></code> and
+   <code><A HREF="#get-frames-with-facet-value-internal">get-frames-with-facet-value-internal</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="defnetwork-okbc-kb">defnetwork-okbc-kb</A></B></code>  </TD><TD valign=top align=left> (name (&rest mixins)) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Defines network stub Kb classes for the KB class <code><A HREF="#name">name</A></code>.
+   The network layer automatically generates network stub classes for
+   KB classes that it doesn't know.  This macro allows the opportunity to
+   override the default behavior, possibly adding extra mixins, such as
+   <code><A HREF="#caching-mixin">caching-mixin</A></code>.  The default mixins used for network stub KB
+   classes is defined in <code><A HREF="#*network-okbc-kb-mixins*">*network-okbc-kb-mixins*</A></code>.<P>
+
+   Another reason for using this macro would be
+   for an application in which methods are defined for the KB class on the
+   client side.  This is a rare, but legitimate use.  Without the network
+   stub class (and the abstract class) being defined, these methods cannot
+   be added.  For example, if we had an application that made a strong
+   assumption about all frames being named, but ended up communicating with
+   a KB that allowed annonymous frames, we might want to allocate frame names
+   on the client side for this particular KB class.  For example, in the
+   kb class <code>my-kb</code> we might do the following:<PRE>
+   (<A HREF="#defnetwork-okbc-kb">ok-back:defnetwork-okbc-kb</A> my-kb (<A HREF="#caching-mixin">ok-back:caching-mixin</A>))
+
+   (defvar *name-to-frame-mapping-table* (make-hash-table))
+
+   (defmethod <A HREF="#get-frame-name-internal">ok-back:get-frame-name-internal</A> :around
+      ((<A HREF="#frame">frame</A> t) (<A HREF="#kb">kb</A> ok-back:my-kb-network-kb) (kb-local-only-p t))
+     (or (gethash <A HREF="#frame">frame</A> *name-to-frame-mapping-table*)
+         (let ((result (call-next-method)))
+           (if result
+               result
+               (let ((<A HREF="#name">name</A> (gentemp)))
+                  (setf (gethash <A HREF="#frame">frame</A> *name-to-frame-mapping-table*) <A HREF="#name">name</A>)
+                  <A HREF="#name">name</A>)))))</PRE>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="defnetwork-okbc-structure-kb">defnetwork-okbc-structure-kb</A></B></code>  </TD><TD valign=top align=left> (name) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>This is the defstruct equivalent of <code><A HREF="#defnetwork-okbc-kb">defnetwork-okbc-kb</A></code>.
+   Because this applies to defstruct KBs, no mixins apply.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="defokbcclass">defokbcclass</A></B></code>  </TD><TD valign=top align=left> (name (&rest superclasses) (&rest slots) &rest options) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>A macro just like <code>defclass</code>, which should be used when defining
+   any class that is part of the OKBC implementation.  This macro is used to
+   make sure that all OKBC classes get finalized properly for implementations
+   that are to be run in compilerless mode.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="defokbcop">defokbcop</A></B></code>  </TD><TD valign=top align=left> (&whole whole name (&rest arguments) &key doc-string (default-body nil default-body-supplied-p) (standard-default-body nil standard-default-body-supplied-p) (tell&ask-default-body nil tell&ask-default-body-supplied-p) monitor-body modification-body advice-body (arguments-to-kb-specialize (quote (kb kb-type))) (returned-values nil) (potentially-functional-arguments nil) (causes-side-effects-p nil) (compliance-classes nil) (enumerator nil) (which-ends (quote (:back :front))) (manual-category nil)) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Defines a macro for defining those OKBC operations that are
+   implemented as generic functions.<P>
+
+   For an operation called <code>okbc:name</code>, a function is generated and a
+   compiler macro called <code>okbc:name</code>, along with a
+   <code>defgeneric</code> form called <code>ok-back:name-INTERNAL</code>,
+   and in some cases, methods on that generic function.  Numerous other methods
+   on <code>ok-back:name-INTERNAL</code>, functions and compiler macros are
+   also generated for such purposes as cache wrapping and style checking.<P>
+   <DL>
+   <DT>name  <DD>- the name for the user-level OKBC function,
+   <DT>arguments <DD>- the arglist to the top-level function.  Arguments to
+                the left of the &key must have a known type.
+   <DT>doc-string <DD>- documentation for the top-level function
+   <DT>default-body <DD>- if supplied this is used as the body for the
+                  default method for this top-level function.  If this is not
+                  provided then no default (<code>T</code> specialized) method
+                  is provided and an error will be signaled if this function
+                  is invoked on an unknown KB type.
+   <DT>standard-default-body <DD>- the same as <code>default-body</code>, only
+                           this default applies
+                           only to the <code><A HREF="#standard-defaults-kb">standard-defaults-kb</A></code> middle
+                           end.
+   <DT>tell&ask-default-body <DD>- the same as <code>default-body</code>, only
+                           this default applies
+                           only to the <code><A HREF="#tell&ask-defaults-kb">tell&ask-defaults-kb</A></code> middle
+                           end.
+   <DT>monitor-body <DD>- if supplied, is code that we insert into the generated
+                  function and compiler macro.
+   <DT>modification-body <DD>- if supplied, is code that we insert into an after
+                       method on <code>ok-back:name-INTERNAL</code>.
+   <DT>arguments-to-kb-specialize <DD>- is the list of the names of the
+                               arguments to
+                               the default method which should be specialized
+                               on <code><A HREF="#kb">kb</A></code>
+   <DT>returned-values <DD>- the value or list of values returned.  Mandatory.
+   <DT>potentially-functional-arguments <DD>- a list of the names of arguments
+                               that might take on functional values, such as
+                               <code>:test</code>.
+   <DT>causes-side-effects-p <DD>- when true asserts that the okbcop causes
+                      side effects when called.  This is important for proxy
+                      OKBC implementations so that they know when to flush
+                      caches.
+   <DT>compliance-classes <DD>- a keyword or list of keywords naming the
+                      compliance classes of which this op is a member.
+                      Mandatory OKBC ops must be in at least one compliance
+                      class.
+   <DT>enumerator <DD>- when true, generates an enumerator OKBCOP as well.
+   <DT>which-ends <DD>- the <code>:back</code> or <code>:front</code> end
+                        applicability for this op.
+   <DT>manual-category <DD>- a keyword naming the operator category in the
+                             manual.
+   </DL>
+  
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="directly-get-frame-slots">directly-get-frame-slots</A></B></code>  </TD><TD valign=top align=left> (frame kb overall-inference-level slot-type kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A generic function that provides a hook into OKBC's default
+   inheritance scheme.  This generic function is called during the inherited
+   computation of okbc:get-frame-slots for each class encountered.
+   <code>overall-inference-level</code> is the inference level that was used
+   in the outermost call to <code>okbc:get-frame-slots</code>.  This is
+   useful because, for example, you might want to perform inferences on
+   slot domains at higher inference levels.  You may not want to handle these
+   in the <code>:direct</code> method for
+   <code><A HREF="#get-slot-values-internal">ok-back:get-slot-values-internal</A></code> because this is more than
+   just a direct inference.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="ensure-has-facet">ensure-has-facet</A></B></code>  </TD><TD valign=top align=left> (facet slot slot-type kb kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A generic function to ensure that the <code><A HREF="#kb">kb</A></code>
+   has a definition for the <code><A HREF="#facet">facet</A></code> on the <code><A HREF="#slot">slot</A></code> of the
+   necessary <code><A HREF="#slot-type">slot-type</A></code>.  This is called by the default
+   implementation of <code>create-frame</code> for the
+   <code><A HREF="#tell&ask-defaults-kb">tell&ask-defaults-kb</A></code> defaults.  If you are using the tell&ask
+   defaults middle end, and are not shadowing the default implementation of
+   <code>create-frame</code> you will have to specialize this generic
+   function.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="ensure-has-slot">ensure-has-slot</A></B></code>  </TD><TD valign=top align=left> (slot slot-type kb kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A generic function to ensure that the <code><A HREF="#kb">kb</A></code>
+   has a definition for the <code><A HREF="#slot">slot</A></code> of the necessary
+   <code><A HREF="#slot-type">slot-type</A></code>.  This is called by the default implementation
+   of <code>create-frame</code> for the <code><A HREF="#tell&ask-defaults-kb">tell&ask-defaults-kb</A></code>
+   defaults.  If you are using the tell&ask defaults middle end, and
+   are not shadowing the default implementation of <code>create-frame</code>
+   you will have to specialize this generic-function.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="enumerator">enumerator</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The abstract superclass of all enumerators in OKBC.  OKBC provides two
+   subclasses that are instantiated by code in the OKBC kernel:
+   <code>exhaustive-enumerator</code> and <code>network-enumerator</code>.
+   A back end author who wants to make an enumerator class for a specific back
+   end (such as for a KB that supports database cursors), should subclass
+   this class.<P>
+
+   All enumerators are created as the result of an enumeration over some
+   OKBC call associated with a particular KB (except for
+   <code>enumerate-list</code>).  This KB is stored in the
+   <code>associated-kb</code> slot.  The <code>ID</code> slot is used by the
+   network layer,and the <code>freed</code> slot is set to true when
+   <code>free</code> is called on the enumerator.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="exhaustive-enumerator">exhaustive-enumerator</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>A simple class of enumerator used by the OKBC kernel to implement all of
+   the default implementations of the enumerator operations.  The enumerator
+   is "exhaustive" in the sense that it fetches the exhaustive set of all
+   the values it could possibly return, and then caches them locally in the
+   <code>all-elements</code>, dispensing them on demand.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="fast-hash-key">fast-hash-key</A></B></code>  </TD><TD valign=top align=left> (thing) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>In some Lisp implementations, some data structures hash
+   much faster or more evenly than others.  For example, symbols might have
+   better hashing behavior than CLOS instances.  Because of this difference
+   in performance, a number of places in the OKBC implementation indirect
+   before hashing occurs from objects to the hash keys that give faster hashing
+   for those objects.  <P>
+
+   This generic function maps from an object to the fast-hash-key for that
+   object.  If there is a fast-hash-key for an object, it will typically be
+   a symbol in a slot on that object, and a method will be defined on this
+   generic function that is a slot accessor for that object.  In some
+   implementations, the difference in hashing performance can be so great
+   as more than to outweigh the method dispatch to get the fast-hash-key.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="file-kb-locator">file-kb-locator</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>A simple class of KB locator used by OKBC back ends that store KBs
+   in files.  The slot <code>file-kb-locator</code> stores the actual
+   pathname of the file.  This KB locator class can be fruitfully used in
+   conjunction with <code>file-mixin</code>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="file-kb-locator-pathname">file-kb-locator-pathname</A></B></code>  </TD><TD valign=top align=left> (liquid::x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>The accessor to the slot in a <code><A HREF="#file-kb-locator">file-kb-locator</A></code> that stores the
+   actual pathname of the locator.  You should never side-effect this slot -
+   create a new locator instead.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="file-mixin">file-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>File-mixin should be used when defining a KB class that supports
+    a KB locator that is a subtype of <code>file-kb-locator</code>.
+    Default methods specialized on <code>file-kb-locator</code> are provided
+    for <code>open-kb</code>, <code>close-kb</code>, <code>expunge-kb</code>,
+    <code>save-kb-as</code>, and <code>create-kb-locator</code> on the
+    assumption that the KBs can be opened simply by using the Lisp
+    <code>load</code> function on the file specified by <code>pathname</code>.
+    Any KRSs that require more specific processing of KBs that are stored in
+    files should further specialize the <code>file-kb-locator</code> to
+    something like <code>KRS-file-kb-locator</code> and provide
+    their own methods for KB operations.  While defining KB classes, they
+    should still use <code>file-mixin</code> because for a given KB-type
+    it specifies that KBs are stored in a file.<P>
+
+    See also <code>load-kb-from-file</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="file-structure-kb">file-structure-kb</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>A defstruct <code>KB</code> class that knows about saving itself to files.
+   This class is the <code>structure-class</code> equivalent of a KB class
+   built on <code>file-mixin</code>, <code>default-inheritance-mixin</code>
+   <code>caching-mixin</code>, and <code>kb</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="file-tell&ask-defaults-structure-kb">file-tell&ask-defaults-structure-kb</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>A defstruct <code>KB</code> class that knows about saving itself to files.
+   This class is the <code>structure-class</code> equivalent of a KB class
+   built on <code>file-mixin</code>, <code>tell&ask-defaults-kb</code>,
+   and <code>kb</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="find-connection">find-connection</A></B></code>  </TD><TD valign=top align=left> (key) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Given a key that describes a connection derived by calling
+   <code><A HREF="#find-connection-key">find-connection-key</A></code>, identifies the <code><A HREF="#connection">connection</A></code>
+   for that key.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="find-connection-key">find-connection-key</A></B></code>  </TD><TD valign=top align=left> (connection &rest plist) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Canonically orders the <code><A HREF="#plist">plist</A></code> and/or slots in
+   the <code><A HREF="#connection">connection</A></code> object to make a key for
+   <code><A HREF="#find-connection">find-connection</A></code>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="find-or-create-frame-handle">find-or-create-frame-handle</A></B></code>  </TD><TD valign=top align=left> (for-thing frame kb transmit-handles-p) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Finds or creates an FRS-independent frame handle for <code>for-thing</code>.
+   This is deep internal protocol.  Back end implementors should almost
+   certainly <i>not</i> call this function, but should call
+   <code>okbc:frs-independent-frame-handle</code> instead.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="frame-handle">frame-handle</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The structure class used to implement KRS-independent frame handles.
+   If you are implementing a back end for a system that has no obvious
+   notion of a frame handle, and you feel inclined to create your own
+   class of frame handle, you may choose to use this class.  Doing so
+   will save duplication by the network transport layer.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="frame-handle-frame-type">frame-handle-frame-type</A></B></code>  </TD><TD valign=top align=left> (liquid::x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>An accessor to read the FRAME-TYPE slot of a KRS-independent frame handle.
+   This is likely to be used by back ends that keep a cached version of the
+   frame type here.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="frame-handle-id">frame-handle-id</A></B></code>  </TD><TD valign=top align=left> (liquid::x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>An accessor to read the ID of a KRS-independent frame handle.  This is
+   unlikely to be used by back ends, but may be useful, for example, if
+   a back end wants to use <code><A HREF="#frame-handle">frame-handle</A></code> instances to represent
+   in-core frames for frames that actually live in a database.  The
+   <code><A HREF="#frame-handle-id">frame-handle-id</A></code> of a <code><A HREF="#frame-handle">frame-handle</A></code> is guaranteed
+   to be a fixnum.  It may be convenient to preserve a correspondence between
+   such a number and a database ID.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="frame-handle-kb-id">frame-handle-kb-id</A></B></code>  </TD><TD valign=top align=left> (liquid::x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>An accessor to read the KB ID of a KRS-independent frame handle.  This is
+   unlikely to be used by back ends, but may be useful, for example, if
+   a back end wants to use <code><A HREF="#frame-handle">frame-handle</A></code> instances to represent
+   in-core frames for frames that actually live in a database.  The
+   <code><A HREF="#frame-handle-kb-id">frame-handle-kb-id</A></code> of a <code><A HREF="#frame-handle">frame-handle</A></code> is guaranteed
+   to be a fixnum.  It may be convenient to preserve a correspondence between
+   such a number and a database ID along with the
+   <code><A HREF="#frame-handle-id">frame-handle-id</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="frame-handle-p">frame-handle-p</A></B></code>  </TD><TD valign=top align=left> (liquid::x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>A predicate that is true of KRS independent frame handles.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="frame-handle-plist">frame-handle-plist</A></B></code>  </TD><TD valign=top align=left> (liquid::x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>An accessor to read the PLIST slot of a KRS-independent frame handle.
+   This is likely to be used by back ends that keep a cached version of the
+   frame types and want to store other interesting stuff here.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="frame-handle-reader">frame-handle-reader</A></B></code>  </TD><TD valign=top align=left> (stream char arg) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>A reader function that can be put into a reatable to read simple
+   <code><A HREF="#frame-handle">frame-handle</A></code> references from a stream.  The
+   <code><A HREF="#frame-handle">frame-handle</A></code> references should have been printed using
+   <code><A HREF="#print-frame-handle">print-frame-handle</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="frame-handle-thing">frame-handle-thing</A></B></code>  </TD><TD valign=top align=left> (liquid::x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>An accessor to read the THING slot of a KRS-independent frame handle.
+   This is unlikely to be used by back ends.  The THING slot contains
+   either the frame that is denoted by the <code><A HREF="#frame-handle">frame-handle</A></code>,
+   or <code><A HREF="#*undefined-value*">*undefined-value*</A></code>.  This slot will always contain
+   <code><A HREF="#*undefined-value*">*undefined-value*</A></code> for frame handles on a client that were
+   fetched from a server.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="frame-name-interning-mixin">frame-name-interning-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>A mixin class of OKBC kb knows how to allocate frame names
+   lazily for any objects of which we ask the name.  If the object's name is
+   ever asked for, the object gets interned under a gensym name in the KB.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="frames-have-clos-slots-as-okbc-slots-mixin">frames-have-clos-slots-as-okbc-slots-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>A mixin class of OKBC kb that confers on the KB the ability
+   to view all CLOS standard-object instances and all defstruct
+   structure-object instances as frames.  CLOS and defstruct slots
+   respectively appear as OKBC slots.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="generic-error">generic-error</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The generic OKBC error condition.
+This error is signaled when no more specific and appropriate error type
+can be found.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>generic-error</B></code>  </TD><TD valign=top align=left> (format-string &rest args) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Signals a generic, non-continuable OKBC error with an error message
+   specified by <code>format-string</code> and <code>args</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="generic-error">generic-error</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The generic OKBC error condition.
+This error is signaled when no more specific and appropriate error type
+can be found.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>generic-error</B></code>  </TD><TD valign=top align=left> (format-string &rest args) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Signals a generic, non-continuable OKBC error with an error message
+   specified by <code>format-string</code> and <code>args</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="get-frames-matching-for-frame-names-required">get-frames-matching-for-frame-names-required</A></B></code>  </TD><TD valign=top align=left> (pattern kb selector force-case-insensitive-p kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A back end protocol hook to allow back ends to specialize
+    <code>get-frames-matching</code> in the case of the KB supporting the
+    <code>:frame-names-required</code> behavior.  This function is called
+    when the <code>get-frames-matching</code> handler determines that
+    it has been called with a non-wildcarded simple frame name reference.
+    If this is not the case then <code><A HREF="#get-frames-matching-the-hard-way">get-frames-matching-the-hard-way</A></code>
+    is called instead.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="get-frames-matching-the-hard-way">get-frames-matching-the-hard-way</A></B></code>  </TD><TD valign=top align=left> (pattern kb wildcards-allowed-p selector force-case-insensitive-p kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A back end protocol hook to allow back ends to specialize
+    <code>get-frames-matching</code> in the hard cases of either the KB
+    not supporting the <code>:frame-names-required</code> behavior, or the
+    pattern having wildcards.  This function is called when the
+    <code>get-frames-matching</code> handler determines that it is dealing with
+    the difficult case.  If this is not the case then
+    <code><A HREF="#get-frames-matching-for-frame-names-required">get-frames-matching-for-frame-names-required</A></code> is called
+    instead.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="handle-number-of-values-mixin">handle-number-of-values-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>A mixin that provides <code>:around</code> wrapper methods
+   for all OKBC operations that take a <code>number-of-values</code> argument.
+   These wrappers are specialized on <code>integer</code> for the
+   <code>number-of-values</code> argument, so only get invoked if the
+   application is trying to restrict the number of values.  The set of
+   values returned is trimmed according to the constraint and the
+   <code>more-status</code> shows the right thing.  This mixin is useful for
+   back end implementations that do not have a way of limiting the number of
+   values returned by the operations.  No performance improvement can
+   be derived from the use of this class, since all values are computed,
+   but compliance with respect to the <code>number-of-values</code> argument
+   is ensured.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="handle-simple-query">handle-simple-query</A></B></code>  </TD><TD valign=top align=left> (query target-query kb inference-level error-p value-selector kb-local-only-p bindings) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>This is a hook provided in the default implementation of
+   OKBC's tell&ask.  It is called with a simple, atomic <code>query</code>
+   in the OKBC tell&ask language (in KIF syntax).  <code>Bindings</code> is
+   a set of bindings for known variables.  Methods on this generic function
+   should return either a list of binding lists for matches found, or
+   <code>:fail</code>.  For example, if <code>query</code> were
+   <code>(:subclass-of ?x &lt;<A HREF="#frame">frame</A> foo&gt;)</code>, then this method
+   might return
+   <code>(((?x .  &lt;class c1&gt;)) ((?x .  &lt;class c2&gt;)))</code>.
+   This method is provided to give a trapdoor through to systems that
+   can handle more complex queries than just the OKBC language.  Queries
+   concerning n-ary relations, for example can be handled in an
+   <code>:around</code> method that falls through to the default method for
+   normal OKBC cases.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="handle-unhandled-query">handle-unhandled-query</A></B></code>  </TD><TD valign=top align=left> (query target-query kb inference-level error-p value-selector kb-local-only-p bindings) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A trapdoor in the default implementation of OKBC's tell&ask
+   handler that is called by <code><A HREF="#handle-simple-query">handle-simple-query</A></code> to address simple
+   queries that do not match any of OKBC's standard axiom schemata.  This
+   generic function should be specialized on back ends that know how to
+   store arbitrary sentences, but that still use the default tell&ask
+   mechanism for all of the standard OKBC axiom schemata.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="handle-unhandled-sentence">handle-unhandled-sentence</A></B></code>  </TD><TD valign=top align=left> (sentence kb frame value-selector kb-local-only-p key) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A trapdoor in the default implementation of OKBC's tell&ask
+   handler.  This generic function is called when a sentence that is
+   being told to is doesn't match any of the axiom schemata that OKBC
+   understands.  Implementations that know how to store arbitrary sentences
+   should specialize this method to handle leftover sentences.  The
+   <code><A HREF="#sentence">sentence</A></code> being told is being told with respect to
+   <code><A HREF="#frame">frame</A></code> as for the <code>tell</code> operation.  <code>Key</code>
+   is a keyword indicating the reason why this generic function was called.
+   It will be one of <code>:tell</code> or <code>:tellable</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="handles-in-tree-p">handles-in-tree-p</A></B></code>  </TD><TD valign=top align=left> (form kb) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Is true if there are any frame handles in the form with
+   respect to the KB.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="host">host</A></B></code>  </TD><TD valign=top align=left> (abstract-network-connection) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor on network connections that returns the host for the
+   connection.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="inference-level-for-tell&ask-defaults">inference-level-for-tell&ask-defaults</A></B></code>  </TD><TD valign=top align=left> (tell&ask-defaults-kb) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>A method on tell&ask KBs that delivers the inference level to use when the
+   tell&ask middle end executes a default that doesn't take an
+   <code>inference-level</code> argument.  For example, the operation
+   <code>class-p</code> has the following tell&ask default:<PRE>
+   (first (<A HREF="#ask-internal">ask-internal</A> `(:class ,thing) <A HREF="#kb">kb</A> t
+		        (<A HREF="#inference-level-for-tell&ask-defaults">inference-level-for-tell&ask-defaults</A> <A HREF="#kb">kb</A>) 1
+		        t nil (<A HREF="#timeout-for-tell&ask-defaults">timeout-for-tell&ask-defaults</A> <A HREF="#kb">kb</A>)
+                        :known-true kb-local-only-p))</PRE>
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="instance-recording-clos-kb">instance-recording-clos-kb</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>A subclass of <code>clos-kb</code> that keeps a pointer to
+   instances.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="intern-frame-handles-if-necessary">intern-frame-handles-if-necessary</A></B></code>  </TD><TD valign=top align=left> (kb production known-context-type bound-vars form language mapping-table substitute-okbc-standard-names-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Internal protocol used by <code>load-okbc-kb</code>.  This is a walker
+    function that is called by the code walker to intern frame handles for any
+    frame references found.  When <code>substitute-OKBC-standard-names-p</code>
+    is true, references that are string-equal to OKBC standard names are
+    mapped into the OKBC standard keywords before the intern takes place.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="intern-procedure">intern-procedure</A></B></code>  </TD><TD valign=top align=left> (&key (name nil) (arguments nil) (expression nil) (environment nil) (function-object nil) (kb (current-kb))) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Takes the arguments that are passed to <code>create-procedure</code>
+   and interns a procedure object to represent that procedure.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="intern-quasi-symbol">intern-quasi-symbol</A></B></code>  </TD><TD valign=top align=left> (pname package-name) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>The <code><A HREF="#quasi-symbol">quasi-symbol</A></code> counterpart to <code>intern</code>.  This
+   function should be used by back ends when loading KBs to make sure that
+   any <code><A HREF="#quasi-symbol">quasi-symbol</A></code>s are interned correctly.  See also
+   <code><A HREF="#quasi-symbol-reader">quasi-symbol-reader</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="intern-remote-value">intern-remote-value</A></B></code>  </TD><TD valign=top align=left> (thing) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Given a random <code>thing</code>, finds or creates a
+   <code><A HREF="#remote-value">remote-value</A></code> object to represent that <code>thing</code>.
+   <code><A HREF="#remote-value">Remote-value</A></code>s are interned so that object identity is preserved
+   by the network transport layer.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="kb">kb</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The abstract superclass of all standard-object OKBC Kbs.<P>
+
+   The Lisp OKBC implementation provides two parallel graphs of KB
+   implementation for back end implementors who want to implement their KBs
+   either as CLOS classes or defstructs.  If you choose the CLOS implementation
+   (and the abstract superclass <code>kb</code>), then you can use all of the
+   mixins provided by the OKBC Lisp implementation.  If you choose to use
+   defstruct as your implementation substrate, you must use
+   <code>structure-kb</code> (transitively) to implement your KB.  Because of
+   the lack of multiple inheritance in defstruct only a subset of the options
+   available in the CLOS case are available.<P>
+
+   The KB classes <code>kb</code> and <code>structure-kb</code> provide
+   default implementations for operations that are general across all KBs
+   (including <code>standard-defaults-kb</code> and
+   <code>tell&ask-defaults-kb</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="kb-has-been-modified-p">kb-has-been-modified-p</A></B></code>  </TD><TD valign=top align=left> (kb) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor that determines whether a KB has been modified or not.  This
+   is set by side-effecting OKBC operations and read by
+   <code>okbc:kb-modified-p</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="kb-locator-class-for-kb-type">kb-locator-class-for-kb-type</A></B></code>  </TD><TD valign=top align=left> (kb-type) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A hook in the API for <code><A HREF="#file-mixin">file-mixin</A></code>,
+   <code><A HREF="#file-structure-kb">file-structure-kb</A></code>, and 
+   <code><A HREF="#file-tell&ask-defaults-structure-kb">file-tell&ask-defaults-structure-kb</A></code> that tells the system
+   what KB locator class to use for the back end.  By default,
+   <code><A HREF="#file-kb-locator">file-kb-locator</A></code> will be used unless this generic function is
+   specialized.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="kb-network-kb">kb-network-kb</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The abstract KB class for all network KBs.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="kb-type">kb-type</A></B></code>  </TD><TD valign=top align=left> (kb-locator) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor for KB locators that returns the kb-type of the
+   KB denoted by the locator.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="load-kb-from-file">load-kb-from-file</A></B></code>  </TD><TD valign=top align=left> (pathname kb error-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A piece of internal protocol used by the default methods
+   for KB loading and saving defined for <code><A HREF="#file-mixin">file-mixin</A></code>,
+   <code><A HREF="#file-structure-kb">file-structure-kb</A></code>, and 
+   <code><A HREF="#file-tell&ask-defaults-structure-kb">file-tell&ask-defaults-structure-kb</A></code>.  Back ends using any
+   of these classes that load KBs by means of a function other than
+   <code>load</code> should specialize this generic function.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="load-okbc-kb-from-stream">load-okbc-kb-from-stream</A></B></code>  </TD><TD valign=top align=left> (stream kb value-selector kb-local-only-p frame-handle-mapping-table handle-to-name-mapping-table delayed-sentences action sentence-action language substitute-okbc-standard-names-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Internal protocol used by <code>load-okbc-kb</code> to
+   load KBs.  It is called by <code><A HREF="#load-okbc-kb-internal">ok-back:load-okbc-kb-internal</A></code>, and
+   is passed a stream to the KB content rather than the pathname of a file
+   containing the relevant content.  All the other arguments are the same as
+   for <code><A HREF="#load-okbc-kb-internal">load-okbc-kb-internal</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="load-okbc-kb-internal">load-okbc-kb-internal</A></B></code>  </TD><TD valign=top align=left> (pathname kb value-selector kb-local-only-p frame-handle-mapping-table handle-to-name-mapping-table delayed-sentences action sentence-action language substitute-okbc-standard-names-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Internal protocol used by <code>load-okbc-kb</code> to
+   load KBs.  It is passed the pathname to a file containing
+   <code>define-okbc-frame</code> forms, and the <code><A HREF="#kb">kb</A></code> into
+   which the frames are to be loaded.  <code>Frame-handle-mapping-table</code>
+   is a hash table that is used to map between symbols in the input stream and
+   frame handles allocated during the loading process as documented for
+   <code>define-okbc-frame</code>.  Implementors may choose to specialize
+   this generic function either if the KRS has its own way of handling
+   <code>define-okbc-frame</code> forms, or if the file contains forms other
+   than just <code>define-okbc-frame</code> forms.  The <code>language</code>
+   argument is the same as for <code>walk-form</code>.  If
+   <code>substitute-OKBC-standard-names-p</code> is true then non-keywordified
+   versions of OKBC standard names are accepted as if they were keywordified.
+   Thus, the symbol <code>class</code> is taken to denote
+   <code>:class</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="local-connection">local-connection</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The CLOS class used to implement the local
+   <code>connection</code> for OKBC.  Calls to
+   <code>okbc:local-connection</code> will always return an instance of this
+   class.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>local-connection</B></code>  </TD><TD valign=top align=left> () </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Returns a connection to the local OKBC implementation.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="local-connection">local-connection</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The CLOS class used to implement the local
+   <code>connection</code> for OKBC.  Calls to
+   <code>okbc:local-connection</code> will always return an instance of this
+   class.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>local-connection</B></code>  </TD><TD valign=top align=left> () </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Returns a connection to the local OKBC implementation.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="local-connection-p">local-connection-p</A></B></code>  </TD><TD valign=top align=left> (thing) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A predicate that is true only of
+   <code><A HREF="#local-connection">local-connection</A></code>s.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="make-file-kb-locator">make-file-kb-locator</A></B></code>  </TD><TD valign=top align=left> (&key ((:name #:name) (quote nil)) ((:kb-type #:kb-type) (quote nil)) ((:pathname #:pathname) (quote nil))) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>The constructor for <code><A HREF="#file-kb-locator">file-kb-locator</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="make-structure-tuple-kb">make-structure-tuple-kb</A></B></code>  </TD><TD valign=top align=left> (&rest tuple-kb::args) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Creates and initializes a <code><A HREF="#structure-tuple-kb">structure-tuple-kb</A></code> instance.  This is
+   analogous to <code>make-instance</code> on <code><A HREF="#tuple-kb">tuple-kb</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="name">name</A></B></code>  </TD><TD valign=top align=left> (thing) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor that returns the name of its argument whenever
+    possible, or NIL otherwise.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="network-coercion-mixin">network-coercion-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>This mixin provides all of the necessary automatic coercions
+   that would have been provided by source code level coercions only in the
+   back end.  It class must be mixed into any KB that is defined that expects
+   the <code>:OKBC-Frame-Coercion</code> to be used.  The reason for this is
+   that the network layer communicated by means of the back end API.  Because
+   a server cannot make any assumptions about which coercions will have been
+   performed at the client, a more defensive policy of coercions is necessary
+   than can be assumed when dealing with a tightly coupled KB..
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="network-enumerator">network-enumerator</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The class of enumerators used to represent enumerators received from some
+   OKBC server over the network.  A local cache of elements is preserved
+   on the client side, and new values are fetched in chunks determined
+   by the <code>last-prefetch-increment</code> slot, which heuristically
+   fetches in chunks the same size as the size specified by the user in the
+   last call to <code>prefetch</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="network-kb">network-kb</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The abstract superclass of all network KBs.  These are the
+   KBs that are instantiated on the client side as a result of a KB being
+   shipped from a server.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="network-structure-kb">network-structure-kb</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The structure-class equivalent of <code>network-kb</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="notification-callback-function">notification-callback-function</A></B></code>  </TD><TD valign=top align=left> (connection) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>The <code><A HREF="#notification-callback-function">notification-callback-function</A></code> of a <code><A HREF="#connection">connection</A></code>
+   is a function of <code>(arg &optional (stream *trace-output*))</code>
+   that is called by the OKBC implementation (particularly the network
+   transport layer) in order to pass warnings and notifications back to the
+   client.  Applications can register their own ways of handling notifications,
+   perhaps by dribbling into a special window, by overriding generic function
+   or slot on the connection.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="okbc-forwarding-mixin">okbc-forwarding-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>Mixing this class into a class of OKBC kbs will make all
+                   not explicitly defined OKBCops forward to the KB which is
+                   the value of the <code>target-kb</code> slot.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="okbc-kb-mixin">okbc-kb-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>An abstract superclass of OKBC implementation-supplied
+   mixin classes.  This class (or really subclasses of it) are used in
+   determining OKBC compliance.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="okbc-side-effects-cause-error-mixin">okbc-side-effects-cause-error-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>Mix this into a class of OKBC KBs to make it signal an error
+                   if you ever attempt to perform a side-effect on the KB that
+                   you have not explicitly supported by specializing the
+                   side-effecting OKBCop.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="open-p">open-p</A></B></code>  </TD><TD valign=top align=left> (connection) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>A predicate on connections that is true if the connection is open.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="plist">plist</A></B></code>  </TD><TD valign=top align=left> (kb) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor for a property list on KBs.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="port">port</A></B></code>  </TD><TD valign=top align=left> (abstract-network-connection) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor on network connections that returns the port for the
+   connection.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="possibilities-for-pattern-matching">possibilities-for-pattern-matching</A></B></code>  </TD><TD valign=top align=left> (thing kb kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Back end protocol used when specializing <code>get-frames-matching</code>.
+    Given a <code>thing</code>, which may be a frame reference, returns a list
+    of objects that may be used when matching against the frame.  The objects
+    returned will be used for string comparison if they are generalized strings
+    and will be printed to strings if they are not generalized strings.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="print-abstract-handle-for-kb">print-abstract-handle-for-kb</A></B></code>  </TD><TD valign=top align=left> (thing kb stream) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A print-method extension hook that causes FRS-independent frame handles
+    to be printed out in a manner appropriate to the KB in question.  This is
+    only called if the frame handle is coercible-to-frame-p in the KB.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="print-cons-to-stream">print-cons-to-stream</A></B></code>  </TD><TD valign=top align=left> (key car thing stream kb purpose pretty-p inside-quote-p kb-local-only-p indent) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Internal back-end protocol used in the definition of
+    <code>value-as-string</code>, which is called when printing list structure.
+    Arguments are the same as for <code>value-as-string</code>, except:<DL>
+    <DT><code>key</code>
+    <DD>is a keyword denoting the symbol in the car of the list if the car is
+    a symbol, and if such a keyword exists.  For example, if we hit a quotation
+    term, then this argument will be <code>:quote</code>.  This argument
+    allows eql dispatch on a package canonicalized version of the car of
+    the list.
+    <DT><code>car</code>
+    <DD>is the first element of the list.  For example, if we hit a quotation
+    term, then this argument may be <code>lisp:quote</code>.  This argument
+    allows eql dispatch on the car of the list.
+    <DT><code>indent</code>
+    <DD>is the current indent in characters from the left margin.
+    <DT><code>inside-quote-p</code>
+    <DD>is true if we are inside a quote.  This latter is important because
+    frame coercions are not performed inside quotes.</DL>
+    See also <code><A HREF="#print-value-to-stream">print-value-to-stream</A></code>,
+    <code><A HREF="#print-frame-to-stream">print-frame-to-stream</A></code>, <code><A HREF="#*current-location*">*current-location*</A></code>, and
+    <code><A HREF="#*location-list*">*location-list*</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="print-frame-handle">print-frame-handle</A></B></code>  </TD><TD valign=top align=left> (frame-handle kb stream macro-character) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Writes a reader macro call to the <code>stream</code> representing the
+   <code><A HREF="#frame-handle">frame-handle</A></code> with respect to the <code><A HREF="#kb">kb</A></code>.
+   <code>macro-character</code> is the macro character to use.  The final
+   result will be something like <code>#$(42 7)</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="print-frame-to-stream">print-frame-to-stream</A></B></code>  </TD><TD valign=top align=left> (frame stream kb purpose pretty-p kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Internal back-end protocol used in the definition of
+    <code>value-as-string</code>.  Called when the printer hits a frame
+    reference.  Arguments are the same as for <code>value-as-string</code>.<P>
+    See also <code><A HREF="#print-cons-to-stream">print-cons-to-stream</A></code>,
+    <code><A HREF="#print-value-to-stream">print-value-to-stream</A></code>, <code><A HREF="#*current-location*">*current-location*</A></code>, and
+    <code><A HREF="#*location-list*">*location-list*</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="print-quasi-symbol-in-kb">print-quasi-symbol-in-kb</A></B></code>  </TD><TD valign=top align=left> (instance kb stream) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Used to print a <code><A HREF="#quasi-symbol">quasi-symbol</A></code> with respect to
+   a particular KB.  Since the KB may have defined its own IO syntax
+   and/or reader macro for <code>quasi-symbols</code> this method can be
+   specialized on a per-kb basis.  This generic function is invoked if
+   <code><A HREF="#*current-kb-for-io-syntax*">*current-kb-for-io-syntax*</A></code> is non-null.  A back end supplied
+   method for this generic function should be sensitive to the
+   <code><A HREF="#*current-kb-for-io-syntax*">*current-kb-for-io-syntax*</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="print-value-to-stream">print-value-to-stream</A></B></code>  </TD><TD valign=top align=left> (thing stream kb purpose pretty-p inside-quote-p kb-local-only-p indent) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Internal back-end protocol used in the definition of
+    <code>value-as-string</code>.  Arguments are the same as for
+    <code>value-as-string</code>, except <code>indent</code> is the current
+    indent in characters from the left margin, and <code>inside-quote-p</code>
+    is true if we are inside a quote.  The latter is important because frame
+    coercions are not performed inside quotes.<P>
+    See also <code><A HREF="#print-cons-to-stream">print-cons-to-stream</A></code>,
+    <code><A HREF="#print-frame-to-stream">print-frame-to-stream</A></code>, <code><A HREF="#*current-location*">*current-location*</A></code>, and
+    <code><A HREF="#*location-list*">*location-list*</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="procedure">procedure</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The data structure used to represent OKBC procedure objects.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>procedure</B></code>  </TD><TD valign=top align=left> (name arguments &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Defines a procedure.  The syntax can be of two forms:
+    <PRE>
+     (<A HREF="#procedure">procedure</A> (x y z) .....)
+     (<A HREF="#procedure">procedure</A> name1 (x y z) .....)</PRE>
+   The former defines an anonymous function (like lambda in Lisp);
+   the latter causes a function named <code><A HREF="#name">name</A></code> to be defined.  A
+   procedure is a legal argument to any OKBC operator in
+   a position that expects a function.
+   For example,<PRE>
+    (call-procedure
+      #'(lambda (<A HREF="#frame">frame</A>) (get-frame-pretty-name <A HREF="#frame">frame</A> :kb <A HREF="#kb">kb</A>))
+      :kb <A HREF="#kb">kb</A> :arguments (list my-frame))</PRE>
+   and<PRE>
+    (call-procedure
+      (<A HREF="#procedure">procedure</A> (<A HREF="#frame">frame</A>) (get-frame-pretty-name <A HREF="#frame">frame</A> :kb <A HREF="#kb">kb</A>))
+      :kb my-kb :arguments (list my-frame))</PRE>
+   are semantically identical.  Procedures and lambda expressions differ
+   as follows:
+   <OL>
+   <LI>All bindings in procedures are dynamic, not lexical.
+   <LI>Only a restricted set of operations is available in
+   procedures.
+   <LI>Lambda defines a <i>lexical</i> closure over any free references;
+   a <code><A HREF="#procedure">procedure</A></code> defines a <i>dynamic</i> closure over its free
+   references.  The environment of the procedure is
+   pre-filled with bindings for the names of the arguments to
+   the OKBC operator in which it is being executed.  In the above
+   case, <code>okbc:call-procedure</code> takes arguments <code><A HREF="#kb">KB</A></code>,
+   <code>arguments</code>,and <code>kb-local-only-p</code>.
+   These arguments will take on the values <code>my-kb</code>,
+   <code>(my-frame)</code>,
+   and <code>nil</code> (the default), respectively.
+   <LI>Lambda expressions are only meaningful within the Lisp system
+   in which the OKBC system is running.  Procedures are
+   executable on any (possibly network-connected) OKBC KB.
+   <LI>Procedures are package-insensitive in all respects
+   other than quoted constants.
+   </OL>
+
+   The <code><A HREF="#procedure">procedure</A></code> form allows an alternate form in which its
+   <code>arguments</code> and <code>body</code> arguments are expressed as
+   strings.  This is useful
+   for non-lisp OKBC clients in which it may be inconvenient to build
+   the list structure for a procedure body.  Thus,
+   <code>(<A HREF="#procedure">procedure</A> (x y) (list x y))</code>
+   is functionally equivalent to
+   <code>(<A HREF="#procedure">procedure</A> "(x y)" "(list x y)")</code>.<P>
+
+   To build a dynamic closure for a procedure, we
+   must explicitly construct the necessary environment.  For
+   example, if we want a procedure that closes over
+   some values <code>&lt;&lt;val1&gt;&gt;</code> and
+   <code>&lt;&lt;val2&gt;&gt;</code>, to which we
+   want to refer by using the names <code>var1</code> and <code>var2</code>,
+   we would use the following syntax:<PRE>
+   (<A HREF="#procedure">procedure</A> (a b &envirionment ((var1 &lt;&lt;val1&gt;&gt;)
+                                  (var2 &lt;&lt;val2&gt;&gt;)))
+     ...Some expressions mentioning a, b, var1, and var2...)</PRE>
+   Note that  persistent side effects to <code>&lt;&lt;var1&gt;&gt;</code>
+   and <code>&lt;&lt;var2&gt;&gt;</code>
+   cannot be made from within the procedure.<P>
+
+   The end-of-line comment character within procedures is
+   the semicolon.  Thus, we can say the following:<PRE>
+   (<A HREF="#procedure">procedure</A> foo (x y)
+     ;; This defines the function FOO, which takes two arguments, x and y
+     .....)</PRE>
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="procedure">procedure</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The data structure used to represent OKBC procedure objects.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>procedure</B></code>  </TD><TD valign=top align=left> (name arguments &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Defines a procedure.  The syntax can be of two forms:
+    <PRE>
+     (<A HREF="#procedure">procedure</A> (x y z) .....)
+     (<A HREF="#procedure">procedure</A> name1 (x y z) .....)</PRE>
+   The former defines an anonymous function (like lambda in Lisp);
+   the latter causes a function named <code><A HREF="#name">name</A></code> to be defined.  A
+   procedure is a legal argument to any OKBC operator in
+   a position that expects a function.
+   For example,<PRE>
+    (call-procedure
+      #'(lambda (<A HREF="#frame">frame</A>) (get-frame-pretty-name <A HREF="#frame">frame</A> :kb <A HREF="#kb">kb</A>))
+      :kb <A HREF="#kb">kb</A> :arguments (list my-frame))</PRE>
+   and<PRE>
+    (call-procedure
+      (<A HREF="#procedure">procedure</A> (<A HREF="#frame">frame</A>) (get-frame-pretty-name <A HREF="#frame">frame</A> :kb <A HREF="#kb">kb</A>))
+      :kb my-kb :arguments (list my-frame))</PRE>
+   are semantically identical.  Procedures and lambda expressions differ
+   as follows:
+   <OL>
+   <LI>All bindings in procedures are dynamic, not lexical.
+   <LI>Only a restricted set of operations is available in
+   procedures.
+   <LI>Lambda defines a <i>lexical</i> closure over any free references;
+   a <code><A HREF="#procedure">procedure</A></code> defines a <i>dynamic</i> closure over its free
+   references.  The environment of the procedure is
+   pre-filled with bindings for the names of the arguments to
+   the OKBC operator in which it is being executed.  In the above
+   case, <code>okbc:call-procedure</code> takes arguments <code><A HREF="#kb">KB</A></code>,
+   <code>arguments</code>,and <code>kb-local-only-p</code>.
+   These arguments will take on the values <code>my-kb</code>,
+   <code>(my-frame)</code>,
+   and <code>nil</code> (the default), respectively.
+   <LI>Lambda expressions are only meaningful within the Lisp system
+   in which the OKBC system is running.  Procedures are
+   executable on any (possibly network-connected) OKBC KB.
+   <LI>Procedures are package-insensitive in all respects
+   other than quoted constants.
+   </OL>
+
+   The <code><A HREF="#procedure">procedure</A></code> form allows an alternate form in which its
+   <code>arguments</code> and <code>body</code> arguments are expressed as
+   strings.  This is useful
+   for non-lisp OKBC clients in which it may be inconvenient to build
+   the list structure for a procedure body.  Thus,
+   <code>(<A HREF="#procedure">procedure</A> (x y) (list x y))</code>
+   is functionally equivalent to
+   <code>(<A HREF="#procedure">procedure</A> "(x y)" "(list x y)")</code>.<P>
+
+   To build a dynamic closure for a procedure, we
+   must explicitly construct the necessary environment.  For
+   example, if we want a procedure that closes over
+   some values <code>&lt;&lt;val1&gt;&gt;</code> and
+   <code>&lt;&lt;val2&gt;&gt;</code>, to which we
+   want to refer by using the names <code>var1</code> and <code>var2</code>,
+   we would use the following syntax:<PRE>
+   (<A HREF="#procedure">procedure</A> (a b &envirionment ((var1 &lt;&lt;val1&gt;&gt;)
+                                  (var2 &lt;&lt;val2&gt;&gt;)))
+     ...Some expressions mentioning a, b, var1, and var2...)</PRE>
+   Note that  persistent side effects to <code>&lt;&lt;var1&gt;&gt;</code>
+   and <code>&lt;&lt;var2&gt;&gt;</code>
+   cannot be made from within the procedure.<P>
+
+   The end-of-line comment character within procedures is
+   the semicolon.  Thus, we can say the following:<PRE>
+   (<A HREF="#procedure">procedure</A> foo (x y)
+     ;; This defines the function FOO, which takes two arguments, x and y
+     .....)</PRE>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="procedure-p">procedure-p</A></B></code>  </TD><TD valign=top align=left> (thing) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Is   if   thing  is a procedure, and   otherwise.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="quasi-symbol">quasi-symbol</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>In OKBC, care is taken not to pollute the package system when talking to
+   remote KBs.  In general, remote KBs and clients will have a completely
+   different package architecture.  It is undesirable to create packages on
+   the client side to match the server's notion of packages (or vice versa)
+   because of the complications of package inclusion and memory leakage.
+   Because of these problems, the OKBC implementation provides a class of
+   <code>quasi-symbol</code>s.  <code>Quasi-symbol</code>s aer interned in
+   the same way as real symbols, but they have their own packages
+   (<code>quasi-package</code>s), so the package system is not polluted.
+   This class implements <code>quasi-symbol</code>s in the obvious way.<P>
+
+   Back end implementations are required to accept quasi-symbols as reasonable
+   data structres, such as as names for frames, and they must be able to
+   load and save them.  Back end implementors will probably want to
+   specialize <code>print-quasi-symbol-in-kb</code> so as to be able to
+   save <code>quasi-symbol</code>s, and possibly
+   <code>quasi-symbol-reader</code> as a readtable macro character reader
+   function to read them in.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="quasi-symbol-name">quasi-symbol-name</A></B></code>  </TD><TD valign=top align=left> (liquid::x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>The <code><A HREF="#quasi-symbol">quasi-symbol</A></code> analogue of <code>symbol-name</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="quasi-symbol-package">quasi-symbol-package</A></B></code>  </TD><TD valign=top align=left> (liquid::x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>The <code><A HREF="#quasi-symbol">quasi-symbol</A></code> analogue of <code>symbol-package</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="quasi-symbol-reader">quasi-symbol-reader</A></B></code>  </TD><TD valign=top align=left> (stream char arg) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>A simple readtable macro character reader function for reading in and
+   interning <code><A HREF="#quasi-symbol">quasi-symbol</A></code>s written out in the form:
+   <code>#Qppp|nnn</code>, where <code>ppp</code> is the name of a
+   <code>quasi-package</code>, and <code>nnn</code> is the name of the
+   <code><A HREF="#quasi-symbol">quasi-symbol</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="relation-transitive-closure">relation-transitive-closure</A></B></code>  </TD><TD valign=top align=left> (frame kb relation-fn rel-fn-restargs &optional (link-fn relation-fn) (link-fn-restargs rel-fn-restargs) call kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Computes the transitive closure of values by starting at <code><A HREF="#frame">frame</A></code>
+   and applying <code>(relation-fn <A HREF="#frame">frame</A> . relation-fn-restargs)</code> to
+   get the values.  The transitive closure it computed by following links
+   identified by applying <code>(link-fn <A HREF="#frame">frame</A> . link-fn-restargs)</code>.
+   <code>Call</code> is a flag, which is <code>:recursive</code> when we enter
+   this function recursively.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="remote-value">remote-value</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The structure class used to implement remote value pointers in the
+   network layer.  A subclass of <code>abstract-handle</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="simple-network-connection">simple-network-connection</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The class of connection used to implement simple OKBC
+   network connections.  Communication with a server using this connection
+   class is single-threaded and unauthenticated.  <p>
+
+   A server that will accept connections of this connection type is started
+   using <code>ok-utils:nokbc-server</code>
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="standard-defaults-kb">standard-defaults-kb</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>A class of KB that provides default implementations for a
+   number of operations.  Broadly speaking, the default implementations
+   expect the KB to be largely object-oriented in feel, and the operations that
+   are considered primitive are such operations as
+   <code>get-class-instances</code>, <code>get-frame-slots</code> and
+   <code>get-slot-values-in-detail</code>.  This defaulting scheme is in
+   contrast to the defaults provided by <code>tell&ask-defaults-kb</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="structure-kb">structure-kb</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The structure-class counterpart KB class to the class <code>kb</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="structure-tuple-kb">structure-tuple-kb</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>This is the structure-object equivalent of <code>tuple-kb</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="target-kb">target-kb</A></B></code>  </TD><TD valign=top align=left> (okbc-forwarding-mixin) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>The slot on KBs of type <code><A HREF="#okbc-forwarding-mixin">ok-back:okbc-forwarding-mixin</A></code> used to
+   point to the real KB that has been wrapped by the forwarding KB.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="tell&ask-defaults-kb">tell&ask-defaults-kb</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>A class of KB that provides default implementations for a
+   number of operations.  Broadly speaking, the default implementations
+   expect the KB to be largely sentential in feel, and the operations that
+   are considered primitive are such operations as
+   <code>tell</code>, <code>ask</code> and
+   <code>get-frame-sentences</code>.  This defaulting scheme is in
+   contrast to the defaults provided by <code>standard-defaults-kb</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="tell&ask-defaults-structure-kb">tell&ask-defaults-structure-kb</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>This is the defstruct analogue of the <code>tell&ask-defaults-kb</code>
+   kb class.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="timeout-for-tell&ask-defaults">timeout-for-tell&ask-defaults</A></B></code>  </TD><TD valign=top align=left> (tell&ask-defaults-kb) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>A method on tell&ask KBs that delivers the timeout to use when the
+   tell&ask middle end executes a default that doesn't take an
+   <code>inference-level</code> argument.  For example, the operation
+   <code>class-p</code> has the following tell&ask default:<PRE>
+   (first (<A HREF="#ask-internal">ask-internal</A> `(:class ,thing) <A HREF="#kb">kb</A> t
+		        (<A HREF="#inference-level-for-tell&ask-defaults">inference-level-for-tell&ask-defaults</A> <A HREF="#kb">kb</A>) 1
+		        t nil (<A HREF="#timeout-for-tell&ask-defaults">timeout-for-tell&ask-defaults</A> <A HREF="#kb">kb</A>)
+                        :known-true kb-local-only-p))</PRE>
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="tuple-kb">tuple-kb</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>A class of KB that stores the knowledge in the KB in a
+   <code>tuple-store</code> as logical sentences.  This class, and its
+   companion defstruct class <code>structure-tuple-kb</code>, are the
+   only compliant OKBC KB classes shipped as part of the default
+   implementation of OKBC in Lisp. It is generally expected that OKBC will
+   be bound to the representation systems in use at the user's site, but if
+   there is no such representation system this class can be used.  It
+   implements a fully compliant KB that gives full support for slots,
+   annonymous or named frames, and checks all of the OKBC-defined
+   constraints.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="type-of-name">type-of-name</A></B></code>  </TD><TD valign=top align=left> (thing) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Returns the name of the type of the <code>thing</code>.  If the
+   <code>type-of</code> of <code>thing</code> is a class, it returns the class
+   name of that class.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="unique-id">unique-id</A></B></code>  </TD><TD valign=top align=left> (kb) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>Returns the unique ID for a KB.  KBs have a numerical unique ID used by the
+   network transport layer and to match up KBs when loading them from files.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="walk-form-for-interning-given-kb">walk-form-for-interning-given-kb</A></B></code>  </TD><TD valign=top align=left> (form frame-handle-mapping-table kb kb-local-only-p action language substitute-okbc-standard-names-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Internal protocol used by
+   <code>load-okbc-kb</code>.  You can define methods for
+   <code><A HREF="#walk-form-for-interning-given-kb">walk-form-for-interning-given-kb</A></code> and for
+   <code><A HREF="#assert-form-given-kb">assert-form-given-kb</A></code> in order to handle arbitrary definitional
+   forms, such as KIF sentences.  The contract of methods specialized on this
+   generic function is to return non-NIL if it successfully recognises and
+   walks the form.  Whilst it walks the form it should allocate any necessary
+   frame handles for any frame references it finds that are not already found
+   in the frame-handle-mapping-table.  The
+   <code>substitute-OKBC-standard-names-p</code> argument is passed through
+   to <code><A HREF="#intern-frame-handles-if-necessary">intern-frame-handles-if-necessary</A></code>.<P>
+
+   Note: This generic function uses <code>OR</code> method combination.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="with-current-kb">with-current-kb</A></B></code>  </TD><TD valign=top align=left> (kb &rest body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>A macro that binds the <code><A HREF="#current-kb">current-KB</A></code> to the specified KB and
+   executes the <code>body</code> in that context.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="with-kb-io-syntax">with-kb-io-syntax</A></B></code>  </TD><TD valign=top align=left> ((&key (kb (quote (current-kb))) (purpose :file) (kb-local-only-p nil)) &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>A useful macro that executes its body in the appropriate IO environment
+   for the KB.  This macro will only have the desired effect either within
+   a back end implementation, or in applications that are directly coupled to
+   a KB (not using a network connection).  It is useful because it makes sure
+   that all IO that occurs within the dynamic extent of the body forms will be
+   run in the right IO environment.  This means that random IO such as trace
+   and debug prints will get the right IO syntax.<P>
+
+   Because it doesn't work in a network setting, use of this macro in an
+   application is non-portable, and is no substitute for correct use of
+   coerce-to-kb-value, get-frames-matching and value-as-string, however
+   an application will probably be easier to develop and debug if at the
+   outer level it does something like the following (given a KB called kb):
+   <PRE>
+   (if (typep <A HREF="#kb">kb</A> '<A HREF="#network-kb">ok-back:network-kb</A>)
+       (actuall-run-my-application <A HREF="#kb">kb</A>)
+       (<A HREF="#with-kb-io-syntax">with-kb-io-syntax</A> (:kb <A HREF="#kb">kb</A> :purpose :user-interface)
+         (actuall-run-my-application <A HREF="#kb">kb</A>)))
+   </PRE>
+</DL>
+</HTML>

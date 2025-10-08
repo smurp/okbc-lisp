@@ -1,0 +1,253 @@
+\chapter{Function Specifiers}
+
+GFP is designed to operate efficiently with a tightly-coupled FRS,
+and to provide a good match with the operations typically used both to
+manipulate KBs and to define higher-level operations that manipulate
+them.  As a consequence, GFP operations are fairly fine-grained.  This
+allows good control over the KB and makes minimal commitment to the
+FRS architecture or the behavior of the application.  The result,
+however, is that a typical GFP application will make a larger number
+of calls to GFP operations.  For example, computing the information
+necessary to display a complete class graph for a knowledge base would
+require calling at least two GFP operations for each class (one to get
+its subclasses, and one to get a printable representation of its
+name).  This could result in many thousands of calls to GFP operations
+simply to display a large class graph.
+
+In a networked environment, bandwidth and latency are typically the
+limiting factors for the system performance.  Even on a high-speed
+network, the latency of a request may well be of the order of 100ms,
+which may well be 100,000 times slower than a call to a single simple
+GFP operation in a tightly coupled system. To allow users to write
+efficient network-based GFP applications, GFP supports a FRS and
+implementation language-independent stored procedure capability.
+
+The stored procedure language supported by GFP is expressed in a
+simple Lisp-like syntax and provides a dynamic binding model for its
+variables.  All of the GFP operations on KBs are supported within the
+stored procedure language as well as stored, named procedures, and a
+small number of other operators that enable the programmer to compose
+GFP operations in sophisticated ways.  These include conditionals,
+iteration constructs, and recursion. It is simple, for example, to
+write a procedure that will return to the client all of the
+information necessary to display a complete class graph to arbitrary
+depth using only a single GFP call.  This results in hugely more
+efficient client programs in a networked environment and can also be
+efficiently executed on tightly-coupled KBs. No operations are
+supported within the stored procedure language that might compromise
+the security of a GFP server machine.
+
+\section{Function Specifier Syntax}
+
+The basic object in the stored procedure language is the {\em
+function-specifier}.  A function-specifier is a description of a
+system-independent function (procedure) written in the stored
+procedure language.  A function-specifier consists of a list of
+parameters, a set of forms to be executed as the body, and optionally
+a name --- function-specifiers can be anonymous.  The particular way
+in which a function-specifier is created is language binding
+specific, but the syntax of the parameter list and body forms is
+language independent.  The following grammar for the language has two
+top-level productions: {\tt parameter-list}, and {\tt body}.  Literals in the
+grammar are enclosed in string quotes, and token names are in upper
+case.  These token names name the surface syntax for the GFP primitive
+data types.  Note: there is no surface syntax for the GFP primitive
+data types {\tt FRAME-HANDLE}, {\tt FUNCTION-SPECIFIER}, {\tt KB}, or
+{\tt REMOTE-VALUE}, though variables in a procedure will often take on
+instances of these data types as values during the course of
+execution.
+
+\begin{verbatim}
+parameter-list ::= "(" parameter* ")"
+     parameter ::= SYMBOL
+          body ::= body-form*
+     body-form ::= procedure-call | simple
+procedure-call ::= "(" SYMBOL body-form* ")"
+        simple ::= atom | quotation
+     quotation ::= "(" "QUOTE" form ")" | "'" form
+          form ::= atom | list
+          list ::= "(" form* ")"
+          atom ::= INTEGER | FLOAT | STRING | boolean
+       boolean ::= "T" | "NIL" | "()"
+\end{verbatim}
+
+From the point of view of conditional expressions, any
+non-\falsefalse\ value is considered \true\, just as any non-zero
+value is considered true in the C language.  Note that the GFP values
+\true\ and \false\ are represented by \code{T} and \code{NIL}
+respectively.  \code{NIL} and \code{()} are synonymous.
+
+A string literal is enclosed in double quotes.  All characters are
+permitted within strings, including newlines and nulls, but string
+quotes themselves must be escaped with a backslash character, as must
+the backslash character itself.  Note that in some language bindings,
+function-specifiers are embedded within strings.  This means that a
+level of string escaping according to the convention of the host
+language will be necessary around string quotes, and possibly around
+whitespace.  For example, if we wanted to enter a function-specifier
+body for the expression {\tt (f1 x "hello")} in Java, we would have to
+type {\tt "(f1 x \verb!\"!hello\verb!\"!)"}.
+
+The stored procedure language is whitespace-insensitive, but some
+whitespace is necessary to delimit tokens other than parentheses and
+quotes.  The {\tt INTEGER} and {\tt FLOAT} data types have the normal
+textual representation with exponential notation being supported with
+the normal {\tt E} syntax.  Semicolons introduce end-of-line
+comments.  All text after a semicolon will be ignored until the next
+newline.  Hash ({\tt \#}) characters are not permitted.
+
+The {\tt SYMBOL} data type has its origins in Lisp, but is supported
+by all GFP servers.  Symbols are used as identifiers for variables and
+functions, but they are also permitted as literals.  Any non-control
+character can be part of the name of a symbol with the exception of
+colons, semicolons, hashes, parentheses, quotes or whitespace.  A
+symbol may not start with a digit.
+
+The namespace in which symbols live is partitioned into regions called
+{\em packages}.  The GFP stored procedure language is case and package
+insensitive except for symbol literals.  It is an
+error for a portable program to assume the existence of any package
+other than the GFP or keyword packages in a function-specifier.  Any
+given KB in a given FRS will in general define other packages.  There
+is no need to be aware of the packages defined for the KB unless the
+application specifically needs to test for object identity with
+symbols defined in the FRS.  If this is the case, it is the
+responsibility of the client program to create any necessary packages
+on the client side.
+
+An example of a symbol might be {\tt X}.  A package-qualified symbol
+named {\tt X} in the package {\tt foo} would be {\tt FOO::X}.  A
+special package called the {\em keyword} package is used to hold many
+symbols that are used as literals.  Keywords can be thought of as
+variables whose value is always the symbol literal of the symbol
+itself.  Keywords are used so frequently that they have special
+syntax, the symbol {\tt X} in the keyword package (i.e., the keyword
+{\tt X}) is spelled {\tt :X}.  Thus, {\tt :X} is a constant, whose
+value is always the symbol {\tt :X} --- it denotes itself.  Symbol and
+compound literals are introduced into programs by means of the
+quotation production.  String and numeric literals do not need such
+quoting, they denote themselves.  A quoted literal can be expressed
+either as {\tt (QUOTE xxx)} or as {\tt 'xxx}, where {\tt xxx} is the
+literal in question.  For example, the literal symbol {\tt FRED} would
+be introduced as {\tt 'FRED}.  A literal list containing the elements
+{\tt A}, {\tt 42}, and {\tt "Hello"} would be expressed as {\tt '(A 42
+"Hello")}.
+
+All non-quoted symbols within a function-specifier body denote either
+variable references or the names of operators, such as procedures.  An
+operator is invoked by wrapping it in parentheses, thus {\tt (F1 1 2)}
+means "apply the {\tt F1} operator to the numbers {\tt 1} and {\tt
+2}."  In the C language, one would express this as {\tt F1(1, 2)}.
+Unlike C or Java, {\em there are no infix operators} in the
+function-specifier language.  The equivalent of {\tt 1 + 2} in C would
+be {\tt (+ 1 2)}.  Note that unlike languages such as C which are very
+restrictive in the set of characters permitted in variable and
+function names (usually alphanumerics, {\tt \_}, and {\tt \$}), most
+characters are permitted in symbols, so whitespace must be used to
+delimit them.  If we had written {\tt (+1 2)}, we would have meant
+"apply the operator called {\tt +1} to the number {\tt 2}.  This would
+be an error unless the user had defined a procedure called {\tt +1}.
+For example, we might define a function-specifier called {\tt F1} with
+a parameter list of {\tt (x y)}, i.e. the variables "{\tt x}" and
+"{\tt y}", and we might have a body of {\tt (* x (+ y 2))}, i.e. add
+{\tt 2} to {\tt y}, and multiply the result by {\tt x}.
+
+All body-forms return a value, though that value may be ignored.  The
+value returned by a function-specifier is the value returned by its
+last body form.  The first element in a procedure-call is the name of
+an operator in the stored procedure language.  That operator is
+applied to the other body-forms in the procedure-call -- its
+arguments.  The arguments themselves may be other procedure-calls, of
+course.
+
+Variable names (symbols, such as {\tt x}, above) denote values.
+Attempting to retrieve the value of a variable with no assigned value
+will signal an error.  Variables acquire values either through being
+{\em set}, or through being {\em bound}.  There are a number of
+constructs in the language that establish bindings (e.g. {\tt LET},
+{\tt DO-LIST}).  The simplest means of establishing a binding,
+however, is through being a parameter to a procedure.  In the example
+above, we had a function-specifier with {\tt x} and {\tt y} as its
+parameters.  Inside this function, we say that {\tt x} and {\tt y} are
+{\em bound} to the values passed in to the function-specifier when it
+was called.  If we made a call to {\tt F1} such as {\tt (F1 3 4)},
+{\tt x} would be bound to {\tt 3}, and {\tt y} would be bound to {\tt
+4} during the execution of {\tt F1}.  On exiting {\tt F1}, {\tt x} and
+{\tt y} are restored to the values they had before, if any.  During
+{\tt F1}, we may {\em set} the value of either {\tt x} or {\tt y} to
+any other value, but the original value will still be restored upon
+exit from {\tt F1}.  GFP operations are supported within
+function-specifiers using the standard Lisp keyword argument notation.
+Thus, if we have a frame that is the value of the variable {\tt F},
+and an own slot that is the value of the variable {\tt S}, we could
+get the value of that slot in {\tt F} with the call
+
+{\tt (get-slot-value F S :kb kb :slot-type :own)}
+
+where {\tt kb} is the variable denoting the current KB.  Note that the
+function specifier syntax may differ from the GFP syntax in the
+implementation language.  For example, in Java code we would write the
+above call to {\tt get-slot-value} as:
+
+{\tt kb.get\_slot\_value(F, S, \_own);}
+
+\section{Function Specifier Forms}
+%% File: ngfp/ngfp-server-operations.txt
+
+In addition to the GFP operations defined in Section~\ref{sec:ops},
+the function specifier language supports the following forms.
+
+\input{gfp-fspec-specs.tex}
+
+%  GFP extension operators:
+%     ERROR
+%         ERROR signals a condition.  It first creates a condition object
+%         which is constructed from the DATUM.  It then searches for a
+%         condition handler to invoke on this condition.  If no handler is found
+%         to handle this condition, the debugger will be entered and the error
+%         message for this condition will be displayed.  A call to ERROR cannot
+%         directly return.  There is no option to simply continue.  The only exit
+%         from this function can come by non-local transfer of control in a
+%         handler or by using one of the interactive commands in the debugger.
+%         If DATUM is a condition type, then ARGUMENTS should be keyword/value
+%         pairs and the condition to be signalled is created by doing:
+%         (APPLY #'MAKE-CONDITION DATUM ARGUMENTS).
+%         If DATUM is a condition object, then this condition is used directly
+%         for signalling.  In this case, it is an error for ARGUMENTS to be non-NIL.
+%         If DATUM is a format string, then the condition to be signalled is
+%         created by doing: (MAKE-CONDITION 'SIMPLE-ERROR
+%         :FORMAT-STRING DATUM
+%         :FORMAT-ARGUMENTS ARGUMENTS).
+         
+%     ACTIVE-SESSIONS
+%         Returns a list of lists (session-id group description-string) for each
+%         of the sessions to which you can connect
+%     GET-GROUPS
+%         Returns a list of the group IDs applicable to the current user.
+%     KILL-SESSION
+%         Kills the session named by Session-Key-Or-ID.  If you supply a non-null
+%         value for key-to-use-instead_of_password, then you can supply a null string
+%         for the password, and this is used instead of session-key-or-id.
+%     LOGIN-USER-AND-CONNECT-TO-SESSION
+%         Logs you in to Host:port under the specified user-id and connects
+%         you to the session named by Key-Or-Session-ID.  It is important to
+%         use this function when reconnecting, otherwise you'll create a new
+%         session and will appear to lose all of your work.  It'll still be
+%         there, though. Note that unlike other functions, this one accepts
+%         either a session ID or a session key as a legal way to identify
+%         the session to which you are going to connect.  This is because
+%         the function is password protected, and session keys are user and
+%         ip address specific.
+%         Returns three values:
+%         - Session key
+%         - Session ID
+%         - A string containing any messages that were emitted whilst
+%         creating the session, such as log messages from scripts being run.
+%     LOGIN-USER-AND-CREATE-SESSION
+%         Logs you in to Host:port under the specified user-id and creates a
+%         session called Session-description owned by Group-ID-for-Session with
+%         the specified expected duration.  Returns three values:
+%         - Session key
+%         - Session ID
+%         - A string containing any messages that were emitted whilst creating
+%         the session, such as log messages from scripts being run.

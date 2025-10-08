@@ -1,0 +1,378 @@
+\chapter{Standard Names}
+
+
+The interactions between an application and an FRS include not only
+the set of interface functions such as \kfn{get-slot-values}, but also
+a set of names of built-in frames, slots, and facets.  To provide
+applications with a uniform model, GFP specifies standard names for
+some frames, slots, and facets. 
+
+All of the standard names are symbols in the keyword package to avoid
+package conflicts and emphasize that these are built in to the
+protocol.
+
+
+\section{Classes}
+
+Many of the standard frame names defined in this section do not always
+correspond to actual implemented frames in every FRS.  The standard
+frame names are mainly intended to be used in slot value-type
+definitions (to specify the range of possible values of a slot).  For
+this use, only certain GFP operations need be defined for these
+standard frame names (although the implementorr is free to define more
+than the minimum required operations).  These standard frame names can
+therefore be thought of as defining a set of ``pseudo frames'' ---
+since not all GFP operations are defined for them, they need not have
+the same degree of existence in the KB as do most frames.  (For
+example, it would make no sense to want to change some slot value of
+the frame {\tt :INTEGER}.)  Specifically, the GFP operations that must
+be defined for these frames are:
+
+\begin{verbatim}
+    get-frame-name
+    frame-eql
+    create-slot
+\end{verbatim}
+
+The intention then is that these pseudo-frames can be values
+supplied to operations such as \kfn{put-facet-values} (to alter
+the \karg{:value-type} facet for example).  Any frame 
+retrieved from a facet such as the value-type facet can be
+converted to a standard frame name using \kfn{get-frame-name},
+and can be compared to a standard frame name using \kfn{frame-eql}.
+In addition, we can supply the frame \karg{:thing} as the
+\karg{attach-to} argument of \kfn{create-slot}.
+
+
+{\tt :THING}
+
+{\tt :THING} is the root of the class hierarchy for every KB, meaning
+that {\tt :THING} is the super of every user-defined class that has no
+user-defined superclass.  (Some FRSs have no physical counterpart
+to {\tt :THING}.)
+
+
+{\tt :CLASS}
+
+{\tt :CLASS} is the class of all classes.  That is, every frame that
+is a class is an instance of {\tt :CLASS}.  Asking
+whether a frame is a class is equivalent to asking whether it is one
+of the instances of {\tt :CLASS}.
+
+{\tt :INTEGER}
+
+{\tt :INTEGER} is the class of all integers. It is useful when describing
+value type restrictions on slots.  It includes positive and negative integers,
+and has the same definition as Lisp's INTEGER type (i.e., it is not limited to
+FIXNUMs).
+
+{\tt :NUMBER}
+
+{\tt :NUMBER} is the class of all numbers.  It is useful for
+specifying value type restrictions on slots.  Applications should not
+rely on assumptions about the precision of numbers when declaring
+value type restrictions in KBs. If precision is an issue, then the
+application should be responsible for maintaining and validating the
+format of data in slots.
+
+{\tt :STRING}
+
+{\tt :STRING} is the class of all text strings, things for which Common Lisp's
+\nikfn{stringp} function returns true.
+
+{\tt :SYMBOL}
+
+{\tt :SYMBOL} is the class of all Common Lisp symbols, things for
+which Common Lisp's
+\nikfn{symbolp} function returns true.
+
+
+{\tt :LIST}
+
+{\tt :LIST} is the class of all lists.  It is useful for specifying
+value type restrictions on slots.
+ 
+
+{\tt :SEXPR}
+
+{\tt :SEXPR} is the class of all s-expressions, and is equivalent
+to the disjunction of {\tt :SYMBOL} or {\tt :LIST}.
+
+{\tt :SEQUENCE}
+
+{\tt :SEQUENCE} is the class of all sequences, including lists,
+arrays, and strings.  It is useful for specifying value type
+restrictions on slots.
+
+
+\section{Slots}
+
+At present, GFP supports only one standard slot name.
+
+{\tt :DOCUMENTATION}
+
+{\tt :DOCUMENTATION} is a slot that maps any frame to a text string giving
+documentation for that frame.
+
+\section{Facets}
+
+\label{sec:std-facets}
+
+The standard facets in GFP have been derived from Knowledge
+Representation System Specification (\KRSS)
+\cite{KRSS-93} and the KSL Frame Ontology.  \KRSS\ is a common denominator
+for description logic systems such as \Loom \cite{LOOM4}, \Classic\
+\cite{Borgida-89} and \Back\ \cite{BACK-TR-89}.  The Frame Ontology
+defines the terms that capture conventions used in object-centered
+knowledge representation systems.  We first define the standard facet
+names and then give some examples of how they can be used with a
+KRSS-like FRS.
+
+\subsection{Standard Facet Names}
+
+We anticipate FRSs to support a subset of facets being defined here
+and support some additional facets depending on their needs. It is
+ussually possible to define a correspondence between the facet name
+defined by an FRS to one of the following standard facet names.  Back
+end implementors are encouraged to define such correspondences so that
+GFP operations are invoked with standard facet names.  Whenever the
+standard facet names are used, they will have meanings defined below.
+
+{\tt :ATTACHED-TO}
+
+The {\tt :ATTACHED-TO} facet lists the KB classes that this slot applies
+to.  The facet can have one or more classes as its values, which
+indicates that the slot applies to all of the listed classes.  For the
+list of classes to be meaningful, there should not exist two classes
+in the list such that one class is a direct or indirect superclass of
+the other class.
+
+
+{\tt :VALUE-TYPE}
+
+The {\tt :VALUE-TYPE} facet provides a way to specify a type
+restriction on the values of a slot. Its value is ususally a single
+class.
+
+If the {\tt :VALUE-TYPE} facet has the single value $D$ for slot $S$
+on class frame $C$, then $D$ must be a class such that for all
+instances $i$ of $C$, all values of slot $S$ on $i$ must be instances
+of $D$.
+
+{\tt :CARDINALITY}
+
+The {\tt :CARDINALITY} facet specifies the exact number of possible
+values that a slot may take.  The value of this facet must be either a
+nonnegative integer or a 2-tuple consisting of a nonnegative integer
+and an aribitrary KIF expression.  A {\tt :CARDINALITY} of 1 on
+template slot $S$ of frame $C$ means that for all instances $i$ of
+$C$, there must exist one and only one value for the slot $S$.  A {\tt
+:CARDINALITY} of (1 K) on template slot $S$ of frame $C$ means that
+for all instances $i$ of $C$, there must exist one and only one value
+of type $K$ for the slot $S$.
+
+
+{\tt :MAXIMUM-CARDINALITY}
+
+The {\tt :MAXIMUM-CARDINALITY} facet allows one to specify a partial
+constraint on the number of values for a slot: that there exists at
+most N values.  Just like the {\tt :CARDINALITY} facet, it is possible
+to specify the type of values for this facet by supplying a 2-tuple
+consisting of a nonnegative integer and an arbitrary KIF expression.
+The most common value is 1, which means that the slot is
+single-valued.  If an application attempts to assert more than one
+value in such a slot, a constraint violation occurs. The behavior of
+an FRS under constraint violations is determined by the {\tt
+:CONSTRAINT-VIOLATION} behavior.
+
+{\tt :MINIMUM-CARDINALITY}
+
+The {\tt :MINIMUM-CARDINALITY} facet allows one to specify a partial
+constraint on the number of values for a slot: that there exists at
+least N values.  Just like the {\tt :CARDINALITY} facet, it is
+possible to specify the type of values for this facet by supplying a
+2-tuple consisting of a nonnegative integer and an arbitrary KIF
+expression K.  When a new frame is created, N values for this slot
+must be specified; if not, a constraint violation occurs. If K is
+supplied, the values must be of type K.  Some FRSs automatically
+generate placeholder values to fill such a slot, rather than
+signalling a violation. The behavior of a FRS under constraint
+violations is determined by the {\tt :CONSTRAINT-VIOLATION} behavior.
+
+{\tt :SAME-VALUES}
+
+The {\tt :SAME-VALUES} facet allows one to express equality between
+two slots.  If the value of this facet for a slot X is Y, it implies
+that for every value of slot X on a frame F, X is also a value of slot
+Y for the frame F and vice versa.  It also implies that the values of {\tt
+:SAME-VALUES} facet for slot Y is equal to X.
+
+{\tt :NOT-SAME-VALUES}
+
+The {\tt :NOT-SAME-VALUES} facet allows one to express inequality
+between two slots.  If the value of this facet for a slot X is Y, it
+implies that no value for X on frame F is a value for Y on the frame
+X.  It also implies that the values of {\tt :NOT-SAME-VALUES} facet
+for slot Y is equal to X.
+
+{\tt :SLOT-SUBSET-OF}
+
+The {\tt :SLOT-SUBSET-OF} facet allows one to express subset relationship between
+two slots.  If the value of this facet for a slot X is equal to Y,
+it implies that the values of slot X are a subset of the values of slot Y.
+
+{\tt :INVERSE}
+
+This facet can have a single value, which is the slot that encodes
+the inverse relationship of the slot to which the facet is attached.
+For example, a slot that encodes the child relationship between two
+people would have as its inverse the parent slot.  The {\tt INVERSE}
+facet on the child slot would contain parent as its value, and
+the {\tt INVERSE} facet on the parent slot would contain the value
+child.
+
+
+{\tt :NUMERIC-MINIMUM} \hspace{.3 in}
+{\tt :NUMERIC-MAXIMUM}
+
+These facets specify the minimum and maximum bounds on a slot
+whose values are numbers.  Each facet can take a single number
+as its value.
+
+
+{\tt :SOME-VALUES}
+{\tt :ALL-VALUES}
+
+The {\tt :SOME-VALUES} facet is a set containing values that is a
+subset of the values of a slot.  The {\tt :ALL-VALUES} facet is a list
+containing all possible values of a slot.  These facets are useful for
+description logic systems that wish to define a concept based on all
+the values of a slot.
+
+{\tt :COLLECTION-TYPE}
+
+The {\tt :COLLECTION-TYPE} facet specifies how to deal with multiple
+values for a slot, i.e. whether ordering is important and whether or
+not duplicate values are permitted.  Possible values are {\tt :list},
+{\tt :set}, or {\tt :multiset}.  Not all FRS's will support all
+options --- the collection-types supported are determined by the {\tt
+:COLLECTION-TYPES} behavior.
+
+{\tt :SATISFIES}
+
+The {\tt :SATISFIES} facet allows one to attach a constraint 
+expression in KIF or a procedure to a slot.  The slot can be required to satisfy
+the constraint, or the procedure executed every time there is a change in
+slot value.
+
+
+\subsection{Working with Facets}
+
+In this section, we discuss how facets can be used in the context of
+a KRSS-like description logic system.
+There is a natural mapping between KRSS concept constructors and GFP
+facets.  For example, Table~\ref{tab:concept-table} defines a
+correspondence between KRSS concept constructors and GFP facets.
+Throughout this section, \syntax{C}, \syntax{R}, \syntax{A}, and
+\syntax{I}, possibly subscripted, are concepts, roles (including
+attributes), attributes, and individuals.  (Attributes are
+single-valued roles.)  In the terminology of GFP, roles and attributes
+are known as slots, and individuals are known as instances.
+
+\begin{table}[tbph]
+\begin{displaymath}
+\begin{array}{|l|l|l|l|} \hline
+\mbox{\KRSS\ concept constructor} &  \mbox{GFP facet}  & {Facet Value} \\ \hline
+\syntax{(all~R~C)} & {\mbox {\tt :value-type}} & \syntax{C} \\
+\syntax{(some~R)} & {\mbox {\tt :minimum-cardinality}} & 1 \\
+\syntax{(none~R)} & {\mbox {\tt :maximum-cardinality}}  & 0 \\
+\syntax{\mbox{(at-least}~n~R)} & {\mbox {\tt :minimum-cardinality}} & \syntax{n} \\
+\syntax{\mbox{(at-most}~n~R)} &  {\mbox {\tt :maximum-cardinality}} & \syntax{n} \\
+\syntax{(exactly~n~R)} &  {\mbox {\tt :cardinality}} & \syntax{n} \\
+\syntax{(some~R~C)} &  {\mbox {\tt :minimum-cardinality}} & \syntax{(1~C)} \\
+\syntax{\mbox{(at-least}~n~R~C)} & {\mbox {\tt :minimum-cardinality}} & \syntax{(n~C)}  \\
+\syntax{\mbox{(at-most}~n~R~C)} &  {\mbox {\tt :maximum-cardinality}}  & \syntax{(n~C)} \\
+\syntax{(exactly~n~R~C)}  &   {\mbox {\tt :cardinality}} & \syntax{(n~C)} \\
+\syntax{(equal~R_1~R_2)} &  {\mbox {\tt :same-values}} &\syntax{R_2}  \\
+\syntax{(\mbox{not-equal}~R_1~R_2)}  & {\mbox {\tt :not-same-values}} & \syntax{R_2} \ \\
+\syntax{(subset~R_1~R_2)} &  {\mbox {\tt :slot-subset-of}} & \syntax{R_2} \\
+\syntax{(fillers~R~I_1~\ldots~I_n)}   & {\mbox {\tt :some-values}} & \syntax{(I_1~\ldots~I_n)}  \\
+\syntax{\mbox{(only-fillers}~R~I_1~\ldots~I_n)}  & {\mbox {\tt :all-values}}  & \syntax{(I_1~\ldots~I_n)}  \\
+\syntax{(in~A~C)} &{\mbox {\tt :value-type}} & \syntax{C} \\
+\syntax{(is~A~I)} &   {\mbox {\tt :all-values}} & \syntax{(i)} \\
+\syntax{(satisfies \ldots)} &  {\mbox {\tt :satisfies}} & \syntax{\ldots} \\ \hline
+\end{array}
+\end{displaymath}
+\caption{Mapping KRSS concept constructors to GFP Facets}
+\label{tab:concept-table}
+\end{table}
+
+The first five concept constructors in Table~\ref{tab:concept-table},
+\syntax{(some~R)}, \syntax{(none~R)}, \syntax{\mbox{(at-least}~n~R)},
+\syntax{\mbox{(at-most}~n~R)} and \syntax{(exactly~n~R)}, can be
+easily represented using GFP  facets.
+The constructors, \syntax{\mbox{(at-least}~n~R~C)},
+\syntax{\mbox{(at-most}~n~R~C)} and \syntax{(exactly~n~R~C)}
+correspond to quartenary relationships and are
+represented by supplying 2-tuple \syntax{(n~C)} as a value for the
+corresponding facets. 
+(The constructor \syntax{\mbox{(some}~n~R~C)} is a special case of
+\syntax{\mbox{(at-least}~n~R~C)} with $n=1$.) 
+
+The constructors \syntax{(\mbox{equal}~R_1~R_2)},
+\syntax{(\mbox{not-equal}~R_1~R_2)} and \syntax{(subset~R_1~R_2)}
+apply to more than one slot.  The value of the {\tt :same-values}
+facet for \syntax{R_1} is \syntax{R_2}, and the value of the 
+{\tt :same-values} facet for \syntax{R_2} is \syntax{R_1}.
+
+The attributes are single valued slots.  As GFP does not provide
+special treatment for single-valued slots, we use existing facets to
+represent attribute-specific constructors.  For attributes, the {\tt
+:cardinality} facet is 1.  The constructor \syntax{(in~A~C)} maps to
+the {\tt :value-type} facet. The constructor \syntax{(is~A~I)} maps to
+the {\tt :all-values} facet where values are represented as a list
+with the single element \syntax{I}.
+
+The last \KRSS\ facet {\tt :satisfies} allows a user
+to attach an arbitrary procedure that must be satisfied by the concept.  
+
+There are a few constructors in KRSS that cannot be mapped to any of
+the facets listed in Table~\ref{tab:concept-table}, for example,
+\syntax{and}, \syntax{or}, \syntax{not}, \syntax{set},
+\syntax{minimum}, and \syntax{maximum}.  They will be considered for 
+inclusion in the future version of GFP.
+
+Let us now consider a few  examples of mapping \KRSS\ expressions to
+facet values.  The following definition is from a KB from
+the Aircraft domain developed in \Loom\ at ISI.  (We translated the
+definition into \KRSS\ for consistency of notation.)
+
+\begin{verbatim}
+(define-concept Fighter
+   (and Airplane
+            (fillers  Mission Air-Superiority)
+            (some Mission Combat-Mission)))
+\end{verbatim}
+
+From the above definition, we can derive the value of three facets.  
+For the slot {\tt Mission}, the {\tt :minimum-cardinality}
+facet  has a value of {\tt (1 Combat-Mission)} and the {\tt :some-values}
+has a value of ({\tt Air-Superiority}).   Consider
+the following definition from the Migraine knowledge base developed
+at University of Pittsburgh:
+
+\begin{verbatim}
+(define-concept Anti-depressant
+   (and Psychotherapeutic-Agent
+            (is Principal-Drug-Use 
+                (is Therapeutic-Goal (is Actee Depression)))))
+\end{verbatim}
+
+The slot {\tt Principal-Drug-Use} has a value 1 for the {\tt
+:cardinality} facet, and value {\tt (in Therapeutic-Goal (in Actee
+Depression))} for the {\tt :value-type} facet.  Thus, whenever the value of a
+facet can be a concept, it can be an arbitrary concept expression from
+\KRSS. 
+
+
+

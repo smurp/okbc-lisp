@@ -1,0 +1,844 @@
+\chapter{The GFP Knowledge Model}
+\label{ch:reference-model}
+
+The GFP protocol provides operations for knowledge expressed in an
+implicit representation formalism called the "GFP Knowledge Model",
+which we will specify in this chapter.  The GFP Knowledge Model supports
+an object-oriented representation of knowledge and provides a set of
+representational constructs commonly found in frame representation
+systems (FRS's) \cite{KarpFreview}.  The GFP Knowledge Model serves as
+an implicit interlingua for knowledge communication in that knowledge
+obtained via GFP from a knowledge representation system (KRS) or
+provided to a KRS via GFP is expressed in the Knowledge Model's
+representational constructs.
+
+The GFP Knowledge Model consists of knowledge bases, frames, slots,
+facets, classes, and constants.  We describe each of these constructs in
+the sections below.
+
+
+\section{Entities}
+
+The GFP Knowledge Model assumes a universe of discourse consisting of
+all entities about which knowledge is to be expressed.  Each use of GFP
+is likely to have a different universe of discourse.  However, GFP
+assumes the universe of discourse always includes all constants of the
+following {\em basic types}:
+
+\bitem
+
+\item integers
+\item numbers
+\item strings
+\item symbols
+\item lists of entities
+\item sets of entities
+
+\eitem
+
+Symbols are used as names of entities.  Sets are also referred to as
+{\em classes}\footnote{We use the term {\em class} synonymously with the
+term {\em concept} as used in the description logic community.}.  We
+refer to entities that are not classes as {\em individuals}.  Thus, the
+domain of discourse is considered to consist of individuals and classes.
+
+
+\section{Frames, Own Slots, and Own Facets}
+
+A {\em frame} is a structured object that represents an entity in the
+domain of discourse.  Formally, a frame corresponds to a non-logical
+symbol.  A frame that represents a class is called a {\em class frame},
+and a frame that represents an individual is called an {\em individual
+frame}.
+
+A frame has associated with it a collection of {\em own slots}, and each
+own slot has associated with it a set of entities called {\em slot
+values}.  Formally, a slot is a binary relation, and each value V of an
+own slot S in a frame F represents the assertion that the relation S
+holds for the entity represented by F and the entity represented by V
+(i.e., "S(F V)").  For example, the assertion that Fred's favorite foods
+are potato chips and ice cream could be represented by the {\tt
+favorite-food} own slot in the {\tt fred} frame having as values the
+{\tt potato-chips} frame and the string {\tt "ice cream"}.
+
+Relations may optionally be considered to be entities in the domain of
+discourse and therefore representable by frames.  Thus, a slot can
+optionally be represented by a frame.  Such a frame would describe the
+properties of the relation represented by the slot.  Slots and frames
+necessarily share the same name space since a given name can refer to
+both a slot and to the frame representing that slot as a relation.
+
+An own slot on a frame has associated with it a collection of {\em own
+facets}, and each own facet has associated with it a set of entities
+called {\em facet values}.  Formally, a facet is a ternary relation, and
+each value V of own facet Fa on slot S in frame Fr represents the
+assertion that the relation Fa holds for the entity represented by Fr,
+the relation S, and the entity represented by V (i.e., "Fa(Fr,S,V)"). 
+For example, the assertion that the favorite foods of Fred must be
+edible foods could be represented by the facet {\tt value-type} on the
+{\tt favorite-food} slot in the {\tt fred} frame having the value {\tt
+edible-food}.
+
+
+\section{Classes and Instances}
+\label{intro:classes}
+
+A {\em class} is a set of entities. Each of the entities in a class is
+said to be an {\em instance} of the class.  An entity can be an instance
+of many classes, which are called its {\em types}.  A class can be an
+instance of a class of classes.  A class which has instances that are
+themselves classes is called a {\em meta-class}.
+
+The class membership relation (called {\em instance-of}) that holds
+between an instance and a class is a binary relation that maps entities
+to sets.  The relation {\em type-of} is defined as the inverse of {\em
+instance-of}, as follows:
+
+\begin{verbatim}
+     (<=> (type-of $C $I) (instance-of $I $C))
+\end{verbatim}
+
+The {\em subclass-of} relation for classes is defined in terms of {\em
+instance-of}, as follows.  A class $C_{sub}$ is a subclass of class
+$C_{super}$ if and only if all instances of $C_{sub}$ are also instances
+of $C_{super}$.  That is:
+
+\begin{verbatim}
+     (<=> (subclass-of $Csub $Csuper)
+          (forall ($I) (=> (instance-of $I $Csub)
+                           (instance-of $I $Csuper))))
+\end{verbatim}
+
+Note that this definition implies that {\em subclass-of} is transitive. 
+(I.e., If A is a subclass of B and B is a subclass of C, then A is a
+subclass of C.)
+
+The relation {\em superclass-of} is defined as the inverse of {\em
+subclass-of}, as follows:
+
+\begin{verbatim}
+     (<=> (superclass-of $Csuper $Csub) (subclass-of $Csub $Csuper))
+\end{verbatim}
+
+
+\section{Class Frames, Template Slots, and Template Facets}
+
+A class frame has associated with it a collection of {\em template
+slots} that describe own slot values considered to hold for each member
+of the class represented by the frame.  The values of template slots are
+said to {\em inherit} to the subclasses and to the instances of a
+class.  Formally, each value V of a template slot S in a class frame C
+represents the assertion that the relation {\em template-slot-value-of}
+holds for the class represented by C, the relation S, and the entity
+represented by V (i.e., "template-slot-value-of(C,S,V)").  That
+assertion, in turn, implies the relation S holds between each instance I
+of class C and value V (i.e., "S(I,V)").  It also implies that the
+relation {\em template-slot-value-of} holds for each subclass Csub of
+class C, the relation S, and the entity represented by V (i.e.,
+"template-slot-value-of(Csub,S,V)").  In general, the following axioms
+hold for the relation {\em template-slot-value-of}: 
+
+\begin{verbatim}
+     (=> (template-slot-value-of $C $S $V)
+         (=> (instance-of $I $C) (holds $S $I $V)))
+
+     (=> (and (template-slot-value-of $Csuper $S $V)
+              (subclass-of $Csub $Csuper)) 
+         (template-slot-value-of $Csub $S $V))
+\end{verbatim}
+
+Thus, the values of a template slot are inherited to subclasses as
+values of the corresponding template slot and to instances as values of
+the corresponding own slot.
+
+A template slot on a class frame has associated with it a collection of
+{\em template facets} that describe own facet values considered to hold
+for the corresponding own slot on each member of the class represented
+by the class frame.  As with the values of template slots, the values of
+template facets are said to inherit to the subclasses and to the
+instances of a class.  Formally, each value V of a template facet F on a
+template slot S in a class frame C represents the assertion that the
+relation {\em template-facet-value-of} holds for the class represented
+by C, the relations S and F, and the entity represented by V (i.e.,
+"template-facet-value-of(C,S,F,V)").  That assertion, in turn, implies
+the relation F holds for each instance I of class C, relation S, and
+value V (i.e., "F(I,S,V)"). It also implies that the relation {\em
+template-facet-value-of} holds for each subclass Csub of class C, the
+relations S and F, and the entity represented by V (i.e.,
+"template-facet-value-of(Csub,S,F,V)").  For example, the assertion that
+the gender of all female persons is female could be represented by
+template slot {\tt gender} on class frame {\tt female-person} having the
+value {\tt female}.  Then, if we created an instance of {\tt
+female-person} called {\tt mary}, {\tt female} would be a value of the
+own slot {\tt gender} on {\tt mary}.
+
+In general, the following axioms hold for the relation {\em
+template-facet-value-of}: 
+
+\begin{verbatim}
+     (=> (template-facet-value-of $C $S $F $V)
+         (=> (instance-of $I $C) (holds $F $I $S $V)))
+
+     (=> (template-facet-value-of $Csuper $S $F $V)
+         (=> (subclass-of $Csub $Csuper)
+             (template-facet-value-of $Csub $S $F $V))
+\end{verbatim}
+
+Thus, the values of a template facet are inherited to subclasses as
+values of the corresponding template facet and to instances as values of
+the corresponding own facet.
+
+
+%It is often important to be able to retrieve the {\em direct} instances,
+%subclasses, and superclasses of a given class from a knowledge base. 
+%The {\em direct instances} of a class $C$ are those entities that are
+%instances of $C$ and not known to be instances of any subclass of $C$ in
+%the knowledge base.  The {\em direct subclasses} of a class $C$ are
+%those entities that are subclasses of $C$ and not known to be subclasses
+%of any subclass of $C$ in the knowledge base. The {\em direct
+%superclasses} of a class $C$ are those entities that are superclasses of
+%$C$ and not known to be superclasses of any superclass of $C$ in the
+%knowledge base.
+
+%when retrieving instance-of and subclass-of relationships from a
+%knowledge base to distinguish between those relationships that are
+%explicitly stored in the knowledge base (in whatever form the knowledge
+%representation system stores such relationships) and those that are
+%derivable using the definition of {\em subclass-of}.  The GFP protocol
+%provides operations for retrieving such explicit relationships and
+%refers to them as {\em direct instances}, {\em direct subclasses}, and
+%{\em direct superclasses}.  Thus,   The GFP protocol provides for that
+%distinction by referring to the instances of a class that are explicitly
+%stored with a class are referred to in the GFP protocol as {\em direct
+%instances of} the class, and the subclasses of a class that are
+%explicitly stored with a class are referred to as {\em direct
+%subclasses. asserted to be a  individual frame is a direct-instance-of a
+%particular class $C$, and where the instance might be a
+%direct-instance-of some other class $C$, that in turn is a sub of $C$. 
+%We use the relations {\bf direct-instance-of} and {\bf all-instance-of}
+%to distinguish between the direct, and direct or indirect, cases.  An
+%instance $i$ is a direct instance of a class $C$ if $i$ is an instance
+%of $C$ and the system knows of no other class $C'$ that is a subclass of
+%$C$ such that $i$ is an instance of $C$.
+%In other words, to say a frame is a direct instance of a class means
+%that the class is the most specific class in the KB that includes the
+%instance.  All-instance-of is the transitive closure of
+%direct-instance-of, therefore, $i$ is an all-instance-of $C$ if either
+%$i$ is a direct-instance-of $C$, or $i$ is a direct-instance-of a class
+%$C$ that in turn is a sub of $C$.}
+%\ignore{Similarly, a class $C_{sub}$ is a direct sub of class $C_{super}$ if
+%$C_{sub}$ is a subclass-of $C_{super}$ and the system knows of no other
+%class $C'$ of which $C_{sub}$ is a sub and which is, in turn, a
+%subclass-of $C_{super}$.  Again, the intuition is that $C_{super}$ is
+%the most specific ancestor of $C_{sub}$.  The relations {\bf
+%direct-super-of} and {\bf all-super-of} are the inverses of
+%direct-subclass-of and all-subclass-of, for example, if $C_1$ is a
+%direct-subclass-of $C_2$, the $C_2$ is a direct-super-of $C_1$.  {\bf
+%All-types-of} is the inverse of all-instance-of, and {\bf
+%direct-type-of} is the inverse of direct-instance-of, for example, if
+%instance $i$ is an all-instance-of class $C$, then $C$ is an all-type-of
+%$i$.
+
+%The relation subclass-of is transitive, and if we know $C_1$ is a
+%subclass of
+%$C_2$ and $C_2$ is a subclass of $C_3$, then $C_1$ is also a subclass
+%of $C_3$.  The direct-subclass-of relation is not transitive, although a
+%direct-subclass-of a superclass is also a subclass-of the superclass.
+%Furthermore, If $C_1$ is a direct-sub of $C_2$ and $C_2$ is a
+%subclass-of $C_3$, then $C_1$ is also a subclass-of $C_3$.
+
+%In the Generic Frame Protocol, the direct instance relationship is
+%specified with a pair of functions, {\bf direct-instances} and {\bf
+%direct-types}.  The {\bf direct-instances} of a class are its direct
+%instances, and the {\bf direct-types} of an instance are the classes
+%of which it is a direct instance.  The functions {\bf all-instances}
+%and {\bf all-types} are used to describe the more general instance
+%relationship.  The names of relationships end in ``-of'', whereas the
+%names of functions do not.  Relationships correspond to links in a
+%taxonomic hierarchy, whereas functions return the nodes (frames) at
+%the ends of these links.  The {\bf all-instances} of a class are all
+%those
+%entities that are instances of the class.  
+
+%The functions {\bf direct-subs} and {\bf direct-supers} capture the
+%direct subclass relationship between classes.  The {\bf direct-subs}
+%of a class are its subclasses, and the {\bf direct-supers} are those
+%classes for which it is a subclass.  The more general subclass
+%relationship is specified with the relations {\bf all-subs} and {\bf
+%all-supers}.  The {\bf all-subs} of a class are its subclasses and its
+%{\bf all-supers} are the classes of which it is a subclass.
+
+%Some FRSs require the direct-instance-of relationship to be given by
+%the user when the individual frame is created, and don't allow this
+%relationship to change.  Other FRSs, which perform automatic
+%classification, may infer the direct-instance-of relationship.
+%Similarly, the direct-subclass-of relationship must be stated
+%explicitly in some FRSs and is inferred in others.  In any case, these
+%relations are nonmonotonic, since new subclasses may be added that are
+%more specific than existing classes.  In the Generic Frame Protocol, one
+%specifies direct-instance-of relationships at instance creation time,
+%but the systems may also infer them.  However, systems are not
+%required to maintain these relationships as new classes are added.
+%This is just one of many ways in which FRSs are incomplete inference
+%engines.  Applications can avoid depending on this behavior by
+%defining the class structure of a KB before creating instances, or by
+%only relying on the all-instances function instead of
+%direct-instances.  In the Generic Frame Protocol, answering a query
+%about
+%whether a frame is an instance may require more computation than a
+%direct-instance-of query, but this answer is required to be correct.
+%The same holds for all-class-of and direct-subclass-of; one may assert
+%either
+%relation but should only count on the former to be accurately
+%maintained.
+
+%\section{Slot Value Inheritance and Defaults}
+%\label{intro:inheritance}
+
+%Recall that a slot is a mapping from a {\em particular} frame to a set
+%of values.  But for modularity and other reasons FRSs allow one to
+%describe a set of such mappings for all instances of a class.  Such
+%descriptions are called slot value inheritance.  To describe
+%inheritance we need to first define the notion of a template slot.
+
+%A {\bf template slot} is a description of a slot that is associated
+%with a class Frame, but that applies to all instances of that class.
+%In many FRSs template slots are presented as if they were literally
+%slots.  But they are actually a way of specifying, in
+%one place, slots for all the instances.  For example, if we wanted to
+%say that all instances of the class {\tt female-person} have a slot
+%called {\tt gender} with the value {\tt female}, we could define a
+%template slot called {\tt gender} for the {\tt female-person} frame
+%and give it value {\tt female}.  Then if we created an instance of
+%{\tt female-person} called {\tt mary}, and we asked for the value of
+%the slot {\tt gender} on {\tt mary}, we would be told that her gender
+%is {\tt female}.
+
+%What would we get if we asked for the {\tt gender} slot of {\tt
+%female-person}?  The question is ambiguous, because we could mean the
+%template slot on the frame {\tt female-person} viewed as a class, or
+%the slot on the frame viewed as an instance (e.g., of a class of
+%classes).  To disambiguate these senses we make a clear distinction in
+%the protocol between template slots and {\bf own slots}, which
+%are the normal slots on an instance.  We know from common sense that the
+%{\tt gender} could not be an own slot on the {\tt female-person}
+%frame, because that would be specifying the gender of a class!
+%Instead, we say that {\tt gender} is a template slot on {\tt
+%female-person} with the template slot value {\tt female}.  For
+%{\tt mary}, an instance of {\tt female-person}, the value {\tt
+%female} is an {\bf inherited value} for the own slot {\tt
+%gender}.  We say that the value is known by {\bf monotonic
+%inheritance} from the {\tt female-person} class, to distinguish it
+%from nonmonotonic inheritance described in the next section.
+
+%An own slot value of an instance can be inherited from a template slot
+%of any 
+%class that is a type for the instance, not only direct types of the
+%instance.  If {\tt mary} were a direct instance of {\tt
+%single-working-mother}, which is a subclass of {\tt single-mother},
+%which in turn is a subclass of {\tt female-person}, then the value of
+%the {\tt gender} slot for {\tt mary} would still be inherited from the
+%class {\tt female-person}.
+
+%The distinction between own and template slots is captured
+%within the Generic Frame Protocol by the notion of the {\tt
+%slot-type} of a particular slot.  Because some FRSs allow
+%frames to have both own and template slots of the same
+%name, the protocol must allow the user to distinguish
+%between each of these cases.  However, by far the most
+%common case is for there to be no ambiguity in the slot
+%type of the slot in question.  Because of this, the
+%protocol allows the {\tt slot-type} to default to the
+%special value {\tt :auto}, which will allow the frame
+%system to "do the right thing," selecting the own slot
+%when there is any ambiguity.
+
+%\section{The number of values in a slot or facet}
+
+%A number of GFP operations support a \karg{number-of-values} keyword
+%argument.  This is a means by which a GFP application can limit the
+%number of slot or facet values retrieved or processed by the FRS.
+%This is particularly important in FRSs that may perform significant
+%computation in deriving inherited values, or for which the slot values
+%reside in some slow tertiary storage medium.  The
+%\karg{number-of-values}
+%argument always defaults to {\tt :all}.  \karg{Number-of-values} can
+%take as its value either the keyword {\tt :all} in which case all
+%values that can be found (local or inherited as appropriate) will be
+%returned.  If this argument is a positive integer then no more values
+%than this number will be returned.  Value-returning GFP operations
+%(as opposed to mapping or looping operations) that take the
+%\karg{number-of-values} return a second value which allows GFP
+%applications to act appropriately in the event of a limited number
+%of values being retrieved, for example by printing ellipses.
+%The legal values for the second value are: {\tt nil}, which indicates
+%that there are known to be no more values, a positive integer, which
+%indicates that there are the indicated number more values available, 
+%{\tt :more}, which indicates that the FRS knows that there are more
+%values, but does not know how many (this option will be used by FRSs
+%for which this computation will be expensive), and finally
+%{\tt :unknown}, which indicates that the FRS is unable to determine
+%whether there are any more values without performing extra (possibly
+%expensive) computation.  Note: No commitment is made concerning which
+%values will be returned or processed when the client application
+%restricts the \karg{number-of-values} other than that if the client
+%increases the value of this argument, the set of values returned will
+%include all of the values previously returned.
+%}
+
+
+\section{Knowledge Bases}
+
+A {\bf knowledge base} or {\bf KB} is a set of frames, slots, slot
+values, facets, and facet values.  KB's are considered to be entities in
+the universe of discourse and can be represented by frames.  A frame
+representing a KB describes properties of the KB such as … .
+
+All frames reside in some KB.  A KB that contains a frame representing a
+KB is said to be a {\em meta-kb}.  
+
+
+\section{Default Values}
+
+The GFP knowledge model includes a simple notion of default values for
+slots and facets.  Template slots and template facets have a set of {\em
+default values} associated with them.  Intuitively, these default values
+inherit to instances unless the inherited values are logically
+inconsistent with other assertions in the KB, the values have been
+removed at the instance, or the default values have been explicitly
+overridden by other default values.  GFP does not require an FRS to be
+able to determine the logical consistency of a KB nor does it provide a
+means of explicitly overriding default values.  Instead, GFP provides
+for two levels of compliance regarding default values which can be
+realized in most FRS's, have utility in many applications, and can form
+the basis for more elaborate default formalisms.  The levels of
+compliance are specified by a GPS back-end implementation via the values
+{\em when-consistent} and {\em override} for the {\em :inheritance}
+behavior.
+
+The {\em when-consistent} inheritance behavior leaves the inheritance of
+default values unspecified.  That is, the {\em when-consistent} behavior
+places no requirements on the relationship between default values of
+template slots and facets and the values of the corresponding own slots
+and facets.  The default values on a template slot or template facet are
+simply treated as "advice" to the FRS which it can use in whatever way
+it chooses when determining the values of own slots and facets.
+
+The {\em override} behavior provides a simple notion of inheritance of
+default values in which default values are inherited from classes to
+subclasses and to instances unless they are explicitly overridden,
+removed, replaced with non-default values, or are in conflict with other
+inherited default values.  This behavior is intended to match the
+capabilities provided by many FRS's and to be particularly useful for
+slots that can have only one value.
+
+The {\em override} behavior requires that default values of template
+slots and facets be inherited to subclasses as default values and to
+instances as values unless the inheritance is {\em blocked}. 
+Inheritance of a default value to a subclass can be blocked by the
+template slot or facet having a value at the subclass, explicit removal
+of the default value at the subclass, assertion of a default value at
+the subclass, or by inheritance of a different default value to the
+subclass from another superclass.  Inheritance of a default value to an
+instance can be blocked by explicit removal of the value at the
+instance, assertion of a value at the instance, or by inheritance of a
+different default value to the instance from another class.
+
+The precise inheritance rules for the {\em override} behavior are as
+follows:
+
+\bitem
+
+\item A default value V1 of a template slot or facet SF on a class
+Csuper is inherited to a subclass Csub of Csuper as a default value of
+template slot or facet SF unless inheritance of V1 for SF from Csuper to
+Csub is blocked.  Inheritance of V1 for SF from Csuper to Csub is
+blocked if:  (1) SF has a value at Csub, (2) V1 is explicitly removed at
+Csub or at some class which is a subclass of Csuper and a superclass of
+Csub, (3) there is a default value of SF asserted for Csub or for some
+class which is a subclass of Csuper and a superclass of Csub, or (4)
+there is a default value V2 of SF that is not equal to V1 which would be
+inherited from some other superclass of Csub.
+
+\item A default value V1 of a template slot or facet SF on a class C is
+inherited to an instance I of Csuper as a value of own slot or facet SF
+unless inheritance of V1 for SF from C to I is blocked.  Inheritance of
+V1 for SF from C to I is blocked if:  (1) own slot or facet SF has a
+value at I, (2) there is a class Csub that is a subclass of C and of
+which I is an instance for which inheritance of V1 for SF from C to Csub
+is blocked, (3) V1 is explicitly removed at I, or (4) there is a default
+value V2 of SF that is not equal to V1 which would be inherited to I
+from some other class of which I is an instance.
+
+\eitem
+
+For example, if we want to make the default assumption that all
+politicians like money, we could assert the value {\tt money} as a
+default value for the template slot {\tt likes} on the class {\tt
+politician}.  Then, the value of the own slot {\tt likes} on any
+instance of {\tt politician} will include the value {\tt money}.  If,
+later, we discover a politician {\tt Joe Brown} who doesn't like money,
+we could remove the default assumption for Joe by removing the value
+{\tt money} from the {\tt likes} slot of the {\tt Joe Brown} frame.
+
+Note that these inheritance rules are overly conservative for slots and
+facets that can have multiple values in that the assertion or
+inheritance of a single value can cause all of the default values to be
+overridden
+
+%\begin{comment}
+%There are many possible ways that a representation system might react
+%when new assertions change the status of default assumptions.  The
+%Generic Frame Protocol defines a simple scheme that can be supported
+%across a variety of FRSs.  In the protocol, an own slot can have values
+%known by default inheritance or monotonic inheritance, {\em but not
+%both}.  When monotonically inherited and default inherited values are in
+%competition, monotonically inherited values take precedence.  In other
+%words, if a slot has any values that are known by monotonic inheritance,
+%then the same slot on the same frame cannot have any values known by
+%default inheritance.  An own slot may also have values that were
+%asserted directly, rather than inferred by inheritance.  We call these
+%values {\bf local values}.  When there is a conflict between inherited
+%and local values, local values take precedence.  Such a conflict may
+%arise when a slot constraint (defined in the next section) restricts the
+%number of possible values for a slot.   The protocol is silent on the
+%behavior of a FRS when {\em both} local values and inherited values are
+%possible for a given own slot (i.e., there are no slot constraints that
+%would force a choice between them).  The protocol is also agnostic on
+%the result of inheriting competing values for the same slot from
+%multiple parents.
+
+%Most FRSs have some notion of default inference.  Although foreign to
+%the \Klone\ family for many years, newer members of the \Klone\
+%family, such as \Loom, do support defaults.  However, there is wide
+%variation in the model of default inference that different FRSs
+%support.  The basic approach is that default values for slot $S$ of an
+%individual frame $i$ are inherited from slot $S$ of a class frame $C$,
+%where $C$ is a parent of $i$.
+
+%The value of $i.S$ that is visible to FRS users is computed in some
+%fashion by combining the default (inherited) values of $C.S$ (if any),
+%with the local values already stored in $i.S$ (if any), subject to the
+%constraints defined for $S$.  The general idea is to sanction the
+%default inference as long as it does not render the KB inconsistent.
+%The problem is that there are almost as many notions of inconsistency
+%as there are FRSs. 
+
+%Different systems make a variety of assumptions about how to combine
+%defaults that are inherited from multiple types for the same frame. 
+%This version of the protocol makes no commitment regarding multiple
+%parentage.
+
+%The behavior called {\tt :inheritance} describes the model of
+%inheritance required by the application.
+
+%The different values for this behavior specify different notions of
+%consistency:
+
+%\bitem
+%\item {\tt :override} --- The presence of any local value in the own
+%slot $i.S$ overrides all inherited values from parents of $i$.
+
+%\item {\tt :incoherence} --- Inheritance is blocked for those default
+%values that, if inherited, would violate some constraint associated with
+%the slot.
+
+%%%% \item {\tt :irrelevant} --- Inheritance of default values is not
+%supported.
+
+%\eitem
+
+%Imagine that slot {\tt color} records all colors visible on the
+%surface of an animal, and that the default recorded at class {\tt
+%Elephant} is {\tt grey}.  Imagine further that for elephant {\tt
+%Clyde}, the local value of color is {\tt blue} to reflect the color of
+%Clyde's eyes.  Under behavior {\tt :override}, the user-visible value
+%of {\tt Clyde.color} would be {\tt blue}, whereas under behavior {\tt
+%:incoherence}, {\tt Clyde.color} would be the set {\tt \{blue,grey\}}.
+%In the first case, the local value must prevent inheritance of the
+%default value, whereas in the second case, inheritance is not
+%prevented because no constraint specifies that {\tt grey} and {\tt
+%blue} are inconsistent values.  If, under behavior {\tt :incoherence},
+%we further specified that {\tt color} is a single-valued slot using a
+%cardinality constraint, then the user-visible value of the slot would
+%be {\tt blue}, because inheritance of a second color would violate the
+%cardinality constraint, resulting in inconsistency.
+
+%\section{Constraints and Consistency}
+
+%A KB contains not only ground facts about instances, but also general
+%rules that constrain the valid relationships among instances.  When
+%new facts are asserted, these constraints may be checked to assure
+%that the KB remains logically consistent.  When constraints are
+%violated, a representation system may signal an error to the user or
+%take some action to return the KB to a consistent state.
+
+%Most FRSs support a limited form of constraints.  The most common are
+%called {\em slot constraints}.  Slot constraints are rules associated
+%with template slots that constrain the possible values of the
+%corresponding own slots.  The Generic Frame Protocol supports two
+%slot constraints: type and number restrictions on slot values.  A {\bf
+%slot value type restriction} stipulates that the values of a slot on
+%all instances of a class must be instances of some other class, the
+%``type'' of those values.  For example, one could say that the
+%favorite foods of any human must be edible-foods by asserting that the
+%slot value type of the {\tt favorite-food} slot on the {\tt human}
+%frame is {\tt edible-food}.  {\tt Edible-food} is a class frame, whose
+%instances are foods palatable to humans.  The force of the slot
+%constraint is limited to instances of the class {\tt human}; the {\tt
+%favorite-food} slot for pets may have a different value type
+%restriction.  A number restriction is a specification of the {\bf slot
+%value cardinality} for a slot: the number of possible values for a
+%slot on an instance.  Most commonly, a slot value cardinality
+%restriction is used to limit the number of possible values to at most
+%1 (i.e., single-valued), at least 1 (i.e., non-empty) or
+%exactly 1 (i.e., functional).  For example, to say that the a person
+%can only have one biological father one could specify that the slot
+%value cardinality of the template slot {\tt biological-father} on the
+%class {\tt person} is at most 1.
+%In the Generic Frame Protocol, slot constraints are specified with
+%facets, which are described in the next section.
+
+%\section{Slot Value Annotations}
+
+%Slot value annotations are propositions about individual slot values.
+%For example, imagine that the value of the {\tt age} slot of {\tt
+%Fred} is {\tt 25}.  Imagine further that we assign an 80\% probability
+%to the correctness of the assertion that the age of Fred is 25, and
+%that the {\tt source} of our information about Fred's age is Judy.
+%Using logical notation, this information could be expressed as:
+
+%\begin{verbatim}
+%        age(Fred,25)
+%        probability( age(Fred,25) , .8)
+%        source( age(Fred,25) , Judy)
+%\end{verbatim}
+
+%Slot value annotations (value annotations for short) allow us to
+%manipulate labeled annotations for particular slot values.  For
+%example, we could retrieve the {\tt probability} of the value {\tt 25}
+%of of the {\tt age} of {\tt Fred}.  In a way, these
+%annotations are like an additional optional layer of own slots
+%within each value --- as if we treated a value as an individual frame.
+%Yet these slots have no inheritance, no value constraints, and no
+%facets.  How the underlying FRS implements these annotations is not
+%our concern.
+
+%%%%% In this example it is redundant to specify the value that we want
+%%%%% to retrieve annotations from since {\tt age} is a single-valued
+%slot.
+%%%%% Therefore, when the value is omitted, the protocol assumes that the
+%%%%% first value of the slot is intended.  The reasons for supplying the
+%%%%% value of interest as a separate argument rather than inside the
+%%%%% address are to decrease consing and to simplify the
+%%%%% programmer interface.
+
+%Value annotations are not to be confused with facets, which are
+%annotations for entire slots rather than for individual values.
+
+%\section{FRS Behaviors}
+
+%While the Generic Frame Protocol necessarily imposes some common
+%requirements on the organization of knowledge (KBs, frames, slots,
+%facets) and semantics of some assertions (instance and subclass
+%relationships, inherited slot values, slot constraints), it allows for
+%some variety in the behavior of underlying FRSs.  The protocol
+%achieves this heterogeneity by parameterizing FRSs themselves,
+%providing an explicit model of the properties of FRSs that may vary.
+%We call these properties FRS {\bf behaviors}.  An application can ask
+%for the behavior profile of an FRS, and adapt itself accordingly.  An
+%application can also declare what behaviors it requires, and abort
+%processing if some behaviors are not available.  
+
+%An FRS behavior describes how a particular FRS behaves on some
+%dimension.  For example, to find out how a FRS does slot value
+%constraint checking, one can ask for the FRS behavior called
+%{\tt :constraint-checking} and be told a value such as {\tt
+%:immediate}, {\tt :never}, or {\tt :deferred-reporting}.  The set of
+%behaviors defined for FRSs is specified in Chapter~\ref{ch:behaviors}. 
+%FRS behaviors are assumed to be constant over all KBs loaded onto that
+%FRS.
+
+%\chapter{The Knowledge-Base Behaviors}
+%\label{ch:behaviors}
+
+%Each behavior has a name that is a symbol in the keyword package, and
+%is associated with a set of values that describe the different
+%variations of that behavior that different FRSs provide.  For example,
+%the behavior called {\tt :facets} describes what type of support the
+%FRS provides for slot facets.  A value of \T\ for that behavior means
+%facets are supported, and a value of \NIL\ means that facets are not
+%supported. 
+
+%The remainder of this chapter describes the behaviors in detail.  Each
+%section describes a single behavior, or a group of related behaviors.
+
+%\section{Value Constraint Checking}
+
+%Many FRSs provide some sort of run-time slot-value constraint
+%checking.  Each time a slot value is changed (either locally, or
+%through a change to inherited values), the FRS evaluates constraints
+%that have been defined by the user to specify what values are allowable
+%for a
+%given slot.  
+
+%Constraint checking is described by two behaviors: {\tt
+%:constraint-checking-time} controls when constraint checking should be
+%performed, and  {\tt :constraint-report-time} controls when
+%constraint violations should be reported to the user, as follows.
+
+%Allowable values of {\tt :constraint-checking-time} are:
+
+%\bitem
+%\item {\tt :immediate} --- Constraints are checked wherever slot
+%values change
+
+%\item {\tt :deferred} --- Constraints are checked at some
+%user-specified time that may follow long after slot values change
+
+%\item {\tt :never} --- Constraint checking is not performed
+%\eitem
+
+%Acceptable values of {\tt :constraint-report-time} are:
+
+%\bitem
+%\item {\tt :immediate} --- Constraint violations are signalled as soon
+%as they are detected
+
+%\item {\tt :deferred} --- Constraint violations are recorded for later
+%perusal by the user
+%\eitem
+
+%\section{Facets}
+
+%Facets are supported by a number for FRSs, as described in
+%Section~\ref{sec:facets}.  The behavior called {\tt :facets} describes
+%whether the facet operations described in that section are supported
+%by the FRS.  The value \T\ means that facet services are required,
+%whereas the value \NIL\ means that facet services are not required.
+
+%\section{Slot-Value Annotations}
+
+%The behavior called {\tt :annotations} specifies whether or not the
+%FRS supports manipulation of slot-value annotations.  The value \T\
+%specifies that annotation services are supported, whereas the value
+%\NIL\ specifies that these services are not supported.
+
+%\section{Defaults}
+
+%Most FRSs have some notion of default inference.  Although foreign to
+%the \Klone\ family for many years, newer members of the \Klone\
+%family, such as \Loom, do support defaults.  However, there is wide
+%variation in the model of default inference that different FRSs
+%support.  The basic approach is that default values for slot $S$ of an
+%individual frame $i$ are inherited from slot $S$ of a class frame $C$,
+%where $C$ is a parent of $i$.
+
+%The value of $i.S$ that is visible to FRS users is computed in some
+%fashion by combining the default (inherited) values of $C.S$ (if any),
+%with the local values already stored in $i.S$ (if any), subject to the
+%constraints defined for $S$.  The general idea is to sanction the
+%default inference as long as it does not render the KB inconsistent.
+%The problem is that there are almost as many notions of inconsistency
+%as there are FRSs. 
+
+%Different systems make a variety of assumptions about how to combine
+%defaults that are inherited from multiple types for the same frame.
+%This version of the protocol makes no commitment regarding multiple
+%parentage.
+
+%The behavior called {\tt :inheritance} describes the
+%model of inheritance required by the application.
+
+%The different values for this behavior specify different notions
+%of consistency:
+
+%\bitem
+%\item {\tt :override} --- The presence of any local value in the
+%own slot $i.S$ overrides all inherited values from parents of $i$.
+
+%\item {\tt :incoherence} --- Inheritance is blocked for those default
+%values that, if inherited, would violate some constraint associated
+%with the slot.
+
+%%%% \item {\tt :irrelevant} --- Inheritance of default values is not
+%supported.
+
+%\eitem
+
+%Imagine that slot {\tt color} records all colors visible on the
+%surface of an animal, and that the default recorded at class {\tt
+%Elephant} is {\tt grey}.  Imagine further that for elephant {\tt
+%Clyde}, the local value of color is {\tt blue} to reflect the color of
+%Clyde's eyes.  Under behavior {\tt :override}, the user-visible value
+%of {\tt Clyde.color} would be {\tt blue}, whereas under behavior {\tt
+%:incoherence}, {\tt Clyde.color} would be the set {\tt \{blue,grey\}}.
+%In the first case, the local value must prevent inheritance of the
+%default value, whereas in the second case, inheritance is not
+%prevented because no constraint specifies that {\tt grey} and {\tt
+%blue} are inconsistent values.  If, under behavior {\tt :incoherence},
+%we further specified that {\tt color} is a single-valued slot using a
+%cardinality constraint, then the user-visible value of the slot would
+%be {\tt blue}, because inheritance of a second color would violate the
+%cardinality constraint, resulting in inconsistency.
+
+
+
+%\section{Class Slot Types}
+
+%As described in Section~\ref{intro:inheritance}, there are two types
+%of slots for classes: {\bf template} and {\bf own}.  A {\bf template}
+%slot is inherited by all instances of the class while an {\bf own}
+%slot describes values associated with that particular class but that
+%are not inherited by the instances of that class.  
+
+%Certain FRSs support both {\bf template} and {\bf own} slots for
+%classes while others support {\bf template} slots only.  The behavior
+%{\tt :class-slot-types} is used to indicate the types of slots
+%supported by a given FRS.  Allowable values of {\tt :class-slot-types}
+%are:
+
+%\bitem
+
+%\item {\tt :template} --- Classes support template slots only
+
+%\item {\tt :template-and-own} --- Classes support both template and own
+%slots 
+
+%\eitem
+
+
+%\section{Test Function}
+
+%Testing the equality of slot values, facet values and value
+%annotations are common operations within an FRS.  Different systems
+%use different functions for testing equality.  The behavior {\tt
+%:default-test-fn} specifies the name of the function to be used for
+%these value comparisons.  The default value for this function is {\tt
+%equal}.
+
+%\section{Collection-Types}
+
+%The behavior called {\tt :collection-types} specifies how the FRS
+%interprets multiple values for a slot.  The possible values are:
+
+%\bitem
+%\item {\tt :list} --- The order of values within a slot is important,
+%and duplicate values are permitted
+
+%\item {\tt :set} --- The order of values within a slot is unimportant,
+%and duplicate values are not permitted
+
+%\item {\tt :multiset} --- The order of values within a slot is
+%unimportant, and duplicate values are permitted (also known as a {\em
+%bag})
+
+%\item {\tt :none} -- The FRS does not support multiple-valued slots.
+%\eitem
+
+%Some FRSs may support more than one possible interpretation, in which
+%case, the {\tt :collection-type} facet specifies how multiple values are
+%to be interpreted for a particular slot.  The first behavior value
+%specified is the default.
+%\end{comment}
+

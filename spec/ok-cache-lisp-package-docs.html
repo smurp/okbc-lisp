@@ -1,0 +1,164 @@
+
+<HTML>
+<TITLE>Documentation for the OK-CACHE package</TITLE>
+<H2>Documentation for the OK-CACHE package</H2>
+
+This document contains documentation for the <code>OK-CACHE</code> package
+in OKBC.  The functions, variables and classes described
+are expected to be useful both to OKBC application authors and to OKBC back end
+authors.
+
+All exported <code>OK-CACHE</code> API is documented here except for the
+cache operations associated with each OKBC operation.  For each OKBC front
+end API operation <code>foo</code>, two caching operations are defined:
+<code>ok-cache:cached-p-foo</code> and <code>ok-cache:encache-foo</code>.<P>
+
+The <code>ok-cache:cached-p-foo</code> operation takes exactly the same
+arguments as the front end APi operation (with the same defaulting scheme),
+and returns true if there is a cached value for that call.  The cached-p
+operations return two values: the flag that says whether the call has been
+cached or not, and the cache node for the call
+(see <code>cache-entry-found-p</code>).<P>
+
+The <code>ok-cache:encache-foo</code> operation encaches a value for a front
+end API call.  It takes the same arguments as the front end API operation,
+except it has an extra leftmost argument that embodies the value(s) to be
+encached under the specified arguments.<P>
+
+For example, the following code checks to see whether a value is in the
+cache for a certain call to <code>get-frame-name</code>, and if it is it
+returns that value.  Failing this, it calls <code>get-frame-details</code>
+and then returns the frame name.<PRE>
+  (if (ok-cache:cached-p-get-frame-name frame :kb my-kb)
+      (okbc:get-frame-name frame :kb my-kb)
+      (progn (okbc:get-frame-details frame :kb my-kb :inference-level :direct)
+             (okbc:get-frame-name frame :kb my-kb)))</PRE>
+Further performance can be achieved if necessary by plucking the values
+directly out of the cache and out of the details plist.
+  (multiple-value-bind (found-p cache-node)
+     (ok-cache:cached-p-get-frame-name frame :kb my-kb)
+    (if found-p
+        (tries:hybrid-trie-value cache-node)
+        (getf (okbc:get-frame-details frame :kb my-kb :inference-level :direct)
+              :name)))</PRE>
+The first argument to the encache- operations is the value to cache if the
+operation only returns one value.  If the operation returns multiple values,
+then this argument can be one of two options: a list of the form
+<code>(:values v0 v1 ... vn-1)</code>, where the values represent all of the
+values expected to be retuned by the operation.  This list must be of the
+correct length.  If the argument is not of this form, it is taken to denote
+a single value for the zeroth returned value.  All other values will be filled
+in with NIL.<P>
+
+Just as there is an <code>ok-back:foo-internal</code> back end generic function
+for each front end operation, there is also an
+<code>ok-cache:cached-p-foo-internal</code>, and an
+<code>ok-cache:encache-foo-internal</code> generic function to mirror the
+cache calls in the front end API.  These should be used by back and middle end
+code that does manual cache manipulation.
+<HR>
+<H3>Table of Contents:</H3>
+<OL>
+  <LI><A HREF="#*allow-okbc-caching-p*"><code>*allow-okbc-caching-p*</code></A>
+  <LI><A HREF="#allow-caching-p"><code>allow-caching-p</code></A>
+  <LI><A HREF="#cache"><code>cache</code></A>
+  <LI><A HREF="#cache-entry-found-p"><code>cache-entry-found-p</code></A>
+  <LI><A HREF="#cache-fill-hook"><code>cache-fill-hook</code></A>
+  <LI><A HREF="#cache-miss-hook"><code>cache-miss-hook</code></A>
+  <LI><A HREF="#caching-policy"><code>caching-policy</code></A>
+  <LI><A HREF="#flush-any-necessary-caches"><code>flush-any-necessary-caches</code></A>
+  <LI><A HREF="#flush-cache"><code>flush-cache</code></A>
+  <LI><A HREF="#register-side-effect"><code>register-side-effect</code></A>
+  <LI><A HREF="#timestamp"><code>timestamp</code></A>
+</OL>
+<HR>
+<H3>Table of Variables:</H3>
+<OL>
+  <LI><A HREF="#*allow-okbc-caching-p*"><code>*allow-okbc-caching-p*</code></A>
+</OL>
+<HR>
+<H3>Table of Functions:</H3>
+<OL>
+  <LI><A HREF="#allow-caching-p"><code>allow-caching-p</code></A>
+  <LI><A HREF="#cache"><code>cache</code></A>
+  <LI><A HREF="#cache-entry-found-p"><code>cache-entry-found-p</code></A>
+  <LI><A HREF="#cache-fill-hook"><code>cache-fill-hook</code></A>
+  <LI><A HREF="#cache-miss-hook"><code>cache-miss-hook</code></A>
+  <LI><A HREF="#caching-policy"><code>caching-policy</code></A>
+  <LI><A HREF="#flush-any-necessary-caches"><code>flush-any-necessary-caches</code></A>
+  <LI><A HREF="#flush-cache"><code>flush-cache</code></A>
+  <LI><A HREF="#register-side-effect"><code>register-side-effect</code></A>
+  <LI><A HREF="#timestamp"><code>timestamp</code></A>
+</OL>
+<HR>
+<DL>
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*allow-okbc-caching-p*">*allow-okbc-caching-p*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>A global flag that allows one to disable caching in caching-mixin
+   for debugging purposes.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="allow-caching-p">allow-caching-p</A></B></code>  </TD><TD valign=top align=left> (caching-mixin) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor to a flag on caching KBs (see <code>caching-mixin</code> and
+   <code>caching-structure-kb</code> that determine whether caching of OKBC
+   calls is to be allowed.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="cache">cache</A></B></code>  </TD><TD valign=top align=left> (caching-mixin) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor on caching KBs that returns the cache structure used
+   in caching.  See <code>caching-mixin</code> and
+   <code>caching-structure-kb</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="cache-entry-found-p">cache-entry-found-p</A></B></code>  </TD><TD valign=top align=left> (cache key kb) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>This function is called by the caching substrate to see whether a cache
+   entry can be found for a particular <code>key</code> in the
+   <code><A HREF="#cache">cache</A></code>.  If no cache entry is found it returns false.  If a 
+   cache entry is found, it returns two values: true, and the cache node for
+   that key.  The current cached value(s) can be extracted from this cache node
+   using <code><A HREF="tries-lisp-package-docs.html#hybrid-trie-value">tries:hybrid-trie-value</A></code>.  Note that if this cache
+   entry is for an operation returns multiple values, then the value in the
+   cache will be the list of values, otherwise it will be just a singleton
+   value.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="cache-fill-hook">cache-fill-hook</A></B></code>  </TD><TD valign=top align=left> (function key kb new-results multiple-value-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>This generic function is called every time a cache entry
+   is inserted for caching KBs such as <code>caching-mixin</code> or
+   <code>caching-structure-kb</code>.  <code>Function</code> is the name of the
+   OKBC operation being called, and <code>key</code> is the key built from
+   the function and its arguments that will be used as the index in the
+   cache to store the <code>new-results</code> of the call to the function.
+   <code>multiple-value-p</code> will be true when the operation is one that
+   returns multiple values.  If this argument is true then the
+   <code>new-results</code> are interpreted as the values list.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="cache-miss-hook">cache-miss-hook</A></B></code>  </TD><TD valign=top align=left> (function key kb) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>This generic function is called every time a cache miss
+   is detected for caching KBs such as <code>caching-mixin</code> or
+   <code>caching-structure-kb</code>.  <code>Function</code> is the name of the
+   OKBC operation being called, and <code>key</code> is the key built from
+   the function and its arguments that will be used as the index in the
+   cache to store results of the call to the function.  Methods on this
+   generic function must return two values:
+   <DL>
+   <DT>Results<DD>- If the second value is false, the results to be used as if
+       they were the results to the call to the operation.  If the second
+       value is true,then this value is ignored.
+   <DT>Run-operation-p<DD>- True if the system should proceed and call the
+       function in question.
+   </DL>
+   If the operation returns multiple values, then these must all be returned as
+   a list, otherwise the cache will be broken.<P>
+
+   This generic function is useful because it allows an application to
+   call a compound multi-fetching operation when a cache miss is found
+   for a particular operation.  For example, by specializing this generic
+   function it is possible to run a call to <code>get-frame-details</code>
+   any time a call is made to, for example, <code>get-frame-name</code>.
+   This can be very desirable in a networked environment.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="caching-policy">caching-policy</A></B></code>  </TD><TD valign=top align=left> (caching-mixin) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor to the caching policy of a KB, which is probably an instance of
+   <code>caching-mixin</code> or <code>caching-structure-kb</code>.  See
+   <code>caching-mixin</code> for an explanation of legal values of the
+   caching policy.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="flush-any-necessary-caches">flush-any-necessary-caches</A></B></code>  </TD><TD valign=top align=left> (thing) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Flushes any OKBC caches that might be associated with
+   <code>thing</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="flush-cache">flush-cache</A></B></code>  </TD><TD valign=top align=left> (kb) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Flushes the cache on <code>kb</code> if applicable.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="register-side-effect">register-side-effect</A></B></code>  </TD><TD valign=top align=left> (kb &optional arg) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Notifies the <code>kb</code> that a side effect has been
+   performed.  This might result in caches being flushed.  <code>Arg</code>
+   is some key that might indicate the cause or nature of the side-effect.
+   Certain back ends might use this argument to communicate the need for
+   specific cache flushing behavior.<P>
+
+   The most common use of this generic function is in kbs that are
+   instances of <code>caching-mixin</code> or <code>caching-structure-kb</code>,
+   and for which the <code><A HREF="#caching-policy">caching-policy</A></code> is <code>:agressive</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="timestamp">timestamp</A></B></code>  </TD><TD valign=top align=left> (caching-mixin) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor to the timestamp of the last cache flush of a KB, which is
+   probably an instance of <code>caching-mixin</code> or
+   <code>caching-structure-kb</code>.
+</DL>
+</HTML>

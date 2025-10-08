@@ -1,0 +1,495 @@
+%% Non OKBC Operations handled by procedures:
+
+\begin{okbcfspec}{*}
+Diadic multiplication of numbers.\\
+\code{(* 42 2.5) = 105.0}
+\end{okbcfspec}
+
+\begin{okbcfspec}{+}
+Diadic addition of numbers.\\
+\code{(+ 42 2.5) = 44.5}
+\end{okbcfspec}
+
+\begin{okbcfspec}{-}
+Diadic subtraction of numbers.\\
+\code{(- 42 2.5) = 39.5}
+\end{okbcfspec}
+
+\begin{okbcfspec}{/}
+Diadic division of numbers.\\
+\code{(/ 42 2.5) = 16.8}
+\end{okbcfspec}
+
+\begin{okbcfspec}{{\tt < }}
+The numeric less-than operator.\\
+\code{(< 42 2.5) = NIL}
+\end{okbcfspec}
+
+\begin{okbcfspec}{{\tt <= }}
+The numeric less-than-or-equal operator.\\
+\code{(<= 42 2.5) = NIL}\\
+\code{(<= 2.5 42) = T}\\
+\code{(<= 42 42) = T}
+\end{okbcfspec}
+
+\begin{okbcfspec}{=}
+Equality of numeric quantities.\\
+\code{(= 42 2.5) = NIL}\\
+\code{(= 42 42) = T}\\
+\code{(= 42 42.0) = T}
+\end{okbcfspec}
+
+\begin{okbcfspec}{{\tt > }}
+The numeric greater-than operator.\\
+\code{(> 42 2.5) = T}
+\end{okbcfspec}
+
+\begin{okbcfspec}{{\tt >= }}
+The numeric greater-than-or-equal operator.\\
+\code{(>= 42 2.5) = T}\\
+\code{(>= 2.5 42) = NIL}\\
+\code{(>= 42 42) = T}
+\end{okbcfspec}
+
+\begin{okbcfspec}{and}
+Short-circuit conjunction of any number of arguments.  This
+is equivalent to the \verb|&&| operator in C or Java.  A
+conjunct is true if it is not \code{NIL}-valued.  The whole
+\code{AND} expression returns \code{NIL} immediately after
+finding the first \code{NIL} conjunct.
+\end{okbcfspec}
+
+\begin{okbcfspec}{append}
+An operator that builds a list by appending its arguments,
+each of which must be a list.
+For example, if \code{X} has the list \code{(D E F)} as its
+value, \code{(append '(A B C) x)} will return
+\code{(A B C D E F)}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{assoc}
+\code{(Assoc <<key>> <<list>>)} gets the element associated
+with the key in the list, where the list is a list
+of lists, keyed by the first element of each sublist.
+For example, \code{(assoc 'b '((a 2) (b 200)))}
+will return \code{(b 200)}.  If the key is not found,
+\code{assoc} returns \code{NIL}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{connection}
+\code{(Connection <<kb>>)} returns the connection associated with
+\karg{kb}
+\end{okbcfspec}
+
+\begin{okbcfspec}{consp}
+A predicate that is true if its argument is a non-NIL list.\\
+\code{(consp '(a b c)) = T}\\
+\code{(consp ()) = NIL}\\
+\code{(consp "Hello") = NIL}
+\end{okbcfspec}
+
+\begin{okbcfspec}{do-list}
+Loops over all the elements in a list binding the variable
+\code{var} to each successive list element, and executing
+a set of body forms, and finally returning a list whose
+elements are the values evaluated for each list element.
+Syntax:
+\begin{verbatim}
+       (do-list (var <<list expression>>)
+          <<body form 1>>
+          <<body form 2>>
+          ...
+          <<body form n>>)
+\end{verbatim}
+For example,
+\begin{verbatim}
+       (do-list (x '(1 2 3 4 5))
+          (+ x 100))
+\end{verbatim}
+will return \code{(101 102 103 104 105)}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{eql}
+The object identity equality operator.  This operator returns
+true if the arguments represent the same object or the arguments
+are numbers and the numbers are equal.  This is similar to the
+\code{==} operator in C and Java.\\
+\code{(eql 42 42) = T}\\
+\code{(eql 42.0 42.0) = NIL}\\
+\code{(eql 'foo 'foo) = T}\\
+\code{(eql '(foo "Hello") '(foo "Hello")) = NIL}\\
+\code{(eql '(foo "Hello") '(foo "hello")) = NIL}\\
+\code{(eql "A string" "A string") = NIL}\\
+\code{(eql "A string" "A String") = NIL}
+\end{okbcfspec}
+
+\begin{okbcfspec}{equal}
+An equality operator like \code{EQL}, but that also takes
+list structure into account, and that treats strings with the
+same characters as equal.\\
+\code{(equal 42 42) = T}\\
+\code{(equal 42.0 42.0) = T}\\
+\code{(equal 'foo 'foo) = T}\\
+\code{(equal '(foo "Hello") '(foo "Hello")) = T}\\
+\code{(equal '(foo "Hello") '(foo "hello")) = NIL}\\
+\code{(equal "A string" "A string") = T}\\
+\code{(equal "A string" "A String") = NIL}
+\end{okbcfspec}
+
+\begin{okbcfspec}{equalp}
+An equality operator like \code{EQUAL}, but that also does
+case-insensitive string comparison.\\
+\code{(equalp 42 42) = T}\\
+\code{(equalp 42.0 42.0) = T}\\
+\code{(equalp 'foo 'foo) = T}\\
+\code{(equalp '(foo "Hello") '(foo "Hello")) = T}\\
+\code{(equalp '(foo "Hello") '(foo "hello")) = T}\\
+\code{(equalp "A string" "A string") = T}\\
+\code{(equalp "A string" "A String") = NIL}
+\end{okbcfspec}
+
+\begin{okbcfspec}{error}
+\code{(Error <<type>> \&rest args)} signals an error of the
+specified type.  For example,\\
+(error :not-coercible-to-frame :frame fff :kb kb)\\
+signals a \kfn{not-coercible-to-error} error, saying that the value of
+{\tt fff} is not a frame in the KB identified by {\tt kb}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{first}
+The first element of a list.\\
+\code{(first '(a b c)) = A}\\
+\code{(first NIL) = NIL}
+\end{okbcfspec}
+
+\begin{okbcfspec}{firstn}
+Returns the zero-indexed first \code{N} elements of a list.\\
+\code{(firstn 0 '(a b c d)) = NIL}\\
+\code{(firstn 2 '(a b c d)) = (A B)}\\
+\code{(firstn 9 '(a b c d)) = (A B C D)}
+\end{okbcfspec}
+
+\begin{okbcfspec}{getf}
+\code{(Getf <<list>> <<key>>)} gets the property value
+associated
+with the key in the list, where the list is an alternating
+list of keys and values.
+For example, \code{(getf '(a 2 b 200) 'b)}
+will return \code{200}.  If the key is not found,
+\code{getf}
+returns \code{NIL}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{if}
+The conditional operator.\\
+Syntax: \code{(if <<condition>> <<then>> <<else>>)}\\
+or      \code{(if <<condition>> <then>>)}\\
+Example: \code{(if (= x 42) (list x 100) (- x 100))}\\
+If \code{x} is \code{42} then return the list
+containing \code{x} and \code{100},
+otherwise return \code{x} - \code{100}.
+If no \code{<<else>>} clause is
+provided and \code{<<condition>>} evaluates to \code{NIL},
+then returns \code{NIL}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{length}
+Returns the length of a list.\\
+\code{(length NIL) = 0}\\
+\code{(length '(a b c)) = 3}
+\end{okbcfspec}
+
+\begin{okbcfspec}{let}
+Establishes bindings for variables and executes a body with
+those bindings.\\
+Syntax:
+\begin{verbatim}
+ (let ((<<var1>> <<val1>>)
+       (<<var2>> <<val2>>)
+       ....
+       (<<varn>> <<valn>>))
+    <<body expression-1>>
+    <<body expression-2>>
+    ....
+    <<body expression-n>>)
+\end{verbatim}
+All the \code{<<vali>>} expressions are evaluated before
+the bindings for the variables are established. I.e., it is
+as if the \code{<<vali>>} are evaluated in parallel.
+The value returned by the \code{LET} expression is the
+value of the last body expression.  For example,
+\begin{verbatim}
+(let ((x '(a b c d))
+      (y 2001))
+  (push 100 x)
+  (push y x)
+  x)
+\end{verbatim}
+will return \code{(2001 100 A B C D)}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{let*}
+Establishes bindings for variables and executes a body with
+those bindings.
+Syntax:
+\begin{verbatim}
+   (let* ((<<var1>> <<val1>>)
+          (<<var2>> <<val2>>)
+          ....
+          (<<varn>> <<valn>>))
+     <<body expression-1>>
+     <<body expression-2>>
+     ....
+     <<body expression-n>>)
+\end{verbatim}
+Each \code{<<valN>>} expression is evaluated and a binding
+is established for \code{<<varN>>} {\em before} the system
+proceeds to the next binding.  The value returned by the
+\code{LET*} expression is the value of the last body
+expression.  For example,
+\begin{verbatim}
+	(let* ((x '(a b c d))
+       (y (list* 2001 x)))
+  (push 100 x)
+  (list x y))
+\end{verbatim}
+will return \code{((100 A B C D) (2001 A B C D))}.
+\code{LET*} is
+equivalent to a series of nested \code{LET} expressions, so
+\begin{verbatim}
+(let* ((x 42)
+       (y (list x 200)))
+  y)
+is equivalent to
+(let ((x 42))
+  (let ((y (list x 200)))
+    y))
+\end{verbatim}
+\end{okbcfspec}
+
+\begin{okbcfspec}{list}
+An operator that builds a list out of its arguments.  List
+can take any number of arguments.  The arguments are
+evaluated, so you must {\tt quote} any symbol or list
+literals, except for keywords, {\tt T}, and {\tt NIL}.
+For example, \code{(list x 42 'x)} returns the list of three
+elements; the current value of \code{x}, \code{42}, and
+the symbol \code{X}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{list*}
+An operator that builds a list by appending all but its last
+argument to its last argument, which must be a list.
+For example, if \code{X} has the list \code{(D E F)} as its
+value, \code{(list* 'A 'B 'C x)} will return
+\code{(A B C D E F)}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{member}
+\code{(Member <<value>> <<list>>)} is true if the value is in
+the list.  The operation \kfn{eql-in-kb} is used to test
+equality.
+If the value is found, the first sub-list
+containing the value is returned.
+For example, \code{(member 42 '(1 2 42 200 2001))}
+will return \code{(42 200 2001)}.  If the value is not found,
+member returns \code{NIL}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{multiple-value-bind}
+Establishes bindings for variables from the multiple values
+resulting from evaluating a form and executes a body with
+those bindings.
+Syntax:
+\begin{verbatim}
+   (multiple-value-bind (<<var1>> <<var2>> ... <<varN>>)
+       <<values-returning-form>>
+     <<body expression-1>>
+     <<body expression-2>>
+     ....
+     <<body expression-n>>)
+\end{verbatim}
+A binding is established for each of the \code{<<vars>>}
+from the (at least) N values returned by
+<<values-returning-form>>.  The value returned by the
+\code{MULTIPLE-VALUE-BIND} expression is the value of the
+last body expression.  For example,
+\begin{verbatim}
+	(multiple-value-bind (frame found-p)
+         (coerce-to-frame thing :kb kb)
+        found-p)
+\end{verbatim}
+will return the value of the \code{found-p} flag.
+\end{okbcfspec}
+
+\begin{okbcfspec}{not}
+The monadic negation operator.  Non-\code{NIL} values map to \code{NIL},
+and \code{NIL} maps to \code{T}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{nth}
+Returns the zero-indexed Nth element of a list.\\
+\code{(nth 0 '(a b c d)) = A}\\
+\code{(nth 2 '(a b c d)) = C}\\
+\code{(nth 9 '(a b c d)) = NIL}
+\end{okbcfspec}
+
+\begin{okbcfspec}{nth-rest}
+Returns the zero-indexed Nth tail of a list.\\
+\code{(nth-rest 0 '(a b c d)) = (A B C D)}\\
+\code{(nth-rest 2 '(a b c d)) = (C D)}\\
+\code{(nth-rest 9 '(a b c d)) = NIL}
+\end{okbcfspec}
+
+\begin{okbcfspec}{or}
+Short-circuit polyadic disjunction.  This is equivalent to the
+\verb'||' operator in C or Java.  A disjunct is true if it is
+not \code{NIL}.  The whole \code{OR} expression returns the
+value of the first non-\code{NIL} disjunct.
+\end{okbcfspec}
+
+\begin{okbcfspec}{progn}
+Evaluates all of its arguments in sequence, and returns the
+value returned by the last argument.  All arguments but the
+last are therefore  interesting only if they perform
+side-effects.  For example
+\code{(progn (push 42 x) (push 2001 x) x)}
+will push \code{42} onto \code{X}, and will then push
+\code{2001} onto the new value of \code{x}, and will finally
+return the current value of \code{x}.
+Thus, if \code{x} previously had the value \code{(A B C)},
+it will now have the value \code{(2001 42 A B C)}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{push}
+Pushes a new value onto a list named by a variable.  For
+example, if \code{x} has the value \code{(B C D)}, then
+after evaluating the expression \code{(push 'A x)}, \code{x}
+will have the value \code{(A B C D)}.
+The call to \code{push} returns the new value of the
+variable.
+\end{okbcfspec}
+
+\begin{okbcfspec}{quote}
+The \code{QUOTE} operator denotes a literal object.
+\code{QUOTE} can be used either in the form \code{(quote foo)} or with
+the shorthand syntax \code{'foo} to denote the literal symbol foo,
+as opposed to the value of the variable \code{foo}.  For example, if
+\code{foo} has the value \code{42}, then the expression
+\code{(list (quote foo) foo)} will
+have the value \code{(FOO 42)}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{remove}
+\code{(Remove <<value>> <<list>>)} returns a new list from
+which has been removed all instances of the value in the
+original list. The operation \kfn{eql-in-kb} is used to test
+equality.
+List order is preserved.
+For example, \code{(remove 42 '(1 2 42 200 42 2001))}
+will return \code{(1 2 200 2001)}.  If the value is not
+found,remove will return a copy of the original list.
+\end{okbcfspec}
+
+\begin{okbcfspec}{remove-duplicates}
+\code{(Remove-duplicates <<list>>)} returns a new list from
+which has been removed all duplicate entries in the original
+list.   The operation \kfn{eql-in-kb} is used to test
+equality.
+List order is preserved.
+For example,
+\code{(remove-duplicates '(1 2 42 200 42 2001))}
+will return \code{(1 2 200 42 2001)}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{rest}
+The tail of a list.\\
+\code{(rest '(a b c)) = (B C)}\\
+\code{(rest NIL) = NIL}
+\end{okbcfspec}
+
+\begin{okbcfspec}{reverse}
+The non-destructive reversed elements of a list or string.\\
+\code{(reverse '(a b c)) = (C B A)}\\
+\code{(reverse "Hello") = "olleH"}
+\end{okbcfspec}
+
+\begin{okbcfspec}{setq}
+Sets a new value for a variable.  For
+example, \code{(setq A 42)} assigns the value \code{42} to
+the variable \code{A}.  It is an error to set the value of
+a variable that is not already bound.
+The call to \code{setq} returns the new value of the
+variable.
+\end{okbcfspec}
+
+\begin{okbcfspec}{sort}
+\code{(Sort <<list>> <<kb>>)} copies the \code{<<list>>}, sorts the copy,
+and returns it.
+The elements of the list are sorted according to the
+following predicate, with lower ranked values appearing closer to the
+front of the resulting list.  If an element of \code{<<list>>} is itself a
+list, then the first element of that element is iteratively taken until a
+non-list is found.  A total ordering is established within the data types
+understood by OKBC.  Objects of a type that is earlier in the following
+table are earlier in the sort.  For pairs of objects of the same type as
+shown in the table, the predicate specified in the right hand column is
+used.
+\begin{tabularx}{\linewidth}{XX}
+{\em Data type}      & {\em Comparison operation} \\
+False                 & --- \\
+True                  & --- \\
+Numbers               & Numeric less-than \\
+Strings               & String less-than \\
+Symbols               & String less-than of package name, string less-than of symbol name if package names match \\
+KBs                   & String less-than on KB names \\
+Frame identifications in \karg{kb} & String less-than on pretty-names \\
+All other values      & String less-than on value-as-string of the values \\
+\end{tabularx}
+\end{okbcfspec}
+
+\begin{okbcfspec}{variablep}
+Is true if its argument is a KIF variable.\\
+\code{(variablep '(a b c)) = NIL}\\
+\code{(variablep ?frame) = T}
+\end{okbcfspec}
+
+\begin{okbcfspec}{while}
+Loops while a condition is true, executing a body.
+Syntax:
+\begin{verbatim}
+  (while <<condition expression>>
+    <<body form 1>>
+    <<body form 2>>
+    ...
+    <<body form n>>)
+\end{verbatim}
+For example,
+\begin{verbatim}
+ (while (has-more enumerator)
+   (push (next enumerator) result))
+\end{verbatim}
+will collect all the values in the enumerator by pushing
+them onto the list called \code{result}.  Note that this
+will build a list in the reverse order of the list built in
+the example for \code{while-collect}.
+\end{okbcfspec}
+
+\begin{okbcfspec}{while-collect}
+Loops while a condition is true, collecting up the results of
+executing a body.
+Syntax:
+\begin{verbatim}
+ (while-collect <<condition expression>>
+   <<body form 1>>
+   <<body form 2>>
+   ...
+   <<result body form>>)
+\end{verbatim}
+For example,
+\begin{verbatim}
+ (while-collect (has-more enumerator)
+   (next enumerator))
+\end{verbatim}
+will collect all the values in the enumerator.
+\end{okbcfspec}

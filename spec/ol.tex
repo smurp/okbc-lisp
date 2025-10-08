@@ -1,0 +1,178 @@
+\documentstyle[makeidx]{book}
+\input{psfig}
+\input{pkarp.mac}
+\input{frame.mac}
+\input{format_wide_1.5}
+\renewcommand{\baselinestretch}{1}
+
+%%\newcommand{\kbfn}[1]{\vspace{.85 in}{\bf #1}}
+%%\newcommand{\kbfn}[2]{\vspace{.85 in}\kfn{#1}\ \karg{#2}}
+\newcommand{\kbfn}[2]{\vspace{.15 in}\kfn{#1}\ \karg{#2}}
+%%nlkbfn is now no longer used.
+%%\newcommand{\nlkbfn}[2]{\\ \kfn{#1}\ \karg{#2}} % put a kbfn on a new line
+\newcommand{\kfn}[1]{{\bf #1}\index{#1}}	% fn name in text
+\newcommand{\karg}[1]{{\bf #1}}			% arg name 
+\newcommand{\nikfn}[1]{{\bf #1}}		% non-index fn name in text
+\newenvironment{gfpop}[2]{\kbfn{#1}{#2}}{}
+\makeindex
+
+\begin{document}
+
+\title{The Generic Frame Protocol 2.0 --- outline}
+
+\author{Draft\\ Please Do Not Distribute}
+
+%\author{Peter D. Karp\\
+%Artificial Intelligence Center\\
+%SRI International\\
+%333 Ravenswood Ave.\\
+%Menlo Park, CA  94025\\
+%pkarp@ai.sri.com \\
+%\  \\
+%Thomas Gruber \\
+%Knowledge Systems Laboratory \\
+%Stanford University \\
+%701 Welch Rd, Bldg C \\
+%Palo Alto, CA  94304 \\
+%gruber@hpp.stanford.edu
+%}
+
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+\chapter*{Preface}
+
+\chapter{Introduction}
+(The author is TBD.)
+
+Emphasize that syntax is prefix.  Arglist conventions are from Common
+Lisp, but otherwise, spec is language independent.
+
+Mention multiple back ends, multiple language bindings.
+
+\section{The Need for GFP}
+
+\section{The Proposed Solution}
+
+\section{Design Objectives}
+
+\chapter{Knowledge Model}
+(To be written by RF except for the sections where other
+authors are explicitly identified.)
+
+Use FOL formalization wherever it makes sense.  use  tell/ask document
+as a reference.
+
+Include lots of simple concrete examples.  Especially to distinguish
+between own/template slot/facet.  Look at Tutorial for some.
+
+\section{Frames}
+
+\section{Slots}
+
+\section{Knowledge bases}
+
+\section{Classes and Individuals}
+
+\section{Inheritance}
+
+\section{Defaults}
+
+\section{Constraints}
+(forward reference to the appendix being written by VKC)
+
+\section{Facets}
+(forward reference to the appendix being written by VKC)
+
+\section{Behaviors}
+
+\section{Standard Frame, Slot and Facet Names}
+
+\section{Meta KB}
+(To be written by JPR)
+
+\section{Inference Model} 
+
+\section{Behaviors of Representation Systems}
+
+\subsection{Constraint Checking}
+(Perhaps a forward reference to the appendix on constraint checking.)
+
+\subsection{Facets}
+
+\subsection{Defaults}
+
+\subsection{Class Slot Types}
+
+\subsection{Test Function}
+
+\subsection{Collection Types}
+
+\chapter{GFP Operations}
+
+\section{Discussion on common arguments}
+(To be put together by VKC.)
+
+\section{Error Handling}
+(To be put together by VKC.)
+
+\subsection{Required vs Optional Errors}
+
+\subsection{Condition Objects}
+
+\subsection{Documented GFP Errors}
+(Perhaps with a forward pointer to a chapter/appendix on 
+a comprehensive list of errors.)
+
+\section{Compliance Levels}
+The taxonomy identifying the accessible frames for an FRS.  (Author
+TBD.  I am not sure if this should go in the knowledge model.)
+
+\section{Categories of GFP Operations}
+
+\subsection{Operations on Frames}
+(Informal discussion using the intermediate text from the current version of the spec)
+(To be put together by VKC.)
+
+\subsection{Operations on Classes}
+
+\subsection{Operations on Instances}
+
+\subsection{Operations on Facets}
+
+\subsection{Operations on Slots}
+
+\subsection{KB Operations}
+
+\section{Enumerator Operations}
+(To be written by AF.) 
+
+\section{Format for Documentation of GFP operations}
+(To be put together by VKC.)
+
+\section{Alphabetical Listing of all GFP Operations}
+(To be put together by JPR.)
+
+\chapter{Function Specifiers}
+(To be written by AF)
+
+\chapter{Language Bindings}
+(To be written by AF)
+
+\appendix
+
+\chapter{Facets, Slots}
+(To be written by VKC)
+
+\chapter{Implementations}
+(Author TBD)
+
+\bibliography{all}
+\bibliographystyle{plain}
+
+\printindex
+
+\end{document}

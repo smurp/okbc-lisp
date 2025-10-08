@@ -1,0 +1,153 @@
+
+
+\begin{okbccondition}{abstract-error}{ error-message continuable } { }
+The abstract OKBC error condition.  \karg{Error-message}
+   is a string to print out for the error.  If the error is not so severe that
+   processing with the KB will have undefined results, \karg{continuable}
+   is \true.  This is the abstract superclass of OKBC errors.  No
+   unspecialized instances of this error type will ever be signaled.
+\end{okbccondition}
+
+\begin{okbccondition}{cannot-handle}{ sentence } { \kcond{abstract-error} }
+The condition signaled when a \kfn{tell} is performed on
+   a \karg{sentence} that cannot be handled.
+\end{okbccondition}
+
+\begin{okbccondition}{cardinality-violation}{  } { \kcond{constraint-violation} }
+The condition signaled when a value stored in a slot violates a cardinality
+    constraint on that slot.
+\end{okbccondition}
+
+\begin{okbccondition}{class-not-found}{ missing-class kb } { \kcond{abstract-error} }
+The condition signaled on reference to a \karg{missing-class} that is not
+    defined.
+\end{okbccondition}
+
+\begin{okbccondition}{constraint-violation}{ constraint frame slot slot-type facet kb } { \kcond{abstract-error} }
+The condition signaled when a value stored in a slot or facet violates a 
+    constraint on that slot.
+\end{okbccondition}
+
+\begin{okbccondition}{domain-required}{ frame slot facet kb } { \kcond{abstract-error} }
+The condition signaled when an attempt is made to create
+   a slot or facet with an unconstrained domain in an KRS that does not support
+   unconstrained slot (or facet) domains.
+\end{okbccondition}
+
+\begin{okbccondition}{enumerator-exhausted}{ enumerator } { \kcond{abstract-error} }
+The condition signaled when an enumerator is exhausted, 
+   and an attempt is made to get a value from it.
+\end{okbccondition}
+
+\begin{okbccondition}{facet-already-exists}{ facet kb } { \kcond{abstract-error} }
+The condition signaled on an attempt to create a facet that already 
+    exists.
+\end{okbccondition}
+
+\begin{okbccondition}{facet-not-found}{ frame slot slot-type facet kb } { \kcond{abstract-error} }
+The condition signaled on reference to a nonexistent facet.
+\end{okbccondition}
+
+\begin{okbccondition}{frame-already-exists}{ frame kb } { \kcond{abstract-error} }
+The condition signaled on an attempt to create a frame that already 
+    exists.  This error is signaled only when the
+    {\tt :frame-names-required} behavior is active.
+\end{okbccondition}
+
+\begin{okbccondition}{generic-error}{  } { \kcond{abstract-error} }
+The generic OKBC error condition.
+   This error is signaled when no more specific and appropriate error type
+   can be found.
+\end{okbccondition}
+
+\begin{okbccondition}{illegal-behavior-values}{ behavior proposed-values } { \kcond{abstract-error} }
+The condition signaled when an application attempts to
+   set illegal behavior values.  \karg{Proposed-values} are the values
+   that the application is attempting to set for the behavior.
+\end{okbccondition}
+
+\begin{okbccondition}{individual-not-found}{ missing-individual kb } { \kcond{abstract-error} }
+The condition signaled on reference to a \karg{missing-individual}
+    that is not defined.
+\end{okbccondition}
+
+\begin{okbccondition}{kb-not-found}{ kb } { \kcond{abstract-error} }
+The condition signaled on reference to a nonexistent \karg{kb}.
+\end{okbccondition}
+
+\begin{okbccondition}{kb-value-read-error}{ read-string kb } { \kcond{abstract-error} }
+The condition signaled on read errors.  \karg{Read-string} is the string
+    from which the KB value is being read.  See \kfn{coerce-to-kb-value}.
+\end{okbccondition}
+
+\begin{okbccondition}{method-missing}{ okbcop kb } { \kcond{abstract-error} }
+The condition signaled on reference to a nonhandled method for a OKBC
+    operation.  \karg{Okbcop} is the name of the operation in question.
+    This error is signaled when a OKBC back end detects either that it is not
+    compliant, or that is has been called in a manner that is inconsistent
+    with its advertized capabilities, according to the value of the
+    {\tt :compliance} behavior.
+\end{okbccondition}
+
+\begin{okbccondition}{missing-frames}{ missing-frames frame kb } { \kcond{abstract-error} }
+The condition signaled by \kfn{copy-frame} when
+   \karg{missing-frame-action} is either {\tt :stop} or {\tt :abort}
+   and \karg{error-p} is \true, and frames are found to be missing.
+   \kcond{Missing-frames} is the list of missing
+   frames.
+\end{okbccondition}
+
+\begin{okbccondition}{network-connection-error}{ host port } { \kcond{abstract-error} }
+The error signaled when OKBC fails to make a network
+    connection.  \karg{Host} is the host to which it is trying to connect,
+    and \karg{port} is the port number.
+\end{okbccondition}
+
+\begin{okbccondition}{not-a-frame-type}{ frame-type kb } { \kcond{abstract-error} }
+The condition signaled on an attempt to create an entity supplying
+    frame-like arguments (such as \karg{own-slots}) in a KRS that does
+    not represent entities of that frame-type as frames.
+\end{okbccondition}
+
+\begin{okbccondition}{not-coercible-to-frame}{ frame kb } { \kcond{abstract-error} }
+The condition signaled on an attempt to coerce an object to a frame that 
+    does not identify a frame.
+\end{okbccondition}
+
+\begin{okbccondition}{not-unique-error}{ pattern matches context kb } { \kcond{abstract-error} }
+The condition signaled when a match operation has nonunique results.
+    \karg{Pattern} is the pattern given to the completion operation
+    (e.g., \kfn{coerce-to-kb-value}).
+    \karg{Matches} is the list of matches.
+    \karg{Context} is the context type expected, e.g. {\tt :slot}.
+\end{okbccondition}
+
+\begin{okbccondition}{object-freed}{ object } { \kcond{abstract-error} }
+The condition signaled when possible when a user accesses
+   a freed data structure.  \karg{Object} is the object being accessed.
+\end{okbccondition}
+
+\begin{okbccondition}{read-only-violation}{ kb } { \kcond{abstract-error} }
+The condition signaled upon a read-only violation on a read-only KB.
+\end{okbccondition}
+
+\begin{okbccondition}{slot-already-exists}{ slot kb } { \kcond{abstract-error} }
+The condition signaled on an attempt to create a slot that already 
+    exists.
+\end{okbccondition}
+
+\begin{okbccondition}{slot-not-found}{ frame slot slot-type kb } { \kcond{abstract-error} }
+The condition signaled on reference to a \karg{slot} that is not
+    defined in \karg{frame}.
+\end{okbccondition}
+
+\begin{okbccondition}{syntax-error}{ erring-input } { \kcond{abstract-error} }
+The condition signaled when a syntax error is detected
+   in KIF input.  \karg{Erring-input} is either a string containing 
+   the erring input, or a malformed KIF input.
+\end{okbccondition}
+
+\begin{okbccondition}{value-type-violation}{  } { \kcond{constraint-violation} }
+The condition signaled when a value being stored in a slot violates a 
+    {\tt :value-type} constraint on that slot.
+\end{okbccondition}

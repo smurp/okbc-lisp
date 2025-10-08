@@ -1,0 +1,184 @@
+
+
+
+\chapter{Introduction}
+
+This document proposes a protocol for accessing knowledge bases stored
+in frame knowledge representation systems (FRSs).  The protocol,
+called Generic Frame Protocol (GFP), provides a set of Common Lisp functions that
+provide a generic interface to underlying FRSs.  The interface layer
+allows an application some independence from the idiosyncrasies of
+specific FRS software and enables the development of generic tools
+(e.g., graphical browsers, frame editors) that operate on many FRSs.
+
+This Generic Frame Protocol can be viewed as an extension of the Ontolingua
+system\cite{ontolingua}, which provides a way to define classes, relations,
+and functions that can be translated into a variety of FRSs.  Ontolingua is
+for declarative specification only, and does not provide a way to store and
+retrieve facts in a knowledge base.  The Generic Frame Protocol allows one to
+write applications that use knowledge bases, including ontologies written in
+Ontolingua.
+
+
+The GFP protocol is complementary to language specifications developed to
+support knowledge sharing.  KIF \cite{kif}, the Knowledge Interchange Format,
+provides a declarative language for describing knowledge.  As a pure
+specification language, KIF does not include commands for knowledge base query
+or manipulation.  Furthermore, KIF is far more expressive than FRSs.  The
+Generic Frame Protocol focuses on operations that are efficiently supported by
+most FRSs (e.g., operations on frames, slots, facets; inheritance and slot
+constraint checking).
+
+\section{The Need For a Standard FRS Access Library}
+
+There are several motivations for creating a generic access layer for
+FRS services.  An application programmer may wish to use more than one
+FRS during the life of the application because of their different
+performance profiles.  An application that initially used the
+representation services of FRS$_1$ might later use FRS$_2$ because
+FRS$_2$ is faster, or more expressive, or cheaper, or better
+supported.  Or, an application might use FRS$_2$ {\em in addition} to
+FRS$_1$ --- FRS$_2$ might be more expressive for a subset of tasks, or
+the application might newly require access to a knowledge base (KB)
+that was implemented using FRS$_2$.  Consider also utilities that
+users might want to employ in conjunction with a number of FRSs and
+applications, such as a graphical knowledge editor, or a machine
+learning program.
+
+Although there are significant differences among FRS implementations,
+there are enough common properties that one can describe a generic
+model of frame representation and specify a set of access functions
+for interacting with frame representation systems.  An application or
+tool written to use these access functions has the potential of
+portability over a variety of systems and knowledge bases.
+
+\section{The Proposed Solution}
+
+We propose a generic model of frame representation systems (with
+frames, slots, classes, etc) and specify a set of access functions
+based on this model (e.g., get a frame by its name, get the slots of a
+frame, etc).  The specification is given as a set of Common Lisp
+functions that can be used by an application to access knowledge
+stored in any compatible FRS.  As an implementation strategy we
+propose a translation layer between the Generic Frame functions
+and an existing FRS-specific functional interface.  The translation
+would be done by a library of CLOS generic functions that implement
+the specification given in this document (see Figure~\ref{fig:clos}).
+To support a new FRS, we must implement a set of methods that
+specialize these generic functions for the particular representation
+system.  We refer to the methods that implement the protocol for a
+particular FRS as a {\em back end}.  For example, there is currently a \Loom\
+back end for GFP, and a \Theo\ back end (and several others).
+Since many of the generic functions have reasonable default
+methods written in terms of other Generic Frame methods, only a core
+subset of the generic functions in the specification must in fact be
+defined for a new back end.  The default methods can be overridden
+to improve efficiency or for better integration with development
+environments.  Appendix~\ref{sec:back-ends} provides guidance to
+implementors of new back ends for the protocol.
+
+\begin{figure}
+\centerline{\psfig{figure=clos.idraw,height=2in}}
+\caption{The architecture of the Generic Frame Protocol.  GfP back ends
+do not currently exist for all of the FRSs pictured here.}
+\label{fig:clos}
+\end{figure}  
+
+\section{Design Objectives}
+
+This section summarizes the design objectives for the
+Generic Frame Protocol, and how these objectives influenced the
+specification.
+
+{\bf Simplicity:}  It is important to have
+a relatively simple specification that can be implemented quickly,
+even if that means sacrificing theoretical considerations or support
+for idiosyncrasies of a particular FRS.
+
+{\bf Generality:}  The protocol should  apply to many
+FRSs, and support all of the most common FRS features.  For
+example, it should support all of the knowledge access and
+modification functionality that will be required by a graphical KB
+editor.  
+
+{\bf No legislation:}  The
+protocol should not require a large number of changes to an FRS for
+which the protocol is implemented.  That is, the protocol should not
+legislate the behavior of an underlying FRS, but should serve as an
+interface between an existing FRS and an application.
+
+{\bf Performance:}  Inserting the protocol between an application and
+an FRS should not introduce a significant performance cost. 
+
+{\bf Consistency:}  The protocol should exhibit consistent behavior 
+across a set of back ends for different FRSs.  That is, a given 
+sequence of operations within the protocol should yield the same
+result over a range of FRSs.
+
+{\bf Precision:}  The specification of the protocol should be as
+precise and unambiguous as possible.
+
+Satisfying all of these objectives simultaneously is virtually
+impossible because many of them conflict, such as simplicity and
+precision, simplicity and generality, and generality and performance.
+The deepest conflicts, however, exist simultaneously between
+generality, no-legislation, performance, consistency, and precision,
+as the following example shows.  To precisely specify the behavior of
+the function that retrieves the values of a slot, we must say exactly
+how the local values of a slot are combined with the inherited values
+of a slot (which may be inherited from multiple parent classes).  That is, we
+must specify the exact inheritance mechanism that the protocol
+expects.  Yet, different FRSs use a variety of different inheritance
+mechanisms \cite{KarpFreview}.  For an FRS to conform to a precise
+specification of inheritance, it must either alter its inheritance
+mechanism (violating no-legislation), or emulate the desired
+inheritance mechanism within the implementation of the protocol
+(violating high-performance and generality, since the inheritance
+method used by that FRS is inaccessible through the protocol).
+
+The preceding quandary is central throughout the protocol, and we know
+of no simple solution to the problem.  We propose the following
+approach.  Each knowledge base (KB) manipulated by the protocol is
+serviced by a single underlying FRS.  The application must declare, at
+KB creation time, what set of FRS {\it behaviors} are to be associated
+with the KB for proper execution of the application.  The application
+is stating what services it expects the FRS to provide for a KB for
+proper execution of the application.  For example, the application
+might declare that it requires one of the two semantics for
+inheritance that we call incoherence and override, or that the
+application does not depend on either semantics.  The Generic Frame
+protocol predefines a number of alternative FRS behaviors, based on
+the properties of existing FRSs.  We expect that the set of behaviors
+defined within the protocol will grow over time.
+
+At the time of declaration, the protocol determines whether the
+behaviors required by the application can be supplied.  Those
+behaviors might already be present in the underlying FRS, or the
+protocol itself might emulate them on behalf of the FRS.  In cases
+where one or more of the required behaviors cannot be supplied, the
+protocol issues warnings to this effect. It is important to note that
+we expect that every back end might not currently provide every
+possible behavior due to both the variability among FRSs, and the
+complexity of the Generic Frame Protocol.  Chapter~\ref{ch:behaviors}
+describes behaviors in more detail.
+
+\section{On Terminology}
+
+The goal of the proposed protocol is to serve as an interface to many
+different FRSs.  In a recent review of FRSs, Karp identifies over 50
+of these systems \cite{KarpFreview}.  He also observes that
+terminology in the field of KR is in a state of chaos because
+different researchers often use different terms to mean the same
+thing.  For example, there are 10 different terms for the notion of a
+class (concept); 4 terms for an instance (individual); 4 terms for the
+relationship between a concept and an instance (slot); 3 terms for the
+notion of slot values; and 2 terms for the slot and for the slot unit.
+
+The operations within the Generic Frame Protocol require names.  Given the
+chaotic state of KR terminology, it is clearly impossible to choose a
+set of names for the protocol operations that will be acceptable to
+the developers of every FRS.  We ask the readers of the document who
+are considering adapting the GFP to their FRS to be cognizant
+of these facts, and to be tolerant of foreign terminology.  
+
+%In this document we use the notation F.S to mean slot S of frame F.

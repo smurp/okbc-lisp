@@ -1,0 +1,180 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%					  %%%%
+%%%%	General Latex macros for PKarp    %%%%
+%%%%					  %%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\textfraction}{.01}
+\renewcommand{\floatpagefraction}{.7}
+
+\newcommand{\benum}{\begin{enumerate}}
+\newcommand{\eenum}{\end{enumerate}}
+\newcommand{\bitem}{\begin{itemize}}
+\newcommand{\eitem}{\end{itemize}}
+%%%%
+%%%%  Compressed item list (items are spaced closer together):
+\newcommand{\bCitem}
+	   {\begin{list}
+	    {$\bullet$}
+	    {\itemsep 0.01in \parsep 0.01in \topsep .1in}}
+%%%%  \partopsep .01in \parskip .01in
+\newcommand{\eCitem}{\end{list}}
+
+\def\picture #1 by #2 (#3) indent #4 {
+   \moveright #4
+   \vbox to #2{
+      \hrule width #1 height 0pt depth 0pt
+      \vfill
+      \special{picture #3}}}
+
+\def\scaledpicture #1 by #2 (#3) indent #4 scale #5 {
+  \dimen0=#1  \dimen1=#2
+  \divide\dimen0 by 1000 \multiply\dimen0 by #5
+  \divide\dimen1 by 1000 \multiply\dimen1 by #5
+  {\picture \dimen0 by \dimen1 (#3 scaled #5) indent #4 }}
+
+%%%%
+%%%%  Narrows the left margin and the line spacing
+%%%%
+\newenvironment{scrunch}%
+   {\setlength{\baselineskip}{.5\baselineskip}
+    \begin{list}{}{\leftmargin 3em}
+    \item
+   }%
+   {\setlength{\baselineskip}{2.\baselineskip}
+    \end{list}
+   }
+
+\newcommand{\logand}{\wedge}
+\newcommand{\logor}{\vee}
+\newcommand{\implies}{\supset}
+\newcommand{\lognot}{\neg}
+
+\newcommand{\etal}{et al}
+\newcommand{\revision}{\protect\marginpar[$\Rightarrow$]{$\Leftarrow$}}
+
+\newcommand{\acknowledgements}{\vspace{2em}\noindent {\Large \bf Acknowledgements}\vspace{1em}}
+\newcommand{\draft}{\begin{center}{\Large \bf Draft of \today\\
+Please Do Not Cite\\
+Please Do Comment}\end{center}}
+\newcommand{\heading}[1]{\begin{center}{\Large \bf #1}\end{center}}
+
+\newcommand{\ssection}[1]{\subsection{#1}}
+\newcommand{\Ssection}[1]{\subsection{#1}}
+\newcommand{\sssection}[1]{\subsubsection{#1}}
+\newcommand{\SSsection}[1]{\subsubsection{#1}}
+\newcommand{\ssssection}[1]{\paragraph{#1}}
+\newcommand{\SSSsection}[1]{\paragraph{#1}}
+\newcommand{\sssssection}[1]{\subparagraph{#1}}
+\newcommand{\SSSSsection}[1]{\subparagraph{#1}}
+
+\newcommand{\halfsp}{\setlength{\baselineskip}{.5\baselineskip}}
+\newcommand{\doublesp}{\setlength{\baselineskip}{2.\baselineskip}}
+
+\newcommand{\ntext}[1]{{\em #1}}
+
+\newcommand{\grfunction}[2]{\hspace{.6 in}{\bf #1\index{\gfn{#1}}[#2]}}
+%%%% No Indexing
+\newcommand{\grfunctionNI}[2]{\hspace{.6 in}{\bf #1[#2]}}
+\newcommand{\grmacro}[2]{\hspace{.6 in}{\bf #1\index{\gfn{#1}}[#2]}\hspace{.5 cm}{\em Macro}}
+%%%% The following is used to position text to the right of a function definition;
+%%%% -- usually used for the pronunciation of a Group I operator.
+\newcommand{\Grfunction}[3]{\hspace{.6 in}{\bf #1\index{\gfn{#1}}[#2]} #3}
+\newcommand{\rarg}[1]{#1}		% req'd arg in definition line
+\newcommand{\optarg}[1]{\underline{#1}}	% optional arg in definition line
+\newcommand{\gfn}[1]{{\bf #1}}		% fn name in text
+\newcommand{\garg}[1]{{\bf #1}}		% arg name in text
+\newcommand{\shape}[2]{\vspace{1 cm}\begin{tabbing}{\large \= \garg{#1} \= \` {\tt #2}\\}\end{tabbing}}
+\newcommand{\Shape}[4]{\vspace{1 cm}\begin{tabbing}\= {\large \= \garg{#1} \= \` {\tt #2}\\}\\ \> Active when {\bf #3 = } {\tt #4} \end{tabbing}}
+
+\def\scaledpicture #1 by #2 (#3) indent #4 scale #5 {}
+
+\newcommand{\mycite}[1]{\cite{#1}}		%%%%{{\em [#1]} \nocite{#1}}
+\newcommand{\Dop}[1]{{\tt {\small #1}}}
+
+\newcommand{\Ecoli}{{\em E. coli}}
+\newcommand{\coli}{{\em E. coli}}
+
+\newcommand{\Grasper}{Grasper-CL}
+\newcommand{\GrasperII}{Grasper-II}
+\newcommand{\Gedit}{Graph Editor}
+\newcommand{\UGuide}{{\em Grasper-CL User's Guide}}
+\newcommand{\Uguide}{{\em Grasper-CL User's Guide}}
+\newcommand{\IGuide}{{\em Grasper-CL Installation Guide}}
+\newcommand{\ProgRef}{{\em Grasper-CL Programmer's Manual}}
+
+\newcommand{\Gensim}{G{\footnotesize ENSIM}}
+\newcommand{\Hypgene}{H{\footnotesize YPGENE}}
+\newcommand{\HypGene}{\Hypgene}
+\newcommand{\trp}{trp}
+\newcommand{\tRNAtrp}{tRNA$^{\hbox{trp}}$}
+\newcommand{\tRNAhis}{tRNA$^{\hbox{his}}$}
+\newcommand{\trpR}{{\em trpR}}
+\newcommand{\exptset}{\mbox{$\cal E$}}
+\newcommand{\Eone}{\mbox{${\cal E}_{reject}$}}			%%%%_{1}$}}
+\newcommand{\Etwo}{\mbox{${\cal E}_{unexplained}$}}		%%%%_{2}$}}
+\newcommand{\Ethree}{\mbox{${\cal E}_{explained}$}}		%%%%_{3}$}}
+\newcommand{\EthreeA}{\mbox{${\cal E}_{explained,unchanged}$}}	%%%%_{3A}$}}
+\newcommand{\EthreeB}{\mbox{${\cal E}_{explained,I'}$}}		%%%%_{3B}$}}
+\newcommand{\EthreeC}{\mbox{${\cal E}_{explained,O'}$}}		%%%%_{3C}$}}
+\newcommand{\Eexpch}{\mbox{${\cal E}_{explained,changed}$}}
+\newcommand{\EexpI}{\mbox{${\cal E}_{explained,I'}$}}
+\newcommand{\EexpO}{\mbox{${\cal E}_{explained,O'}$}}
+\newcommand{\EexpIO}{\mbox{${\cal E}_{explained,I'O'}$}}
+\newcommand{\theoryset}{\mbox{$\cal T$}}
+\newcommand{\Ea}{\mbox{$E_{A}$}}
+\newcommand{\Pa}{\mbox{$P_{A}$}}
+\newcommand{\Oa}{\mbox{$O_{A}$}}
+\newcommand{\Ia}{\mbox{$I_{A}$}}
+\newcommand{\Ppa}{\mbox{$P'_{A}$}}
+\newcommand{\Opa}{\mbox{$O'_{A}$}}
+\newcommand{\Ipa}{\mbox{$I'_{A}$}}
+
+\newcommand{\Er}{\mbox{$E_{R}$}}
+\newcommand{\PR}{\mbox{$P_{R}$}}
+\newcommand{\Or}{\mbox{$O_{R}$}}
+\newcommand{\Ir}{\mbox{$I_{R}$}}
+\newcommand{\Di}{\mbox{$D_{i}$}}
+\newcommand{\EDi}{\mbox{$ED_{i}$}}
+\newcommand{\Errora}{\mbox{$Error_{A}$}}
+
+\newcommand{\AM}{{\footnotesize AM}}
+\newcommand{\Ariadne}{A{\footnotesize RIADNE}}
+\newcommand{\Bacon}{B{\footnotesize ACON}}
+\newcommand{\Coast}{C{\footnotesize OAST}}
+\newcommand{\Dalton}{D{\footnotesize ALTON}}
+\newcommand{\Dendral}{D{\footnotesize ENDRAL}}
+\newcommand{\Eurisko}{E{\footnotesize URISKO}}
+\newcommand{\Genex}{G{\footnotesize ENEX}}
+\newcommand{\Glauber}{G{\footnotesize LAUBER}}
+\newcommand{\Gordius}{G{\footnotesize ORDIUS}}
+\newcommand{\Interlisp}{I{\footnotesize NTERLISP}}
+\newcommand{\Intsum}{I{\footnotesize NTSUM}}
+\newcommand{\Kee}{K{\footnotesize EE}}
+\newcommand{\KEE}{K{\footnotesize EE}}
+\newcommand{\Kekada}{K{\footnotesize EKADA}}
+\newcommand{\KnowledgeCraft}{K{\footnotesize NOWLEDGE}C{\footnotesize RAFT}}
+\newcommand{\Lisp}{L{\footnotesize ISP}}
+\newcommand{\CLisp}{C{\footnotesize OMMON} L{\footnotesize ISP}}
+\newcommand{\Clisp}{C{\footnotesize OMMON} L{\footnotesize ISP}}
+\newcommand{\Macsyma}{M{\footnotesize ACSYMA}}
+\newcommand{\mDendral}{M{\footnotesize ETA}-D{\footnotesize ENDRAL}}
+\newcommand{\Mycin}{M{\footnotesize YCIN}}
+\newcommand{\Neomycin}{N{\footnotesize EOMYCIN}}
+\newcommand{\Odysseus}{O{\footnotesize DYSSEUS}}
+\newcommand{\Peptide}{P{\footnotesize EPTIDE}}
+\newcommand{\PI}{{\footnotesize PI}}
+\newcommand{\Prolog}{P{\footnotesize ROLOG}}
+\newcommand{\Protean}{P{\footnotesize ROTEAN}}
+\newcommand{\PRE}{P{\footnotesize RE}}
+\newcommand{\RX}{{\footnotesize RX}}
+\newcommand{\Rulemod}{R{\footnotesize ULEMOD}}
+\newcommand{\Rulegen}{R{\footnotesize ULEGEN}}
+\newcommand{\Sipe}{S{\footnotesize IPE--2}}
+\newcommand{\Stahl}{S{\footnotesize TAHL}}
+\newcommand{\Stahlp}{S{\footnotesize TAHLp}}
+\newcommand{\Strips}{S{\footnotesize TRIPS}}
+\newcommand{\Sun}{S{\footnotesize UN}}
+\newcommand{\Teiresias}{T{\footnotesize EIRESIAS}}
+\newcommand{\Unix}{U{\footnotesize NIX}}
+

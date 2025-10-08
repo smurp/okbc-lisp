@@ -1,0 +1,1307 @@
+
+<HTML>
+<TITLE>Documentation for the OK-UTILS package</TITLE>
+<H2>Documentation for the OK-UTILS package</H2>
+
+This document contains documentation for the OKBC Lisp implementation utilities
+package <code>OK-UTILS</code>.  The functions, variables and classes described
+are expected to be useful both to OKBC application authors and to OKBC back end
+authors.
+
+<HR>
+<H3>Table of Contents:</H3>
+<OL>
+  <LI><A HREF="#*err-on-parser-error-p*"><code>*err-on-parser-error-p*</code></A>
+  <LI><A HREF="#*err-on-read-only-violations-p*"><code>*err-on-read-only-violations-p*</code></A>
+  <LI><A HREF="#*getting-better-is-ok-p*"><code>*getting-better-is-ok-p*</code></A>
+  <LI><A HREF="#*inhibit-read-onlyness-p*"><code>*inhibit-read-onlyness-p*</code></A>
+  <LI><A HREF="#*okbc-listener-prompt*"><code>*okbc-listener-prompt*</code></A>
+  <LI><A HREF="#*parser-warn-function*"><code>*parser-warn-function*</code></A>
+  <LI><A HREF="#*replace-kif-symbols-with-keywords-p*"><code>*replace-kif-symbols-with-keywords-p*</code></A>
+  <LI><A HREF="#abstract-kif-language"><code>abstract-kif-language</code></A>
+  <LI><A HREF="#abstract-language"><code>abstract-language</code></A>
+  <LI><A HREF="#all-compliant-okbc-implementations"><code>all-compliant-okbc-implementations</code></A>
+  <LI><A HREF="#anonymous-variable?"><code>anonymous-variable?</code></A>
+  <LI><A HREF="#ansi-kif-language"><code>ansi-kif-language</code></A>
+  <LI><A HREF="#assert-delayed-sentences"><code>assert-delayed-sentences</code></A>
+  <LI><A HREF="#assert-kif-definitions-as-sentences-mixin"><code>assert-kif-definitions-as-sentences-mixin</code></A>
+  <LI><A HREF="#base-string-element-type"><code>base-string-element-type</code></A>
+  <LI><A HREF="#canonicalize-pattern"><code>canonicalize-pattern</code></A>
+  <LI><A HREF="#causes-side-effects-p"><code>causes-side-effects-p</code></A>
+  <LI><A HREF="#check-assertion-of-constraint-facet-values"><code>check-assertion-of-constraint-facet-values</code></A>
+  <LI><A HREF="#check-assertion-of-constraint-slot-values"><code>check-assertion-of-constraint-slot-values</code></A>
+  <LI><A HREF="#clear-queue"><code>clear-queue</code></A>
+  <LI><A HREF="#cml-language"><code>cml-language</code></A>
+  <LI><A HREF="#compliant-okbc-implementation-p"><code>compliant-okbc-implementation-p</code></A>
+  <LI><A HREF="#conjunction-to-list"><code>conjunction-to-list</code></A>
+  <LI><A HREF="#continuable-assert"><code>continuable-assert</code></A>
+  <LI><A HREF="#continuable-error"><code>continuable-error</code></A>
+  <LI><A HREF="#decanonicalize-testfn"><code>decanonicalize-testfn</code></A>
+  <LI><A HREF="#decode-data-structure-from-stream"><code>decode-data-structure-from-stream</code></A>
+  <LI><A HREF="#def-trivial-diadic"><code>def-trivial-diadic</code></A>
+  <LI><A HREF="#def-trivial-eval-for-okbc-cons"><code>def-trivial-eval-for-okbc-cons</code></A>
+  <LI><A HREF="#def-trivial-monadic"><code>def-trivial-monadic</code></A>
+  <LI><A HREF="#def-trivial-no-args"><code>def-trivial-no-args</code></A>
+  <LI><A HREF="#defdoc"><code>defdoc</code></A>
+  <LI><A HREF="#defdocmethod"><code>defdocmethod</code></A>
+  <LI><A HREF="#define-condition-okbc"><code>define-condition-okbc</code></A>
+  <LI><A HREF="#defmethod-with-cache-method"><code>defmethod-with-cache-method</code></A>
+  <LI><A HREF="#defmethods"><code>defmethods</code></A>
+  <LI><A HREF="#defokbcfun"><code>defokbcfun</code></A>
+  <LI><A HREF="#defokbcgeneric"><code>defokbcgeneric</code></A>
+  <LI><A HREF="#dequeue"><code>dequeue</code></A>
+  <LI><A HREF="#dequote"><code>dequote</code></A>
+  <LI><A HREF="#dispatch-macro-character-p"><code>dispatch-macro-character-p</code></A>
+  <LI><A HREF="#do-list"><code>do-list</code></A>
+  <LI><A HREF="#empty-queue-p"><code>empty-queue-p</code></A>
+  <LI><A HREF="#encode-data-structure-to-stream"><code>encode-data-structure-to-stream</code></A>
+  <LI><A HREF="#enforce-domain-constraint"><code>enforce-domain-constraint</code></A>
+  <LI><A HREF="#enforce-slot-constraints"><code>enforce-slot-constraints</code></A>
+  <LI><A HREF="#enqueue"><code>enqueue</code></A>
+  <LI><A HREF="#ensure-slots-and-facets-exist-for-frame-definition"><code>ensure-slots-and-facets-exist-for-frame-definition</code></A>
+  <LI><A HREF="#explain-language"><code>explain-language</code></A>
+  <LI><A HREF="#fast-equal"><code>fast-equal</code></A>
+  <LI><A HREF="#fast-gethash-for-symbol"><code>fast-gethash-for-symbol</code></A>
+  <LI><A HREF="#fast-read-line"><code>fast-read-line</code></A>
+  <LI><A HREF="#fast-terpri"><code>fast-terpri</code></A>
+  <LI><A HREF="#fast-write-fixnum"><code>fast-write-fixnum</code></A>
+  <LI><A HREF="#find-language"><code>find-language</code></A>
+  <LI><A HREF="#first-if-list"><code>first-if-list</code></A>
+  <LI><A HREF="#frame-reference-p"><code>frame-reference-p</code></A>
+  <LI><A HREF="#function-constant-p"><code>function-constant-p</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#get-direct-slot-values-in-detail"><code>get-direct-slot-values-in-detail</code></A>
+  <LI><A HREF="#getpid"><code>getpid</code></A>
+  <LI><A HREF="#ground?"><code>ground?</code></A>
+  <LI><A HREF="#initialize-slots-and-facets"><code>initialize-slots-and-facets</code></A>
+  <LI><A HREF="#inside-okbc-server-p"><code>inside-okbc-server-p</code></A>
+  <LI><A HREF="#internal-name-to-op-name"><code>internal-name-to-op-name</code></A>
+  <LI><A HREF="#is-in-tree"><code>is-in-tree</code></A>
+  <LI><A HREF="#kb-specializing-arguments"><code>kb-specializing-arguments</code></A>
+  <LI><A HREF="#kif-3.0-language"><code>kif-3.0-language</code></A>
+  <LI><A HREF="#kif-variable-p"><code>kif-variable-p</code></A>
+  <LI><A HREF="#kill-nokbc-server"><code>kill-nokbc-server</code></A>
+  <LI><A HREF="#list-if-not"><code>list-if-not</code></A>
+  <LI><A HREF="#list-to-conjunction"><code>list-to-conjunction</code></A>
+  <LI><A HREF="#load-okbc-kb"><code>load-okbc-kb</code></A>
+  <LI><A HREF="#load-okbc-kb-handle-in-kb-form"><code>load-okbc-kb-handle-in-kb-form</code></A>
+  <LI><A HREF="#load-okbc-kb-handle-in-language-form"><code>load-okbc-kb-handle-in-language-form</code></A>
+  <LI><A HREF="#load-okbc-kb-handle-in-package-form"><code>load-okbc-kb-handle-in-package-form</code></A>
+  <LI><A HREF="#make-queue"><code>make-queue</code></A>
+  <LI><A HREF="#mark-to-require-rehash"><code>mark-to-require-rehash</code></A>
+  <LI><A HREF="#nokbc-server"><code>nokbc-server</code></A>
+  <LI><A HREF="#nth-rest"><code>nth-rest</code></A>
+  <LI><A HREF="#object-constant-p"><code>object-constant-p</code></A>
+  <LI><A HREF="#okbc-assert"><code>okbc-assert</code></A>
+  <LI><A HREF="#okbc-language"><code>okbc-language</code></A>
+  <LI><A HREF="#okbc-listener"><code>okbc-listener</code></A>
+  <LI><A HREF="#okbc-sentence-p"><code>okbc-sentence-p</code></A>
+  <LI><A HREF="#okbc-with-ansi-kif-language"><code>okbc-with-ansi-kif-language</code></A>
+  <LI><A HREF="#okbcop-args"><code>okbcop-args</code></A>
+  <LI><A HREF="#op-name-to-internal-name"><code>op-name-to-internal-name</code></A>
+  <LI><A HREF="#parser-cons"><code>parser-cons</code></A>
+  <LI><A HREF="#parser-list"><code>parser-list</code></A>
+  <LI><A HREF="#parser-list*"><code>parser-list*</code></A>
+  <LI><A HREF="#parser-warn"><code>parser-warn</code></A>
+  <LI><A HREF="#queue-append"><code>queue-append</code></A>
+  <LI><A HREF="#queue-back"><code>queue-back</code></A>
+  <LI><A HREF="#queue-contents"><code>queue-contents</code></A>
+  <LI><A HREF="#queue-delete"><code>queue-delete</code></A>
+  <LI><A HREF="#queue-front"><code>queue-front</code></A>
+  <LI><A HREF="#queue-nconc"><code>queue-nconc</code></A>
+  <LI><A HREF="#read-all-forms-from-stream"><code>read-all-forms-from-stream</code></A>
+  <LI><A HREF="#read-all-forms-from-stream-p"><code>read-all-forms-from-stream-p</code></A>
+  <LI><A HREF="#read-form-from-stream-in-language"><code>read-form-from-stream-in-language</code></A>
+  <LI><A HREF="#read-only-p"><code>read-only-p</code></A>
+  <LI><A HREF="#relation-constant-p"><code>relation-constant-p</code></A>
+  <LI><A HREF="#remove-coercion-specs"><code>remove-coercion-specs</code></A>
+  <LI><A HREF="#remove-keywords-and-defaults"><code>remove-keywords-and-defaults</code></A>
+  <LI><A HREF="#reorder-forms-before-asserting-them"><code>reorder-forms-before-asserting-them</code></A>
+  <LI><A HREF="#safely-read-from-string"><code>safely-read-from-string</code></A>
+  <LI><A HREF="#self-evaluating-p"><code>self-evaluating-p</code></A>
+  <LI><A HREF="#sentence-op-type"><code>sentence-op-type</code></A>
+  <LI><A HREF="#sequence-variable-p"><code>sequence-variable-p</code></A>
+  <LI><A HREF="#split-into-lines"><code>split-into-lines</code></A>
+  <LI><A HREF="#sublis-handling-quote"><code>sublis-handling-quote</code></A>
+  <LI><A HREF="#tuple-store"><code>tuple-store</code></A>
+  <LI><A HREF="#tuple-store"><code>tuple-store</code></A>
+  <LI><A HREF="#unify"><code>unify</code></A>
+  <LI><A HREF="#unify-against-literal"><code>unify-against-literal</code></A>
+  <LI><A HREF="#value-matches-type-constraint-p"><code>value-matches-type-constraint-p</code></A>
+  <LI><A HREF="#variable?"><code>variable?</code></A>
+  <LI><A HREF="#variablep"><code>variablep</code></A>
+  <LI><A HREF="#variables-in"><code>variables-in</code></A>
+  <LI><A HREF="#walk-form"><code>walk-form</code></A>
+  <LI><A HREF="#walk-form-for-load"><code>walk-form-for-load</code></A>
+  <LI><A HREF="#walk-key/value-plist"><code>walk-key/value-plist</code></A>
+  <LI><A HREF="#walk-key/value-plist-pair"><code>walk-key/value-plist-pair</code></A>
+  <LI><A HREF="#walk-list-of-sentences"><code>walk-list-of-sentences</code></A>
+  <LI><A HREF="#walk-subexpression"><code>walk-subexpression</code></A>
+  <LI><A HREF="#while"><code>while</code></A>
+  <LI><A HREF="#while-collect"><code>while-collect</code></A>
+  <LI><A HREF="#with-condition-slots"><code>with-condition-slots</code></A>
+  <LI><A HREF="#with-connection-to-socket"><code>with-connection-to-socket</code></A>
+  <LI><A HREF="#with-defokbcop-bindings"><code>with-defokbcop-bindings</code></A>
+  <LI><A HREF="#with-kif-replacement"><code>with-kif-replacement</code></A>
+  <LI><A HREF="#with-read-only-checking"><code>with-read-only-checking</code></A>
+  <LI><A HREF="#with-substitution-groups"><code>with-substitution-groups</code></A>
+  <LI><A HREF="#with-timeout"><code>with-timeout</code></A>
+  <LI><A HREF="#without-recursion-in-stack"><code>without-recursion-in-stack</code></A>
+  <LI><A HREF="#without-recursion-using-trie"><code>without-recursion-using-trie</code></A>
+  <LI><A HREF="#without-scheduling"><code>without-scheduling</code></A>
+  <LI><A HREF="#word-matches-pattern"><code>word-matches-pattern</code></A>
+</OL>
+<HR>
+<H3>Table of Variables:</H3>
+<OL>
+  <LI><A HREF="#*err-on-parser-error-p*"><code>*err-on-parser-error-p*</code></A>
+  <LI><A HREF="#*err-on-read-only-violations-p*"><code>*err-on-read-only-violations-p*</code></A>
+  <LI><A HREF="#*getting-better-is-ok-p*"><code>*getting-better-is-ok-p*</code></A>
+  <LI><A HREF="#*inhibit-read-onlyness-p*"><code>*inhibit-read-onlyness-p*</code></A>
+  <LI><A HREF="#*okbc-listener-prompt*"><code>*okbc-listener-prompt*</code></A>
+  <LI><A HREF="#*parser-warn-function*"><code>*parser-warn-function*</code></A>
+  <LI><A HREF="#*replace-kif-symbols-with-keywords-p*"><code>*replace-kif-symbols-with-keywords-p*</code></A>
+</OL>
+<HR>
+<H3>Table of Classes and Defstructs:</H3>
+<OL>
+  <LI><A HREF="#abstract-kif-language"><code>abstract-kif-language</code></A>
+  <LI><A HREF="#abstract-language"><code>abstract-language</code></A>
+  <LI><A HREF="#ansi-kif-language"><code>ansi-kif-language</code></A>
+  <LI><A HREF="#assert-kif-definitions-as-sentences-mixin"><code>assert-kif-definitions-as-sentences-mixin</code></A>
+  <LI><A HREF="#cml-language"><code>cml-language</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#kif-3.0-language"><code>kif-3.0-language</code></A>
+  <LI><A HREF="#okbc-language"><code>okbc-language</code></A>
+  <LI><A HREF="#okbc-with-ansi-kif-language"><code>okbc-with-ansi-kif-language</code></A>
+  <LI><A HREF="#tuple-store"><code>tuple-store</code></A>
+  <LI><A HREF="#tuple-store"><code>tuple-store</code></A>
+</OL>
+<HR>
+<H3>Table of Functions:</H3>
+<OL>
+  <LI><A HREF="#all-compliant-okbc-implementations"><code>all-compliant-okbc-implementations</code></A>
+  <LI><A HREF="#anonymous-variable?"><code>anonymous-variable?</code></A>
+  <LI><A HREF="#assert-delayed-sentences"><code>assert-delayed-sentences</code></A>
+  <LI><A HREF="#canonicalize-pattern"><code>canonicalize-pattern</code></A>
+  <LI><A HREF="#causes-side-effects-p"><code>causes-side-effects-p</code></A>
+  <LI><A HREF="#check-assertion-of-constraint-facet-values"><code>check-assertion-of-constraint-facet-values</code></A>
+  <LI><A HREF="#check-assertion-of-constraint-slot-values"><code>check-assertion-of-constraint-slot-values</code></A>
+  <LI><A HREF="#clear-queue"><code>clear-queue</code></A>
+  <LI><A HREF="#compliant-okbc-implementation-p"><code>compliant-okbc-implementation-p</code></A>
+  <LI><A HREF="#conjunction-to-list"><code>conjunction-to-list</code></A>
+  <LI><A HREF="#continuable-error"><code>continuable-error</code></A>
+  <LI><A HREF="#decanonicalize-testfn"><code>decanonicalize-testfn</code></A>
+  <LI><A HREF="#decode-data-structure-from-stream"><code>decode-data-structure-from-stream</code></A>
+  <LI><A HREF="#dequeue"><code>dequeue</code></A>
+  <LI><A HREF="#dequote"><code>dequote</code></A>
+  <LI><A HREF="#dispatch-macro-character-p"><code>dispatch-macro-character-p</code></A>
+  <LI><A HREF="#empty-queue-p"><code>empty-queue-p</code></A>
+  <LI><A HREF="#encode-data-structure-to-stream"><code>encode-data-structure-to-stream</code></A>
+  <LI><A HREF="#enforce-domain-constraint"><code>enforce-domain-constraint</code></A>
+  <LI><A HREF="#enforce-slot-constraints"><code>enforce-slot-constraints</code></A>
+  <LI><A HREF="#enqueue"><code>enqueue</code></A>
+  <LI><A HREF="#ensure-slots-and-facets-exist-for-frame-definition"><code>ensure-slots-and-facets-exist-for-frame-definition</code></A>
+  <LI><A HREF="#explain-language"><code>explain-language</code></A>
+  <LI><A HREF="#fast-equal"><code>fast-equal</code></A>
+  <LI><A HREF="#fast-read-line"><code>fast-read-line</code></A>
+  <LI><A HREF="#find-language"><code>find-language</code></A>
+  <LI><A HREF="#first-if-list"><code>first-if-list</code></A>
+  <LI><A HREF="#frame-reference-p"><code>frame-reference-p</code></A>
+  <LI><A HREF="#function-constant-p"><code>function-constant-p</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#generic-error"><code>generic-error</code></A>
+  <LI><A HREF="#get-direct-slot-values-in-detail"><code>get-direct-slot-values-in-detail</code></A>
+  <LI><A HREF="#getpid"><code>getpid</code></A>
+  <LI><A HREF="#ground?"><code>ground?</code></A>
+  <LI><A HREF="#initialize-slots-and-facets"><code>initialize-slots-and-facets</code></A>
+  <LI><A HREF="#inside-okbc-server-p"><code>inside-okbc-server-p</code></A>
+  <LI><A HREF="#internal-name-to-op-name"><code>internal-name-to-op-name</code></A>
+  <LI><A HREF="#is-in-tree"><code>is-in-tree</code></A>
+  <LI><A HREF="#kb-specializing-arguments"><code>kb-specializing-arguments</code></A>
+  <LI><A HREF="#kif-variable-p"><code>kif-variable-p</code></A>
+  <LI><A HREF="#kill-nokbc-server"><code>kill-nokbc-server</code></A>
+  <LI><A HREF="#list-if-not"><code>list-if-not</code></A>
+  <LI><A HREF="#list-to-conjunction"><code>list-to-conjunction</code></A>
+  <LI><A HREF="#load-okbc-kb"><code>load-okbc-kb</code></A>
+  <LI><A HREF="#load-okbc-kb-handle-in-kb-form"><code>load-okbc-kb-handle-in-kb-form</code></A>
+  <LI><A HREF="#load-okbc-kb-handle-in-language-form"><code>load-okbc-kb-handle-in-language-form</code></A>
+  <LI><A HREF="#load-okbc-kb-handle-in-package-form"><code>load-okbc-kb-handle-in-package-form</code></A>
+  <LI><A HREF="#make-queue"><code>make-queue</code></A>
+  <LI><A HREF="#mark-to-require-rehash"><code>mark-to-require-rehash</code></A>
+  <LI><A HREF="#nokbc-server"><code>nokbc-server</code></A>
+  <LI><A HREF="#object-constant-p"><code>object-constant-p</code></A>
+  <LI><A HREF="#okbc-listener"><code>okbc-listener</code></A>
+  <LI><A HREF="#okbc-sentence-p"><code>okbc-sentence-p</code></A>
+  <LI><A HREF="#okbcop-args"><code>okbcop-args</code></A>
+  <LI><A HREF="#op-name-to-internal-name"><code>op-name-to-internal-name</code></A>
+  <LI><A HREF="#parser-warn"><code>parser-warn</code></A>
+  <LI><A HREF="#queue-append"><code>queue-append</code></A>
+  <LI><A HREF="#queue-back"><code>queue-back</code></A>
+  <LI><A HREF="#queue-contents"><code>queue-contents</code></A>
+  <LI><A HREF="#queue-delete"><code>queue-delete</code></A>
+  <LI><A HREF="#queue-front"><code>queue-front</code></A>
+  <LI><A HREF="#queue-nconc"><code>queue-nconc</code></A>
+  <LI><A HREF="#read-all-forms-from-stream"><code>read-all-forms-from-stream</code></A>
+  <LI><A HREF="#read-all-forms-from-stream-p"><code>read-all-forms-from-stream-p</code></A>
+  <LI><A HREF="#read-form-from-stream-in-language"><code>read-form-from-stream-in-language</code></A>
+  <LI><A HREF="#read-only-p"><code>read-only-p</code></A>
+  <LI><A HREF="#relation-constant-p"><code>relation-constant-p</code></A>
+  <LI><A HREF="#remove-coercion-specs"><code>remove-coercion-specs</code></A>
+  <LI><A HREF="#remove-keywords-and-defaults"><code>remove-keywords-and-defaults</code></A>
+  <LI><A HREF="#reorder-forms-before-asserting-them"><code>reorder-forms-before-asserting-them</code></A>
+  <LI><A HREF="#safely-read-from-string"><code>safely-read-from-string</code></A>
+  <LI><A HREF="#self-evaluating-p"><code>self-evaluating-p</code></A>
+  <LI><A HREF="#sentence-op-type"><code>sentence-op-type</code></A>
+  <LI><A HREF="#sequence-variable-p"><code>sequence-variable-p</code></A>
+  <LI><A HREF="#split-into-lines"><code>split-into-lines</code></A>
+  <LI><A HREF="#sublis-handling-quote"><code>sublis-handling-quote</code></A>
+  <LI><A HREF="#tuple-store"><code>tuple-store</code></A>
+  <LI><A HREF="#tuple-store"><code>tuple-store</code></A>
+  <LI><A HREF="#unify"><code>unify</code></A>
+  <LI><A HREF="#unify-against-literal"><code>unify-against-literal</code></A>
+  <LI><A HREF="#value-matches-type-constraint-p"><code>value-matches-type-constraint-p</code></A>
+  <LI><A HREF="#variable?"><code>variable?</code></A>
+  <LI><A HREF="#variables-in"><code>variables-in</code></A>
+  <LI><A HREF="#walk-form"><code>walk-form</code></A>
+  <LI><A HREF="#walk-form-for-load"><code>walk-form-for-load</code></A>
+  <LI><A HREF="#walk-key/value-plist"><code>walk-key/value-plist</code></A>
+  <LI><A HREF="#walk-key/value-plist-pair"><code>walk-key/value-plist-pair</code></A>
+  <LI><A HREF="#walk-list-of-sentences"><code>walk-list-of-sentences</code></A>
+  <LI><A HREF="#walk-subexpression"><code>walk-subexpression</code></A>
+  <LI><A HREF="#with-kif-replacement"><code>with-kif-replacement</code></A>
+  <LI><A HREF="#word-matches-pattern"><code>word-matches-pattern</code></A>
+</OL>
+<HR>
+<H3>Table of Macros:</H3>
+<OL>
+  <LI><A HREF="#base-string-element-type"><code>base-string-element-type</code></A>
+  <LI><A HREF="#continuable-assert"><code>continuable-assert</code></A>
+  <LI><A HREF="#def-trivial-diadic"><code>def-trivial-diadic</code></A>
+  <LI><A HREF="#def-trivial-eval-for-okbc-cons"><code>def-trivial-eval-for-okbc-cons</code></A>
+  <LI><A HREF="#def-trivial-monadic"><code>def-trivial-monadic</code></A>
+  <LI><A HREF="#def-trivial-no-args"><code>def-trivial-no-args</code></A>
+  <LI><A HREF="#defdoc"><code>defdoc</code></A>
+  <LI><A HREF="#defdocmethod"><code>defdocmethod</code></A>
+  <LI><A HREF="#define-condition-okbc"><code>define-condition-okbc</code></A>
+  <LI><A HREF="#defmethod-with-cache-method"><code>defmethod-with-cache-method</code></A>
+  <LI><A HREF="#defmethods"><code>defmethods</code></A>
+  <LI><A HREF="#defokbcfun"><code>defokbcfun</code></A>
+  <LI><A HREF="#defokbcgeneric"><code>defokbcgeneric</code></A>
+  <LI><A HREF="#do-list"><code>do-list</code></A>
+  <LI><A HREF="#fast-gethash-for-symbol"><code>fast-gethash-for-symbol</code></A>
+  <LI><A HREF="#fast-terpri"><code>fast-terpri</code></A>
+  <LI><A HREF="#fast-write-fixnum"><code>fast-write-fixnum</code></A>
+  <LI><A HREF="#nth-rest"><code>nth-rest</code></A>
+  <LI><A HREF="#okbc-assert"><code>okbc-assert</code></A>
+  <LI><A HREF="#parser-cons"><code>parser-cons</code></A>
+  <LI><A HREF="#parser-list"><code>parser-list</code></A>
+  <LI><A HREF="#parser-list*"><code>parser-list*</code></A>
+  <LI><A HREF="#variablep"><code>variablep</code></A>
+  <LI><A HREF="#while"><code>while</code></A>
+  <LI><A HREF="#while-collect"><code>while-collect</code></A>
+  <LI><A HREF="#with-condition-slots"><code>with-condition-slots</code></A>
+  <LI><A HREF="#with-connection-to-socket"><code>with-connection-to-socket</code></A>
+  <LI><A HREF="#with-defokbcop-bindings"><code>with-defokbcop-bindings</code></A>
+  <LI><A HREF="#with-read-only-checking"><code>with-read-only-checking</code></A>
+  <LI><A HREF="#with-substitution-groups"><code>with-substitution-groups</code></A>
+  <LI><A HREF="#with-timeout"><code>with-timeout</code></A>
+  <LI><A HREF="#without-recursion-in-stack"><code>without-recursion-in-stack</code></A>
+  <LI><A HREF="#without-recursion-using-trie"><code>without-recursion-using-trie</code></A>
+  <LI><A HREF="#without-scheduling"><code>without-scheduling</code></A>
+</OL>
+<HR>
+<DL>
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*err-on-parser-error-p*">*err-on-parser-error-p*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>When true causes OKBC's parser to err out whenever it hits a parse error.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*err-on-read-only-violations-p*">*err-on-read-only-violations-p*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>When true (the default) causes an error to be signalled when a read-only
+   violaiton is detected.  When false, a warning is issued as a result of a
+   read-only violation.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*getting-better-is-ok-p*">*getting-better-is-ok-p*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>This variable controls the way that errors are signalled when KB constraint
+   violations are detected in the OKBC default constraint checker.  The
+   constraint checker detects any violations of the constraints, but some
+   side effects to the KB, even though strictly violations will leave the KB
+   in a state that is closer to being compliant than before.  For example, if
+   a slot has a minimum-cardinality constraint of 2 (it should have at least
+   two slot values), then clearly putting a single value to this slot will
+   still leave it in violation of the constraint.  However, if there were
+   previously no values, the state of the KB can reasonably be said to be
+   closer to compliant than in the previous state.<P>
+
+   If this variable is false (the default) then constraints are checked as
+   strictly as possible.  If true, then violations such as in the above
+   example will be permitted.<P>
+
+   This variable may be useful to bind in some back ends during the loading
+   of KBs, since there may be transient violations whilst loading certain
+   frames.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*inhibit-read-onlyness-p*">*inhibit-read-onlyness-p*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>When false (the default) allows the checking of read-only constraints on
+   KBs.  This variable is useful to bind in back ends that are dealing
+   with otherwise read-only KBs but have reason to write to them, for
+   example during loading.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*okbc-listener-prompt*">*okbc-listener-prompt*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>The prompt used by the OKBC listener.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*parser-warn-function*">*parser-warn-function*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>The function called when a parse error or warning is issued.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="*replace-kif-symbols-with-keywords-p*">*replace-kif-symbols-with-keywords-p*</A></B></code><TD valign=top align=right> <I>[variable]</I></TR></TABLE><DD>This special is bound by the code walker to the selected value of the
+  <code>replace-kif-symbols-with-keywords-p</code> argument to
+  <code><A HREF="#walk-form">walk-form</A></code>
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="abstract-kif-language">abstract-kif-language</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The OKBC representation of the KIF-language for the OKBC
+ parser.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="abstract-language">abstract-language</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The abstract superclass of all languages known to the OKBC
+ parser.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="all-compliant-okbc-implementations">all-compliant-okbc-implementations</A></B></code>  </TD><TD valign=top align=left> (&optional (compliance-classes :all) (force-p nil)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Returns a list of all the of the installed OKBC back end implementations
+   that are known to be compliant according to the specified
+   <code>compliance-classes</code>.<P>
+
+   <code>Compliance-classes</code> can be either <code>:all</code> (the
+   default), or a list of keywords from <code>
+   <A HREF="ok-back-lisp-package-docs.html#*all-known-okbc-compliance-classes*">ok-back:*all-known-okbc-compliance-classes*</A></code>.
+
+   This function is used in order to compute the value of get-kb-types - only
+   fully compliant KBs are returned by get-kb-types.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="anonymous-variable?">anonymous-variable?</A></B></code>  </TD><TD valign=top align=left> (tuple-kb::x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Return T if X is an anonymous variable.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="ansi-kif-language">ansi-kif-language</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The OKBC representation of the KIF-language for the OKBC
+ parser.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="assert-delayed-sentences">assert-delayed-sentences</A></B></code>  </TD><TD valign=top align=left> (sentence-structs frame-handle-mapping-table handle-to-name-mapping-table) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Is passed a set of delayed sentences that resulted from a call to
+   <code><A HREF="#load-okbc-kb">load-okbc-kb</A></code> (or some similar function, and asserts the
+   sentences as appropriate.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="assert-kif-definitions-as-sentences-mixin">assert-kif-definitions-as-sentences-mixin</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>When mixed into a KB class provides methods on
+ <code>ok-back:assert-form-given-kb</code> that cause KIF defining forms
+ to be asserted as the obvious sentential expansion of the forms.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="base-string-element-type">base-string-element-type</A></B></code>  </TD><TD valign=top align=left> () </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>A Lisp implementation-independent macro that evaluates to the appropriate
+   element type to use to get a base string composed of simple 8-bit
+   characters.  This is useful if large strings are to be consed for
+   some reason, using a call such as:<br>
+   <code>(make-array 10000 :element-type (<A HREF="#base-string-element-type">base-string-element-type</A>))</code>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="canonicalize-pattern">canonicalize-pattern</A></B></code>  </TD><TD valign=top align=left> (pattern-string) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>This function is used by the default wildcard matching code in OKBC.  It
+   takes a <code>pattern-string</code> with single or multiple wildcard
+   characters such as <code>"Hell?o *"</code> and returns a parsed version
+   of this string <code>("Hell" :single "o " :multiple)</code>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="causes-side-effects-p">causes-side-effects-p</A></B></code>  </TD><TD valign=top align=left> (op) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A predicate on OKBC operator names that returns true if the
+   operator causes side effects.  For example, this predicate is true for
+   put-slot-values, and false for get-slot-values.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="check-assertion-of-constraint-facet-values">check-assertion-of-constraint-facet-values</A></B></code>  </TD><TD valign=top align=left> (frame slot facet current-values future-values kb inference-level slot-type value-selector kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>An interface function for OKBC's default constraint checker.  For a given
+   <code>frame</code>, <code>slot</code>, and <code>facet</code> it checks all
+   of the applicable facet constraints supported by the <code>kb</code>.<br>
+   <code>Current-values</code> is a list of the current facet values and
+   <code>future-values</code> is a putative list of the values that the facet
+   would contain after the proposed side-effect.  <code>Inference-level</code>,
+   etc. are used to constrain how hard and far the constraint checker goes in
+   checking constraints.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="check-assertion-of-constraint-slot-values">check-assertion-of-constraint-slot-values</A></B></code>  </TD><TD valign=top align=left> (frame slot current-values future-values kb inference-level slot-type value-selector kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>An interface function for OKBC's default constraint checker.  For a given
+   <code>frame</code> and <code>slot</code> it checks all of the applicable
+   slot constraints supported by the <code>kb</code>.<br>
+   <code>Current-values</code> is a list of the current slot values and
+   <code>future-values</code> is a putative list of the values that the slot
+   would contain after the proposed side-effect.  <code>Inference-level</code>,
+   etc. are used to constrain how hard and far the constraint checker goes in
+   checking constraints.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="clear-queue">clear-queue</A></B></code>  </TD><TD valign=top align=left> (q) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Flushes a queue.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="cml-language">cml-language</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The OKBC representation of the CML-language for the OKBC
+ parser.  All OKBC language productions are supported as well as the
+ CML language forms.  Note that the KIF-3.0 language form DEFRELATION is
+ shadowed by the CML form of the same name.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="compliant-okbc-implementation-p">compliant-okbc-implementation-p</A></B></code>  </TD><TD valign=top align=left> (back-end-name &key (compliance-classes :all) (force-p nil) (mandatory nil) (specialization-cache nil)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>This predicate is true of a particular implementation if it is known to be
+   compliant at least up to the specified <code>compliance-classes</code>.<P>
+
+   Returns three values:
+   <OL>
+   <LI>True if the back end is compliant, False otherwise.
+   <LI>A sorted list if all of the names of the OKBC operations that have yet
+       to be specialized in order for this back end to be compliant to the
+       compliance classes specified.
+   <LI>The number of missing methods.
+   </OL>
+
+   <DL>
+   <DT><code>Back-end-name</code><DD>is the name of an OKBC back end, such as
+   <code><A HREF="ok-back-lisp-package-docs.html#tuple-kb">ok-back:tuple-kb</A></code>.
+   <DT><code>Compliance-classes</code><DD>can be either <code>:all</code> (the
+   default), or a list of keywords from <code>
+   <A HREF="ok-back-lisp-package-docs.html#*all-known-okbc-compliance-classes*">ok-back:*all-known-okbc-compliance-classes*</A></code>.
+   <DT><code>Force-p</code><DD>forces the recomputation of compliance.
+   Compliance checking is expensive and is normally cached because the
+   compliance of a back end doesn't change at run-time.  This option is useful
+   during back end development.
+   </DL>
+
+   This function is particularly useful during the development of a new back
+   end.  When developing a back end it is difficult to know <i>a priori</i>
+   which operations must be implemented because the set of necessary operations
+   will be a non-trivial function of the set of mixins selected.  A useful
+   model for back end development is to select the desired set of mixins,
+   define your KB class, and them immediately call
+   <code><A HREF="#compliant-okbc-implementation-p">compliant-okbc-implementation-p</A></code> on that class.  This will
+   then return to you the minimum list of operations to implement.
+   Repeatedly calling this function during back end development will tell you
+   how close you are getting to a compliant KB.<p>
+
+   For example,<PRE>
+   > (defclass my-kb (<A HREF="ok-back-lisp-package-docs.html#okbc-side-effects-cause-error-mixin">ok-back:okbc-side-effects-cause-error-mixin</A>
+                      <A HREF="ok-back-lisp-package-docs.html#tell&ask-defaults-kb">ok-back:tell&ask-defaults-kb</A>)
+       ())
+   #&lt;Standard-Class MY-KB&gt;
+
+   > (<A HREF="#compliant-okbc-implementation-p">ok-utils:compliant-okbc-implementation-p</A> 'my-kb :force-p t)
+   NIL
+   (OKBC:ASKABLE OKBC:COERCE-TO-FRAME OKBC:CREATE-KB-LOCATOR
+    OKBC:DECONTEXTUALIZE OKBC:EXPUNGE-KB OKBC:FIND-KB-LOCATOR
+    OKBC:GET-BEHAVIOR-SUPPORTED-VALUES OKBC:GET-BEHAVIOR-VALUES
+    OKBC:GET-FRAME-IN-KB OKBC:GET-FRAME-SENTENCES OKBC:GET-KB-BEHAVIORS
+    OKBC:GET-KBS-OF-TYPE OKBC:OPEN-KB OKBC:OPENABLE-KBS
+    OKBC:PUT-BEHAVIOR-VALUES OKBC:TELL OKBC:TELLABLE OKBC:UNTELL)
+   18</PRE>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="conjunction-to-list">conjunction-to-list</A></B></code>  </TD><TD valign=top align=left> (sentence &optional (conjunction-operator :and)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Given a sentence that may be a conjunction of sentences, returns a list of
+   sentences.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="continuable-assert">continuable-assert</A></B></code>  </TD><TD valign=top align=left> (test &optional (condition-to-signal nil) &rest error-args) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>A macro rather like the Common Lisp <code>assert</code> macro that
+   performs a <code>test</code>, and will signal an OKBC error if the
+   test fails.<p>
+
+   The condition signalled is marked as being <i>continuable</i> in the OKBC
+   sense.  <i>Note: this is not the same thing as </i><code>cerror</code><i>,
+   which signals a resumable Common Lisp error.  A continuable OKBC error is an
+   error that guarantees that the KB has not been uncontinuably broken by 
+   whatever it was that caused the signalling of the error.</i><P>
+
+   <code>Condition-to-signal</code> is the class of error signalled.  If this
+   argument is NIL, a <code><A HREF="#generic-error">generic-error</A></code> is signalled, and
+   <code>error-args</code> are used as format control arguments to
+   specify the error message.  If a condition name is supplied, the
+   <code>error-args</code> are used to initialize the condition.
+   For example,<PRE>
+   (multiple-value-bind (frame found-p)
+        (coerce-to-class-internal maybe-frame kb nil kb-local-only-p)
+      (<A HREF="#continuable-assert">continuable-assert</A> found-p not-coercible-to-frame
+			  :frame frame :kb kb)
+      ...)</PRE>or<PRE>(<A HREF="#continuable-assert">continuable-assert</A> (< value 42) nil
+       "The value ~S should have been less than 42" value)</PRE>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="continuable-error">continuable-error</A></B></code>  </TD><TD valign=top align=left> (format-string &rest args) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Signals a continuable <code><A HREF="#generic-error">generic-error</A></code> with an error message
+   constructed using the <code>format-string</code> and <code>args</code>.
+   <i>Note: this is not the same thing as </i><code>cerror</code><i>,
+   which signals a resumable Common Lisp error.  A continuable OKBC error is an
+   error that guarantees that the KB has not been uncontinuably broken by 
+   whatever it was that caused the signalling of the error.</i>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="decanonicalize-testfn">decanonicalize-testfn</A></B></code>  </TD><TD valign=top align=left> (testfn kb kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>In OKBC, the supported canonical test functions are represented by
+   the keywords <code>:eql</code>, <code>:equall</code>, and
+   <code>:equalp</code>.  This function takes either a canonical test function
+   or an OKBC procedure and returns a Lisp function suitable for use
+   as a <code>:test</code> argument to functions such as
+   <code>member</code>.  For example,<PRE>
+   (member frame list-of-frames
+           :test (<A HREF="#decanonicalize-testfn">decanonicalize-testfn</A> :eql kb kb-local-only-p))</PRE>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="decode-data-structure-from-stream">decode-data-structure-from-stream</A></B></code>  </TD><TD valign=top align=left> (stream key) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Given a stream along which an OKBC client or server has
+   serialised data, decodes that serialised representation into real data
+   structures.  This function is used by the transport layer of the network
+   model to receive data.  It takes care of any necessary interning of
+   symbols, decoding remote values, substitution of remote frame handles, and
+   mapping of abstract KB representations.<p>
+
+  This function can also be used (in conjunction with
+  <code><A HREF="#encode-data-structure-to-stream">encode-data-structure-to-stream</A></code>) as a means of loading
+  (and saving) KB content to files and streams.<P>
+
+  At present, the only supported value for <code>key</code> is
+  <code>:portable</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="def-trivial-diadic">def-trivial-diadic</A></B></code>  </TD><TD valign=top align=left> (name lisp-operator &key (doc-string nil)) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>This macro is used to define simple diadic operators in the procedure
+   language.  For example,<PRE>
+   (<A HREF="#def-trivial-diadic">def-trivial-diadic</A> :+ +
+       :doc-string "Diadic addition of numbers.\\\\
+                     \\code{(+ 42 2.5) = 44.5}")
+   </PRE>
+   defines the addition operator (<code>:+</code> - OKBC procedure language
+   operators are named by keywords) as the Lisp function <code>+</code>.
+   The <code>doc-string</code> is a piece of TeX source describing the
+   operator.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="def-trivial-eval-for-okbc-cons">def-trivial-eval-for-okbc-cons</A></B></code>  </TD><TD valign=top align=left> ((&rest args) &key doc-string body expander) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>This macro is used to define handlers for the OKBC procedure language
+   for list (cons) expressions beginning with a particular operator.  The macro
+   defines both an expander to use in the source expansion of the operator by
+   the procedure language compiler, and a body form to use in the procedure
+   language interpreter.<p>
+
+   <code>Doc-string</code> is a TeX doc string for the operator.<br>
+   <code>Body</code> is the code body to use when interpreting the
+   expression.<br>
+   <code>Expander</code> is the expander form to use when compiling a reference
+   to this form.<br>
+   For example, (doc string omitted for clarity)<PRE>
+   (<A HREF="#def-trivial-eval-for-okbc-cons">def-trivial-eval-for-okbc-cons</A>
+       ((key (eql :and)) (expression cons) environment)
+       :body (loop for arg in (rest expression)
+                   always (trivial-eval-for-okbc arg environment))
+       :expander `(and ,@(loop for arg in (rest expression)
+                               collect (expand-okbc-expression arg))))</PRE>
+   defines the <code>:and</code> operator.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="def-trivial-monadic">def-trivial-monadic</A></B></code>  </TD><TD valign=top align=left> (name lisp-operator &key (doc-string nil)) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>This macro is used to define simple monadic operators in the procedure
+   language.  For example,<PRE>
+   (<A HREF="#def-trivial-monadic">def-trivial-monadic</A> :first first
+       :doc-string "The first element of a list.\\\\
+                     \\code{(first '(a b c)) = A}\\\\
+                     \\code{(first NIL) = NIL}")</PRE>
+   defines the <code>:first</code> operator (OKBC procedure language
+   operators are named by keywords) as the Lisp function <code>first</code>.
+   The <code>doc-string</code> is a piece of TeX source describing the
+   operator.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="def-trivial-no-args">def-trivial-no-args</A></B></code>  </TD><TD valign=top align=left> (name lisp-operator &key (doc-string nil)) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>This macro is used to define simple no arg operators in the procedure
+   language.  For example,<PRE>
+   (<A HREF="#def-trivial-no-args">def-trivial-no-args</A> :current-kb current-kb
+       :doc-string "Returns the current KB.")</PRE>
+   defines the <code>:current-kb</code> operator (OKBC procedure language
+   operators are named by keywords) as the Lisp function
+   <code>current-kb</code>.
+   The <code>doc-string</code> is a piece of TeX source describing the
+   operator.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="defdoc">defdoc</A></B></code>  </TD><TD valign=top align=left> (sym (type) &body strings) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Defines a documentation method for the symbol <sym> on the documentation
+   type <code>type</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="defdocmethod">defdocmethod</A></B></code>  </TD><TD valign=top align=left> (&rest args) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Defines a documentation method.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="define-condition-okbc">define-condition-okbc</A></B></code>  </TD><TD valign=top align=left> (name (parent-type) &optional slots &rest options) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Like CL:DEFINE-CONDITION (accepts CLOS style slot specs.)
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="defmethod-with-cache-method">defmethod-with-cache-method</A></B></code>  </TD><TD valign=top align=left> (name args &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>This macro is just like defmethod, and defines a method and wraps a
+   cache wrapper around it (as an :around method).  This is useful is you
+   are using the standard OKBC caching code in your back end, and you want
+   to add specific cached calls on top of the standard ones.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="defmethods">defmethods</A></B></code>  </TD><TD valign=top align=left> (gf-name &rest stuff) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Define the power set of methods for different specializers.  For example,
+	   (defmethods foo :before
+       ((a (symbol number)) b (c (c1 (eql s1))) d &rest args)
+       :baz)
+	   will define the four methods:
+	   (defmethod foo :before
+       ((a symbol) b (c c1) d &rest args)
+       :baz)
+	   (defmethod foo :before
+       ((a number) b (c c1) d &rest args)
+       :baz)
+	   (defmethod foo :before
+       ((a symbol) b (c (eql s1)) d &rest args)
+       :baz)
+	   (defmethod foo :before
+       ((a number) b (c (eql s1)) d &rest args)
+       :baz)
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="defokbcfun">defokbcfun</A></B></code>  </TD><TD valign=top align=left> (name (&rest args) (&key returned-values (which-ends (quote (:back :front))) (causes-side-effects-p nil) (manual-category nil)) doc-string &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Defines an OKBC operator as a simple function.  This is used for the
+   very simple OKBC operators that cannot be specialized by back ends, such as
+   <code>current-kb</code>.
+   <DL>
+   <DT>Returned-values<DD>names the value or values returned by the function.
+   <DT>Which-ends<DD>is a list of the symbols <code>:back</code> and/or
+   <code>:front</code>, which states whether this operation is to be part of the
+   front end API, the back end API or both.
+   <DT>Causes-side-effects-p<DD>is true is this operation causes side effects.
+   <DT>Manual-category<DD>is a keyword specifying the category of operation
+   as far as the manual is concerned.
+   </DL>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="defokbcgeneric">defokbcgeneric</A></B></code>  </TD><TD valign=top align=left> (name (&rest args) &body options) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>The way to define defgeneric forms in the OKBC implementation.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="dequeue">dequeue</A></B></code>  </TD><TD valign=top align=left> (q) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Remove an item from the front of the queue.  Return Q.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="dequote">dequote</A></B></code>  </TD><TD valign=top align=left> (thing &optional (error-p t)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Takes a quoted expression and removes the quote.  If the expression is not
+   quoted and <code>error-p</code> is true, an error is signalled.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="dispatch-macro-character-p">dispatch-macro-character-p</A></B></code>  </TD><TD valign=top align=left> (char &optional (readtable *readtable*) (dispatch-tables (readtable-dispatch-tables readtable))) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Is true if <code>char</code> is a dispatch macro character in
+   <code>readtable</code>.  This is used by <code>read-safely-from-string</code>
+   to make sure that we don't do anything like #.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="do-list">do-list</A></B></code>  </TD><TD valign=top align=left> ((var list) &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Loops over all the elements in a list binding the variable
+   <code>var</code> to each successive list element, and executing
+   a set of body forms, and finally returning a list whose
+   elements are the values evaluated for each list element.
+   Syntax:
+<PRE>  (<A HREF="#do-list">do-list</A> (var &lt;&lt;list expression&gt;&gt;)
+     &lt;&lt;body form 1&gt;&gt;
+     &lt;&lt;body form 2&gt;&gt;
+     ...
+     &lt;&lt;body form n&gt;&gt;)</PRE>
+    For example,
+<PRE>  (<A HREF="#do-list">do-list</A> (x '(1 2 3 4 5))
+    (+ x 100))</PRE>
+  will return \code{(101 102 103 104 105)}.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="empty-queue-p">empty-queue-p</A></B></code>  </TD><TD valign=top align=left> (q) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>True if a queue is empty.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="encode-data-structure-to-stream">encode-data-structure-to-stream</A></B></code>  </TD><TD valign=top align=left> (thing stream key) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Given a stream along which an OKBC client or server is to
+   serialise data, encodes <code>thing</code>, some random sexpression into
+   a serialised representation.  This function is used by the transport layer
+   of the network model to transmit data.  It takes care of any necessary
+   interning of remote values, substitution of frame objects for remote frame
+   handles, and mapping of KBs into abstract KB representations.<p>
+
+  This function can also be used (in conjunction with
+  <code><A HREF="#decode-data-structure-from-stream">decode-data-structure-from-stream</A></code>) as a means of saving
+  (and loading) KB content to files and streams.<P>
+
+  At present, the only supported value for <code>key</code> is
+  <code>:portable</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="enforce-domain-constraint">enforce-domain-constraint</A></B></code>  </TD><TD valign=top align=left> (frame slot kb slot-type inference-level value-selector kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>An interface function for OKBC's default constraint checker.  For a given
+   <code>frame</code> and <code>slot</code> it checks to see that the slot
+   is consistent with any domain constraints on that frame.
+   <code>Inference-level</code>,
+   etc. are used to constrain how hard and far the constraint checker goes in
+   checking constraints.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="enforce-slot-constraints">enforce-slot-constraints</A></B></code>  </TD><TD valign=top align=left> (frame slot current-values future-values kb inference-level slot-type value-selector kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>An interface function for OKBC's default constraint checker.  For a given
+   <code>frame</code> and <code>slot</code> it checks all of the applicable
+   constraints supported by the <code>kb</code>, both that are imposed by
+   facets on the slot in question and by constraint slots on the slot if
+   appropriate.<br>
+   <code>Current-values</code> is a list of the current slot values and
+   <code>future-values</code> is a putative list of the values that the slot
+   would contain after the proposed side-effect.  <code>Inference-level</code>,
+   etc. are used to constrain how hard and far the constraint checker goes in
+   checking constraints.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="enqueue">enqueue</A></B></code>  </TD><TD valign=top align=left> (item q) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Insert ITEM at the end of the queue Q. Return Q.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="ensure-slots-and-facets-exist-for-frame-definition">ensure-slots-and-facets-exist-for-frame-definition</A></B></code>  </TD><TD valign=top align=left> (form kb real-name frame-handle-mapping-table handle-to-name-mapping-table kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Is called from the OKBC loader to make sure that all of the necessary
+   slots and facets have been reified for the frame being defined.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="explain-language">explain-language</A></B></code>  </TD><TD valign=top align=left> (stream language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Generates an HTML string explaining the language in question.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="fast-equal">fast-equal</A></B></code>  </TD><TD valign=top align=left> (a b) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>An optimized version of <code>equal</code> that just tests for
+   <code>string=</code>ness for strings, and <code>eql</code>ness for all
+   other atoms.  This is provided because <code>equal</code> is too slow in
+   some implementations for the simple notion of equality usually needed
+   by OKBC.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="fast-gethash-for-symbol">fast-gethash-for-symbol</A></B></code>  </TD><TD valign=top align=left> (hash-key ht) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Just like <code>gethash</code> only the <code>hash-key</code> is assumed
+   to be a symbol.  In some implementations this results in faster hashing.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="fast-read-line">fast-read-line</A></B></code>  </TD><TD valign=top align=left> (stream &optional (eof-error-p t) (eof-value nil)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Like <code>read-line</code>, but in some implementations will use faster,
+   lower-level IO primitives.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="fast-terpri">fast-terpri</A></B></code>  </TD><TD valign=top align=left> (stream) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Like <code>terpri</code>, but in some implementations will use faster,
+   lower-level IO primitives.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="fast-write-fixnum">fast-write-fixnum</A></B></code>  </TD><TD valign=top align=left> (number &optional (stream nil)) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Writes a fixnum to the stream.  In some implementations will use fast,
+     lower-level IO primitives.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="find-language">find-language</A></B></code>  </TD><TD valign=top align=left> (language-specifier &optional error-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Finds the representation of the language specified.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="first-if-list">first-if-list</A></B></code>  </TD><TD valign=top align=left> (x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>If <code>x</code> is a list then it returns the first element of the list,
+   otherwise it just returns <code>x</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="frame-reference-p">frame-reference-p</A></B></code>  </TD><TD valign=top align=left> (thing kb) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A predicate that is true of a frame reference when running
+    in the OKBC walker.  You may want to specialize this for your KB if you
+    want to walk over expressions that contain embedded frame references.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="function-constant-p">function-constant-p</A></B></code>  </TD><TD valign=top align=left> (thing kb language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A predicate in the walker that is true for function
+   constants.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="generic-error">generic-error</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The generic OKBC error condition.
+This error is signaled when no more specific and appropriate error type
+can be found.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>generic-error</B></code>  </TD><TD valign=top align=left> (format-string &rest args) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Signals a generic, non-continuable OKBC error with an error message
+   specified by <code>format-string</code> and <code>args</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="generic-error">generic-error</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The generic OKBC error condition.
+This error is signaled when no more specific and appropriate error type
+can be found.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>generic-error</B></code>  </TD><TD valign=top align=left> (format-string &rest args) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Signals a generic, non-continuable OKBC error with an error message
+   specified by <code>format-string</code> and <code>args</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="get-direct-slot-values-in-detail">get-direct-slot-values-in-detail</A></B></code>  </TD><TD valign=top align=left> (frame slot kb overall-inference-level slot-type number-of-values value-selector kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>An internal hook used in the default inheritance code.
+   It is called whenever a direct slot value is being fetched and gives access
+   to the overall inference level that the user specified.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="getpid">getpid</A></B></code>  </TD><TD valign=top align=left> () </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Returns the UNIX process ID of the process in which the current Lisp
+   is running.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="ground?">ground?</A></B></code>  </TD><TD valign=top align=left> (tuple-kb::x &optional tuple-kb::ground-vars) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Return T if X contains no variables other than GROUND-VARS.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="initialize-slots-and-facets">initialize-slots-and-facets</A></B></code>  </TD><TD valign=top align=left> (frame kb slot-specs facet-specs slot-type kb-local-only-p &optional (defined-slot-alist nil) (defined-facet-alist nil)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>This function takes a <code>frame</code> and a set of specifications
+   for slots and facets of the given <code>slot-type</code> in the format
+   used for <code>create-frame</code> and <code>put-frame-details</code>.
+   It initializes the frame and fills in all necessary slot and facet values,
+   creating and attaching any necessary slots and facets.<P>
+
+   Returns a pair of lists:
+   <OL>
+   <LI><code>defined-slot-alist</code> - an alist each element of which is
+   of the form <code>(slot-identification slot)</code>.  The initial value
+   of this returned value is the <code>defined-slot-alist</code> argument.
+   One entry will be added to this list for every slot that is created
+   during the processing of this function.
+   <LI><code>defined-facet-alist</code> - an alist each element of which is
+   of the form <code>(facet-identification facet)</code>.  The initial value
+   of this returned value is the <code>defined-facet-alist</code> argument.
+   One entry will be added to this list for every facet that is created
+   during the processing of this function.
+   </OL>
+   These returned values and argumentsd are used when this function is used
+   repeatedly to initialize a large number of frames such as whilst loading
+   a KB to make sure that multiple slots and facets are not created for the
+   same name.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="inside-okbc-server-p">inside-okbc-server-p</A></B></code>  </TD><TD valign=top align=left> () </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Is true when one is inside a thread that is running an OKBC server.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="internal-name-to-op-name">internal-name-to-op-name</A></B></code>  </TD><TD valign=top align=left> (op) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Given the back end API (-internal) name for an OKBC
+   operation, returns the front end API name.  For example, given
+   <code><A HREF="ok-back-lisp-package-docs.html#get-slot-values-internal">ok-back:get-slot-values-internal</A></code> will return
+   <code>okbc:get-slot-values</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="is-in-tree">is-in-tree</A></B></code>  </TD><TD valign=top align=left> (x tree &key (test (function eql))) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Is true if <code>x</code> is present in <code>tree</code> at least once
+     according to the <code>test</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="kb-specializing-arguments">kb-specializing-arguments</A></B></code>  </TD><TD valign=top align=left> (op) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Given the front end API name for an OKBC
+   operation, returns the list of argument names for that operation that
+   specialize on KBs.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="kif-3.0-language">kif-3.0-language</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The OKBC representation of the KIF-language for the OKBC
+ parser.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="kif-variable-p">kif-variable-p</A></B></code>  </TD><TD valign=top align=left> (tuple-kb::thing) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Non NIL iff THING is a KIF individual variable (a symbol whose name 
+begins with a '?') or sequence variable (starts with '@').
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="kill-nokbc-server">kill-nokbc-server</A></B></code>  </TD><TD valign=top align=left> (&optional port) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>In some implementations, a daemon process may be spun off to handle
+   a network OKBC server.  Such daemon servers
+   can be killed using <code><A HREF="#kill-nokbc-server">kill-nokbc-server</A></code>, which kills the
+   server for the specified <code>port</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="list-if-not">list-if-not</A></B></code>  </TD><TD valign=top align=left> (x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>If <code>x</code> is a list then it just returns it, otherwise it wraps
+   it in a list.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="list-to-conjunction">list-to-conjunction</A></B></code>  </TD><TD valign=top align=left> (expression &optional (conjunction-operator :and)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Given what may be a list of conjunts, turns the list into a single
+   conjunction sentence with the specified operator.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="load-okbc-kb">load-okbc-kb</A></B></code>  </TD><TD valign=top align=left> (pathname &key (kb (current-kb)) (value-selector :known-true) (kb-local-only-p nil) (action :load) (sentence-action :assert) (language :okbc) (frame-handle-mapping-table nil) (handle-to-name-mapping-table nil) (delayed-sentences nil) (substitute-okbc-standard-names-p t)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Loads the source forms in the file identified by Pathname into the KB.
+   The format of the file is a stream of forms according to the grammar
+   specified for the <code>language</code>.  Languages based on the OKBC
+   model may understand <code>define-okbc-frame</code>forms according to
+   the grammar below.<p>
+
+   <code><A HREF="#load-okbc-kb">Load-okbc-kb</A></code> returns three values:<dl>
+   <dt><code>frame-handle-mapping-table</code><dd> a mapping table that maps
+   frame names to frame handles.  This is important because it helps to
+   preserve EQness of the frame objects allocated from the textual
+   representation in the file even if the <code>:frame-names-required</code>
+   behavior is not enabled.  The frame handle mapping table returned
+   can be passed back in to subsequent calls to <code><A HREF="#load-okbc-kb">load-okbc-kb</A></code>
+   so as to allow multi-file load units that preserve referential integrity.
+   <dt><code>handle-to-name-mapping-table</code><dd> a mapping table that maps
+   frame handles back to the names used in the source file.
+   <dt><code>delayed-sentences</code><dd> a list of structures representing
+   any top-level sentences in the load unit that have not yet been asserted
+   (see the <code>:sentence-action</code> argument).  These sentences can be
+   asserted at some later date by calling
+   <code><A HREF="#assert-delayed-sentences">assert-delayed-sentences</A></code>.
+   </dl>
+
+   Other arguments are as follows:<dl>
+   <dt><code>pathname</code><dd> can be a string, pathname, or list of
+   pathnames.  Each atom can have wildcards in the places accepted by the
+   underlying Lisp for directory listing.
+   <dt><code>frame-handle-mapping-table</code><dd> a mapping table of frame
+   names to frame handles to be passed in then loading a KB from multiple
+   files.  <dt><code>value-selector</code><dd> the value selector to use
+   whenever appropriate when asserting knowledge from the source.
+   <dt><code>handle-to-name-mapping-table</code><dd> a mapping table of frame
+   handles to frame names to be passed in then loading a KB from multiple
+   files.
+   <dt><code>delayed-sentences</code><dd> a list of delayed sentences being
+   passed around whilst loading multiple files
+   <dt><code>value-selector</code><dd> the value selector to use
+   whenever appropriate when asserting knowledge from the source.
+   <dt><code>action</code><dd> a keyword used to inform the implementation of
+   the purpose of the call.  Values other than <code>:load</code> are
+   KB-specific.  For example, a KB-type might support the action
+   <code>:untell</code>, which might allow the block untelling of knowledge
+   content by looking at a source file.
+   <dt><code>sentence-action</code><dd> a keyword used to control what action
+   is performed when top-level sentences are found in the input stream.  In
+   some implementations it may be necessary to delay the assertion of the
+   sentences or, not even to attempt to assert them.  The legal values of
+   this argument are:<dl>
+     <dt><code>:assert</code><dd> directly asserts the sentences in the lexical
+         order in which they are encountered, as they are encountered.
+     <dt><code>:delay</code><dd> delays the assertion of the sentences until
+         all other forms have been processed.  The sentences are then asserted
+         in the lexical order in which they were found in the input stream.
+     <dt><code>:return</code><dd> gathers together all of the top-level
+         sentences and simply returns them as the third returned value.
+     <dt><code>:ignore</code><dd> simply throws the sentences away.
+     </dl>
+   <dt><code>language</code><dd> the language dialect for the forms in the
+   input stream.  This may be overridden by an (in-language ...) form in
+   the input stream.  The default language (<code>:okbc</code>) will
+   understand the full KIF 3.0 language (both defining forms and top-level
+   sentences) as well as the <code>define-okbc-frame</code> form defined
+   below.  The language <code>:okbc-with-ansi-kif</code> is the same as
+   <code>:okbc</code> except that it uses ANSI KIF rather than KIF 3.0.
+   Note: this means that in <code>:okbc-with-ansi-kif</code> <code>setof</code>
+   terms are not permitted.
+   </dl>
+
+   All forms not conforming to the grammar of the specified language are
+   ignored.  Literal token types are enclosed in &lt;&lt;&gt;&gt;s.  Symbols
+   not naming productions are literal symbols:
+
+   <PRE>   forms ::= form &lt;&lt;eof&gt;&gt; | form forms
+   form ::= in-package-form | in-language-form | in-kb-form
+            | define-okbc-frame-form | kif-language-grammar-form
+   in-package-form ::= ( in-package generalized-string )
+   in-language-form ::= ( in-language generalized-string )
+   in-kb-form ::= ( in-kb generalized-string )
+   generalized-string ::= &lt;&lt;string&gt;&gt; | &lt;&lt;symbol&gt;&gt;
+   define-okbc-frame-form ::= ( ok-utils:define-okbc-frame frame-name
+                              keyword-value-pairs* )
+   frame-name ::= generalized-string
+   keyword-value-pairs ::= keyword-value-pair |
+                           keyword-value-pair keyword-value-pairs
+   keyword-value-pair ::= [type-key | direct-types-key
+                          | direct-superclasses-key
+                          | own-slots-key | template-slots-key
+                          | own-facets-key | template-facets-key
+                          | sentences-key | kb-key ]
+   type-key ::= :frame-type [:class | :slot | :facet | :individual]
+   direct-types-key ::= :direct-types ( frame-reference* )
+   frame-reference ::= generalized-string |
+                       &lt;&lt;frame-handle&gt;&gt; |
+                       &lt;&lt;frame-object&gt;&gt;
+   direct-superclasses-key ::= :direct-superclasses ( frame-reference* )
+   own-slots-key ::= :own-slots ( slot-spec* )
+   template-slots-key ::= :template-slots ( slot-spec* )
+   slot-spec ::= ( slot-name value-spec* )
+   slot-name ::= frame-reference
+   value-spec ::= constant | ( SETOF constant* )
+                  | ( QUOTE &lt;&lt;lisp-s-expression&gt;&gt; )
+                  | ( :DEFAULT value-spec )
+   constant ::= &lt;&lt;number&gt;&gt; |
+                generalized-string |
+                &lt;&lt;frame-handle&gt;&gt; |
+                &lt;&lt;frame-object&gt;&gt;
+   own-facets-key ::= :own-facets ( own-facets-spec* )
+   own-facet-spec ::= ( slot-name facet-component* )
+   template-facets-key ::= :template-facets ( template-facets-spec* )
+   template-facets-spec ::= ( slot-name facet-component* )
+   facet-component ::= ( facet-name value-spec* )
+   sentences-key ::= :sentences ( &lt;&lt;KIF-sentence&gt;&gt;* )
+   kb-key ::= :kb knowledge-base-ref
+   knowledge-base-ref ::= &lt;&lt;knowledge-base&gt;&gt; |
+                          generalized-string</PRE>
+
+  Note: The input is interpreted with respect to the KB IO syntax of KB.
+  Thus, even if the KB of the form is overridden by the :kb argument, the
+  form is still read with respect to the IO syntax of KB.<P>
+
+  When frame-handle-mapping-table is non-null, it is a hash table mapping
+  symbols to frame handles.<P>
+
+   If <code>substitute-OKBC-standard-names-p</code> is true then
+   non-keywordified versions of OKBC standard names are accepted as if they
+   were keywordified.  Thus, the symbol <code>class</code> is taken to denote
+   <code>:class</code>.<P>
+
+  Returns the new frame handle mapping table augmented with any newly
+  allocated frame handles.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="load-okbc-kb-handle-in-kb-form">load-okbc-kb-handle-in-kb-form</A></B></code>  </TD><TD valign=top align=left> (form kb language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Called by the OKBC loader when it hits an
+   <code>in-kb</code> form.  The default is to reset the current KB, but
+   different languages may handle this differently.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="load-okbc-kb-handle-in-language-form">load-okbc-kb-handle-in-language-form</A></B></code>  </TD><TD valign=top align=left> (form kb language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Called by the OKBC loader when it hits an
+   <code>in-language</code> form.  The default is to reset the current
+   language*, but different languages may handle this differently.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="load-okbc-kb-handle-in-package-form">load-okbc-kb-handle-in-package-form</A></B></code>  </TD><TD valign=top align=left> (form kb language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Called by the OKBC loader when it hits an
+   <code>in-package</code> form.  The default is to reset *package*, but
+   different languages may handle this differently.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="make-queue">make-queue</A></B></code>  </TD><TD valign=top align=left> () </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Return a new queue, with no elements.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="mark-to-require-rehash">mark-to-require-rehash</A></B></code>  </TD><TD valign=top align=left> (thing) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Some Lisp implementations have constraints about the use of
+   statically consed objects when they are used as keys in hash tables.
+   When such hash tables are disk saved out, they may have to be rehashed
+   at system startup time.  This generic function will traverse data
+   structures so as to make sure that the right hash tables get rehashed.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="nokbc-server">nokbc-server</A></B></code>  </TD><TD valign=top align=left> (&key (port *nokbc-port*) (catch-errors-p t) (server-type :okbc) (max-port port)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Starts network OKBC server that listens to a socket for attempts to
+   connect, and handles OKBC requests when they arrive.<P>
+
+   <code>Server-type</code> is some unique identifying key known to the
+   server implementor.  It is used in specializing concurrency control
+   for the server (see <code>eval-maybe-with-session-locks</code>).<P>
+
+   If <code>max-port</code> is supplied it should be an integer
+   &gt;=<code>port</code>.  The server will iterate checking ports
+   until a free port is found.  The allocated socket and the port are
+   returned.  Note: Care should be exercised when using the
+   <code>max-port</code> argument.  If there is already an OKBC server
+   running on <code>port</code> in a different Lisp process then a
+   new server will be started.  This may result in concurrency control
+   problems in certain KBs.  This server is intended primarily to be
+   single-threaded.  If you plan to run multiple OKBC servers within the
+   same Lisp image, you should take care of any concurrency control and
+   locking issues, possibly by introducing a lock at
+   <code>eval-maybe-with-session-locks</code>, or
+   <code>get-network-okbc-request-results</code>.<P>
+
+   In some implementations, a daemon process may be spun off to handle
+   the server.  If the server daemon process ever completes, the daemon
+   makes sure any outstanding connections are closed.  Such daemon servers
+   can be killed using <code><A HREF="#kill-nokbc-server">kill-nokbc-server</A></code>.  In implementations
+   in which a server is not spun off as a daemon, the server can be
+   terminated simply by interrupting, and aborting out.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="nth-rest">nth-rest</A></B></code>  </TD><TD valign=top align=left> (n list) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Returns the zero-indexed Nth tail of a list.<BR>
+   <code>(<A HREF="#nth-rest">nth-rest</A> 0 '(a b c d)) = (A B C D)</code><BR>
+   <code>(<A HREF="#nth-rest">nth-rest</A> 2 '(a b c d)) = (C D)</code><BR>
+   <code>(<A HREF="#nth-rest">nth-rest</A> 9 '(a b c d)) = NIL</code>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="object-constant-p">object-constant-p</A></B></code>  </TD><TD valign=top align=left> (thing kb language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A predicate in the walker that is true for object
+   constants.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="okbc-assert">okbc-assert</A></B></code>  </TD><TD valign=top align=left> (test &optional (condition-to-signal nil) &rest error-args) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>A macro rather like the Common Lisp <code>assert</code> macro that
+   performs a <code>test</code>, and will signal an OKBC error if the
+   test fails.<p>
+
+   The condition signalled is marked as being <i>non-continuable</i> in the OKBC
+   sense.  A non-continuable OKBC error is an error that states that the KB
+   may have been uncontinuably broken by whatever it was that caused the
+   signalling of the error.</i><P>
+
+   <code>Condition-to-signal</code> is the class of error signalled.  If this
+   argument is NIL, a <code><A HREF="#generic-error">generic-error</A></code> is signalled, and
+   <code>error-args</code> are used as format control arguments to
+   specify the error message.  If a condition name is supplied, the
+   <code>error-args</code> are used to initialize the condition.
+   For example,<PRE>
+   (multiple-value-bind (frame found-p)
+        (coerce-to-class-internal maybe-frame kb nil kb-local-only-p)
+      (<A HREF="#okbc-assert">okbc-assert</A> found-p not-coercible-to-frame
+		   :frame frame :kb kb)
+      ...)</PRE> or<PRE>   (<A HREF="#okbc-assert">okbc-assert</A> (< value 42) nil
+       "The value ~S should have been less than 42" value)</PRE>
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="okbc-language">okbc-language</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The OKBC representation of the OKBC-language for the OKBC
+ parser.  All KIF-language productions are supported as well as the
+ define-OKBC-frame form.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="okbc-listener">okbc-listener</A></B></code>  </TD><TD valign=top align=left> (&key (kb (current-kb)) (purpose :user-interface) (pretty-p nil) (kb-local-only-p nil)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Runs a read-eval-print loop such that the expressions that are read in
+   are in the OKBC procedure language.  The <code>purpose</code> and
+   <code>pretty-p</code> arguments affect the way that the results are
+   printed out.  Within the dynamic extent of the execution of the listener,
+   a DWIM applies that will map unbound symbol references into any frame
+   uniquely identified by that symbol.  If a match is found, the symbol
+   will be bound to the symbol.  For exmaple, you will be able to say
+   something like:<PRE>OKBC&gt; (get-slot-values fred age)</PRE>
+   and if the symbol <code>FRED</code> is unbound then it may be bound to
+   the frame <code>#&lt;Frame FRED 8387538&gt;</code>.<P>
+
+   Unlike in normal procedure language expressions, top-level
+   <code>SETQ</code>s can be performed to unbound variables, and the symbols
+   <code>*</code>, <code>**</code>, <code>***</code>, and <code>****</code>
+   have the normal meaning.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="okbc-sentence-p">okbc-sentence-p</A></B></code>  </TD><TD valign=top align=left> (sentence) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>This predicate is true of a KIF sentence if it expresses only a simple
+   ground atomic formula in the OKBC frame language, such as
+   <code>(age fred 42)</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="okbc-with-ansi-kif-language">okbc-with-ansi-kif-language</A></B></code> <TD valign=top align=right> <I>[class]</I></TR></TABLE><DD>The OKBC representation of the OKBC-language for the OKBC
+ parser.  All ANSI-KIF language productions are supported as well as the
+ define-OKBC-frame form.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="okbcop-args">okbcop-args</A></B></code>  </TD><TD valign=top align=left> (op) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Given the front end API name for an OKBC
+   operation, returns three values:
+   <OL>
+   <LI>the arguments to the operation,
+   <LI>the values returned by the operation,
+   <LI>the arguments to the back end API generic function for this operation.
+   </OL>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="op-name-to-internal-name">op-name-to-internal-name</A></B></code>  </TD><TD valign=top align=left> (op) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Given the front end API name for an OKBC
+   operation, returns the back end API (-internal) name.  For example, given
+   <code>okbc:get-slot-values</code> will return
+   <code><A HREF="ok-back-lisp-package-docs.html#get-slot-values-internal">ok-back:get-slot-values-internal</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="parser-cons">parser-cons</A></B></code>  </TD><TD valign=top align=left> (original-list x y) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>This macro implements the equivalent of the <code>cons</code> Lisp function
+   used by the code walker.  It is sensitive to the value of the
+   <code>cons-switch</code> argument to <code><A HREF="#walk-form">walk-form</A></code>.  The value
+   returned by the form will be, depending on the value of the cons switch,
+   <DL>
+   <DT><code>:cons</code><DD>the equivalent of calling
+       <code>(cons x y)</code>.
+   <DT><code>:dont-cons</code><DD>the equivalent of calling
+       <code>(progn x y)</code>.
+   <DT><code>:destructive</code><DD>the equivalent of evaluating
+       <code>original-list</code> with suitable substitutions.
+   <DT><code>:share-structure-if-possible</code><DD>the equivalent of
+       evaluating <code>original-list</code> with as few substitutions
+       as possible.
+   </DL>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="parser-list">parser-list</A></B></code>  </TD><TD valign=top align=left> (original-list &rest args) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>This macro implements the equivalent of the <code>list</code> Lisp function
+   used by the code walker.  It is sensitive to the value of the
+   <code>cons-switch</code> argument to <code><A HREF="#walk-form">walk-form</A></code>.  The value
+   returned by the form will be, depending on the value of the cons switch,
+   <DL>
+   <DT><code>:cons</code><DD>the equivalent of calling
+       <code>(apply #'list args)</code>.
+   <DT><code>:dont-cons</code><DD>the equivalent of calling
+       <code>(progn ,@args)</code>.
+   <DT><code>:destructive</code><DD>the equivalent of evaluating
+       <code>original-list</code> with suitable substitutions.
+   <DT><code>:share-structure-if-possible</code><DD>the equivalent of
+       evaluating <code>original-list</code> with as few substitutions
+       as possible.
+   </DL>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="parser-list*">parser-list*</A></B></code>  </TD><TD valign=top align=left> (original-list &rest args) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>This macro implements the equivalent of the <code>list*</code> Lisp function
+   used by the code walker.  It is sensitive to the value of the
+   <code>cons-switch</code> argument to <code><A HREF="#walk-form">walk-form</A></code>.  The value
+   returned by the form will be, depending on the value of the cons switch,
+   <DL>
+   <DT><code>:cons</code><DD>the equivalent of calling
+       <code>(apply #'list* args)</code>.
+   <DT><code>:dont-cons</code><DD>the equivalent of calling
+       <code>(progn ,@args)</code>.
+   <DT><code>:destructive</code><DD>the equivalent of evaluating
+       <code>original-list</code> with suitable substitutions.
+   <DT><code>:share-structure-if-possible</code><DD>the equivalent of
+       evaluating <code>original-list</code> with as few substitutions as
+       possible.
+   </DL>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="parser-warn">parser-warn</A></B></code>  </TD><TD valign=top align=left> (tag kb &rest args) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>The function called when the OKBC code walker encounters a parser error
+   that it wants to warn about.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="queue-append">queue-append</A></B></code>  </TD><TD valign=top align=left> (q list) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Add the elements of LIST to the end of the queue.  Return Q.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="queue-back">queue-back</A></B></code>  </TD><TD valign=top align=left> (q) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Return the element at the back of the Q (most recently added), or NIL
+if empty.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="queue-contents">queue-contents</A></B></code>  </TD><TD valign=top align=left> (q) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Return the list of Q's contents.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="queue-delete">queue-delete</A></B></code>  </TD><TD valign=top align=left> (q x &key count) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Delete the item x from the q.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="queue-front">queue-front</A></B></code>  </TD><TD valign=top align=left> (q) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Return the element at the front of the Q, or NIL if empty.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="queue-nconc">queue-nconc</A></B></code>  </TD><TD valign=top align=left> (q list) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Add the elements of LIST to the end of the queue.  Return Q.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="read-all-forms-from-stream">read-all-forms-from-stream</A></B></code>  </TD><TD valign=top align=left> (stream kb language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>This is only called for an input stream if
+   <code><A HREF="#read-all-forms-from-stream-p">read-all-forms-from-stream-p</A></code> is true for this language.
+   It reads all of the forms from the input stream and does any
+   post-processing that may be necessary before returning a list of forms
+   that that is then passsed to the parser.  This is useful for languages
+   for which it is not possible to produce complete frame descriptions in
+   a single pass.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="read-all-forms-from-stream-p">read-all-forms-from-stream-p</A></B></code>  </TD><TD valign=top align=left> (language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Internal protocol for the parser.  This predicate is true
+   for any language for which it is essential that all forms be read from the
+   input stream in one lump and then processed by the language's reader,
+   rather than being parcelled out piecemeal to the parser form-by-form.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="read-form-from-stream-in-language">read-form-from-stream-in-language</A></B></code>  </TD><TD valign=top align=left> (stream eof-value kb action sentence-action language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Reads a form from the stream for the parser.  This is
+   typically just <code>read</code> (the default), but it may need some sort
+   of language-specific reader environment like a readtable.  Note, such
+   an environment would in general be different from the IO syntax of the
+   KB, since it's expected to be a property of the language, not the KB.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="read-only-p">read-only-p</A></B></code>  </TD><TD valign=top align=left> (kb) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>A predicate that is true if the KB is read-only.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="relation-constant-p">relation-constant-p</A></B></code>  </TD><TD valign=top align=left> (thing kb language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A predicate in the walker that is true for relation
+   constants.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="remove-coercion-specs">remove-coercion-specs</A></B></code>  </TD><TD valign=top align=left> (args) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Given an arglist for a function possibly with lambda list keywords,
+   defaults and such returns the same arglist but with any coercion specs
+    removed.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="remove-keywords-and-defaults">remove-keywords-and-defaults</A></B></code>  </TD><TD valign=top align=left> (args) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Given an arglist for a function possibly with lambda list keywords,
+	   defaults and such returns just the list of names of args.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="reorder-forms-before-asserting-them">reorder-forms-before-asserting-them</A></B></code>  </TD><TD valign=top align=left> (forms action sentence-action language) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>A back-end hook to allow back ends to reorder the
+   definitions in a load unit before they are asserted.  This allows the
+   back end to do a topological sort on the forms if there are any
+   declare-before-use constraints.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="safely-read-from-string">safely-read-from-string</A></B></code>  </TD><TD valign=top align=left> (string &optional (eof-error-p t) (eof-value nil) &key (start 0) end) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Just like <code>read-from-string</code>, only it will not allow the reading
+   to proceed if any potentially dangerous reader macro references are found
+   in the <code>string</code>.  For example, <code>#.</code> macro references
+   will signal an error, since they may be an attempt by a client to execute
+   arbitrary Lisp code on the server.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="self-evaluating-p">self-evaluating-p</A></B></code>  </TD><TD valign=top align=left> (tuple-kb::x) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>This predicate is true if the argument <code>x</code> is
+   a self-evaluating form, such as a literal number, or a quoted sexpression.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="sentence-op-type">sentence-op-type</A></B></code>  </TD><TD valign=top align=left> (op expression kb language &optional warn-p) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Returns the [KIF] syntax production name for the operator, which is the
+    CAR of the expression with respect to the specified language.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="sequence-variable-p">sequence-variable-p</A></B></code>  </TD><TD valign=top align=left> (tuple-kb::thing) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Non NIL iff THING is a KIF sequence variable (a symbol whose name
+begins with a '@').
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="split-into-lines">split-into-lines</A></B></code>  </TD><TD valign=top align=left> (string) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Given a <code>string</code>, splits it into a list of strings, one for
+   each line in the original source string.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="sublis-handling-quote">sublis-handling-quote</A></B></code>  </TD><TD valign=top align=left> (alist form) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Just like <code>sublis</code> only substitutions are not performed inside
+     KIF quotation terms embedded within <code>form</code>.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="tuple-store">tuple-store</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The defstruct used by <code>tuple-kb</code>s and
+   <code>structure-tuple-kb</code>s to store their knowledge as tuples.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>tuple-store</B></code>  </TD><TD valign=top align=left> (tuple-store::kb) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor on <code>tuple-kb</code>s and
+   <code>structure-tuple-kb</code>s that delivers the
+   <code><A HREF="#tuple-store">tuple-store</A></code> used to store the knowledge in the KB.
+<TABLE width=100%><DT><TR><TD valign=top> <code><B><A NAME="tuple-store">tuple-store</A></B></code> <TD valign=top align=right> <I>[defstruct]</I></TR></TABLE><DD>The defstruct used by <code>tuple-kb</code>s and
+   <code>structure-tuple-kb</code>s to store their knowledge as tuples.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B>tuple-store</B></code>  </TD><TD valign=top align=left> (tuple-store::kb) </TR></TABLE> <TD valign=top align=right> <I>[accessor generic function]</I></TR></TABLE><DD>An accessor on <code>tuple-kb</code>s and
+   <code>structure-tuple-kb</code>s that delivers the
+   <code><A HREF="#tuple-store">tuple-store</A></code> used to store the knowledge in the KB.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="unify">unify</A></B></code>  </TD><TD valign=top align=left> (tuple-kb::a tuple-kb::b &optional (tuple-kb::bindings nil)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Unify A and B.  Return the list of bindings for the most general
+unifier for A and B or :fail if they do not unify.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="unify-against-literal">unify-against-literal</A></B></code>  </TD><TD valign=top align=left> (tuple-kb::a tuple-kb::b &optional (tuple-kb::bindings nil)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Unifies the form <code>a</code> against the literal <code>b</code>
+   using the binding alist <code>bindings</code>.  Returns the binding alist
+   that achieves the unification, or <code>:fail</code><P>
+
+   This function is useful when detecting axiom schemata.  For example,
+   If we want to detect instances of the (:subclass-of ?x ?y) schema,
+   we can get bindings for this using:
+   <PRE>(<A HREF="#unify-against-literal">unify-against-literal</A> '(:subclass-of ?x ?y) form)</PRE>
+   so if <code>form</code> were <code>(:subclass-of fred ?x)</code>, we would
+   get back the binding list: <code>((?y . ?x) (?x . fred))</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="value-matches-type-constraint-p">value-matches-type-constraint-p</A></B></code>  </TD><TD valign=top align=left> (value constraint kb inference-level kb-local-only-p) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>This predicate is true if the <code>value</code> is consistent with the
+   specified type <code>constraint</code>.  This funciton is used in OKBC's
+   default constraint checker, but it can also be used, for example, to
+   validate values entered by users.<P>
+
+   The <code>constraint</code> can be any OKBC compliant class-denoting
+   form, including class identifications, <code>SETOF</code>and
+   <code>UNION</code> expressions.  For example,<BR>
+   <code>(<A HREF="#value-matches-type-constraint-p">value-matches-type-constraint-p</A> 42 :number ....)</code> is true,<BR>
+   <code>(<A HREF="#value-matches-type-constraint-p">value-matches-type-constraint-p</A> 42 '(setof 0 32 42) ....)</code>
+   is true,<BR>
+   <code>(<A HREF="#value-matches-type-constraint-p">value-matches-type-constraint-p</A> 42 `(:union :number ,camel) ....)
+   </code> is true,<BR>
+   but <code>(<A HREF="#value-matches-type-constraint-p">value-matches-type-constraint-p</A> 42 `(:union :string ,camel) ....)
+   </code> is false.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="variable?">variable?</A></B></code>  </TD><TD valign=top align=left> (tuple-kb::x) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Return T if X is a variable.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="variablep">variablep</A></B></code>  </TD><TD valign=top align=left> (x) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>A predicate that is true if <code>x</code> is a KIF variable.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="variables-in">variables-in</A></B></code>  </TD><TD valign=top align=left> (pattern &optional tuple-kb::vars) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Returns a list of all of the KIF variables in the <code>pattern</code> that
+   are not in the list <code>vars</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="walk-form">walk-form</A></B></code>  </TD><TD valign=top align=left> (kb function-to-apply expression &key (bound-vars nil) (production :sentence) (language :okbc) (known-context-type nil) (symbols-ok-as-non-logical-constants-p *symbols-ok-as-non-logical-constants-p*) (cons-switch *cons-switch*) (replace-kif-symbols-with-keywords-p *replace-kif-symbols-with-keywords-p*)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>A function useful for parsing and analyzing KIF/OKBC expressions.
+It walks a KIF expression applying <code>function-to-apply</code> to
+each subexpression.
+<DL>
+<DT><code>expression</code><DD> is an expression of a production defined by
+<code>production</code>.  By default it is a KIF sentence. 
+
+<DT><code>function-to-apply</code><DD> is called wih five arguments:
+<OL><LI><code>KB</code>, the KB with respect to which the walk is happening.
+This argument allows you to specialize on the class of kb.
+
+<LI><code>production</code>, a KIF expression production such as
+<code>:sentence</code> or <code>:term</code>
+that specifies the syntactic category of the expression.
+
+<LI><code>known-context-type</code>, the OKBC context type of the expression
+argument if known.
+
+<LI><code>bound-vars</code>, the list of currently bound variables, which is
+updated automatically in lexically enclosed forms inside logic binding
+constructs.  For example in, <PRE>(exists (?A ?B) &lt;kif-sentence&gt;)</PRE>
+<code><A HREF="#walk-form">walk-form</A></code> might be called with <code>expression</code> bound
+to &lt;kif-sentence&gt; and <code>bound-vars</code> bound to
+<code>'(?A ?B)</code>.
+
+<LI><code>expression</code>, the actual expression to walk.
+</OL>
+The value returned by <code>function-to-apply</code> replaces the
+<code>expression</code> in the resulting expression tree.  Thus, if
+<code>function-to-apply</code> alway returns its <code>expression</code>
+argument, then the result of a top level call to <code><A HREF="#walk-form">walk-form</A></code> is
+equal to the input expression.  Each call to <code>function-to-apply</code>
+is given the result of recursive calls on subexpressions;
+in other words, this is a post-fix recursive traversal.
+
+<DT><code>bound-vars</code><DD> is a top-level set of bound vars that can be
+passed in to the walk operation.
+
+<LI><code>language</code>, identifies the language being parsed.
+
+<DT><code>production</code><DD> is the starting production to use.
+Of particular interest are <code>:sentence</code> which parses KIF sentences,
+<code>:kif</code>, which parses KIF top level forms (including sentences), and
+<code>:define-okbc-frame</code> which parses complete OKBC frame
+definitions.
+
+<DT><code>known-context-type</code><DD> is the context type of the expression
+argument, if known.
+
+<DT><code>symbols-ok-as-non-logical-constants-p</code><DD> is a flag that
+determines whether symbols are reasonable non-logical constants or not.  This
+is important because once a form has been read in and interned by a KB we
+generally expect that all non-logical constants will be frame references,
+i.e., true of <code><A HREF="#frame-reference-p">frame-reference-p</A></code>.  However, when we are using the
+walker to perform the interning process then obviously the frame references
+are not guaranteed to be frames, and are generally symbols.
+
+<DT><code>cons-switch</code><DD> is a switch that controls the way that the
+parser conses.  It can take on one of three values:
+<OL>
+<LI><code>:cons</code> - cons a completely fresh structure for the form being
+walked.  No structure will be shared with the original except for any shared
+structure returned by the walk function.
+<LI><code>:dont-cons</code> - performs the walk only for side effects, no
+new structure is consed, and the value retuned by the walker is undefined.
+<LI><code>:share-structure-if-possible</code> - shares as much structure as
+possible with the original.  This doesn't mean that ephemeral consing won't
+take place during a walk with an identity walk function, but it does mean that
+the result will be EQ whenever possible.
+</OL>
+
+<DT><code>replace-kif-symbols-with-keywords-p</code><DD> is a flag that
+when true causes each KIF symbol (such as AND, or <=) to be replaced
+with the keywordified version of that symbol during the walk.  This
+allows automatic package DWIMing of input forms.  If the value of this
+argument is a package or names a package then the symbol substitutions
+happen into the specified package rather than necessarily to keywords.
+Note that this substitution will, in general result the input form changing,
+so some consing will generally occur if <code>cons-switch</code> is set
+to <code>:share-structure-if-possible</code>.
+
+</DL>
+
+The <code>function-to-apply</code> is usually a generic function with methods
+which specialize the first (KB) andgument and <code>eql</code> specialize its
+second (production) argument.  Usually, the default method will just return
+its <code>expression</code> argument, and other methods will be written to
+pick out specific subexpression productions for special processing.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="walk-form-for-load">walk-form-for-load</A></B></code>  </TD><TD valign=top align=left> (form mapping-table kb) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Walks over the form during the load process substituting any necessary
+   frame handles into the form.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="walk-key/value-plist">walk-key/value-plist</A></B></code>  </TD><TD valign=top align=left> (kb language known-context-type bound-vars key-arg-pairs function-to-apply) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>Internal protocol in the OKBC code walker that walks
+   over a list of key/value pairs.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="walk-key/value-plist-pair">walk-key/value-plist-pair</A></B></code>  </TD><TD valign=top align=left> (kb key language known-context-type bound-vars value function-to-apply) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>An extension hook for the code walker that walks over the key/value pairs
+    in a plist.  This is usually called to walk over the &key arguments to
+    top-level forms such as <code>define-okbc-frame</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="walk-list-of-sentences">walk-list-of-sentences</A></B></code>  </TD><TD valign=top align=left> (kb language known-context-type bound-vars value function-to-apply) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Invokes the code walker to walk over a list of KIF sentences.  This function
+   is useful then writing walker methods for languages that layer on top of
+   KIF.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="walk-subexpression">walk-subexpression</A></B></code>  </TD><TD valign=top align=left> (kb production language known-context-type bound-vars expression function-to-apply) </TR></TABLE> <TD valign=top align=right> <I>[generic function]</I></TR></TABLE><DD>The generic function used by <code><A HREF="#walk-form">walk-form</A></code> for recursive
+    descent of expressions as they are walked.  You should specialize this
+    generic function if you want to add new productions to the grammar on
+    a per-KB basis.  The arguments are the same as for
+    <code><A HREF="#walk-form">walk-form</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="while">while</A></B></code>  </TD><TD valign=top align=left> (condition &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Loops while a condition is true, executing a body. Syntax:
+<PRE>  (<A HREF="#while">while</A> &lt;&lt;condition expression&gt;&gt;
+    &lt;&lt;body form 1&gt;&gt;
+    &lt;&lt;body form 2&gt;&gt;
+    ...
+    &lt;&lt;body form n&gt;&gt;)</PRE>
+  For example,
+<PRE>  (<A HREF="#while">while</A> (has-more enumerator)
+    (push (next enumerator) result))</PRE>
+  will collect all the values in the enumerator by pushing
+  them onto the list called <code>result</code>.  Note that this
+  will build a list in the reverse order of the list built in
+  the example for <code><A HREF="#while-collect">while-collect</A></code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="while-collect">while-collect</A></B></code>  </TD><TD valign=top align=left> (condition &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Loops while a condition is true, collecting up the results of executing a
+   body.  Syntax:
+<PRE>  (<A HREF="#while-collect">while-collect</A> <<condition expression>>
+    <<body form 1>>
+    <<body form 2>>
+    ...
+    <<result body form>>)</PRE>
+  For example, 
+<PRE>  (<A HREF="#while-collect">while-collect</A> (has-more enumerator)
+    (next enumerator))</PRE>
+  will collect all the values in the enumerator.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="with-condition-slots">with-condition-slots</A></B></code>  </TD><TD valign=top align=left> (slots instance-form &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Like WITH-SLOTS, but works with condition objects.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="with-connection-to-socket">with-connection-to-socket</A></B></code>  </TD><TD valign=top align=left> ((stream host port) &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Executes <code>body</code> with <code>stream</code> bound to a TCP
+   stream connected to a socket identified by <code>host</code> and
+   <code>port</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="with-defokbcop-bindings">with-defokbcop-bindings</A></B></code>  </TD><TD valign=top align=left> ((form) &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Takes a <code>form</code>, which is the body of a call to the
+   <code><A HREF="ok-back-lisp-package-docs.html#defokbcop">ok-back:defokbcop</A></code> macro and executes <code>body</code> binding
+   locals of the appropriate names to all of the arguments of the call to
+   <code><A HREF="ok-back-lisp-package-docs.html#defokbcop">ok-back:defokbcop</A></code>, defaulting where appropriate.<P>
+
+   This macro is useful in code that reads OKBC operator defining source
+   files and generates new code, such as the C and Java client code generators.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="with-kif-replacement">with-kif-replacement</A></B></code>  </TD><TD valign=top align=left> (symbol with) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Used in the parser to replace KIF operator symbols with a similar symbol
+   in a canonical package.  <code>Symbol</code> is replaced by
+   a symbol with the same pname as <code>with</code> interned in the
+   appropriate package.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="with-read-only-checking">with-read-only-checking</A></B></code>  </TD><TD valign=top align=left> ((kb &optional (return kb) format-string &rest args) &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Executes the <code>body</code> so that if <code>kb</code> is a read-only
+   KB, a read-only violation will be signalled.  Whether an error or a warning
+   is signalled is controlled by
+   <code><A HREF="#*err-on-read-only-violations-p*">*err-on-read-only-violations-p*</A></code>.  Whether a violation
+   is signalled or not is also controlled by
+   <code><A HREF="#*inhibit-read-onlyness-p*">*inhibit-read-onlyness-p*</A></code>.
+   If a read-only violation is detected, and an error is not signalled,
+   the value <code>return</code> is returned.<p>
+
+   <code>Format-string</code> (if supplied) and <code>args</code> are used to
+   generate the error message.  If they are not supplied a default error
+   message is generated.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="with-substitution-groups">with-substitution-groups</A></B></code>  </TD><TD valign=top align=left> ((&rest substitution-alists) &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>A utility macro that takes a number of forms in <code>body</code> and
+   replicates that code substituting the symbols and strings provided in
+   <code>substitution-alists</code>.  This is useful is a chunk of code is
+   going to be basically the same but for a few tiny changes for a number
+   of different cases.  Using this macros lets you substitute accessor names
+   within methods and such like.  For example:<PRE>
+   (<A HREF="#with-substitution-groups">with-substitution-groups</A> ((("STRUCTURE-TUPLE-KB" "TUPLE-KB")))
+     (defmethod get-foo ((kb tuple-kb))
+        (tuple-kb-foo kb)))</PRE> will expand into:
+   <PRE>   (PROGN (DEFMETHOD GET-FOO ((KB TUPLE-KB))
+            (TUPLE-KB-FOO KB))
+          (DEFMETHOD GET-FOO ((KB STRUCTURE-TUPLE-KB))
+            (STRUCTURE-TUPLE-KB-FOO KB)))</PRE>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="with-timeout">with-timeout</A></B></code>  </TD><TD valign=top align=left> ((duration . timeout-forms) &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Execute <code>body</code> with a timeout set for a <code>duration</code> of
+   a second from time of entry.
+   If the timeout elapses while <code>body</code> is still in progress,
+   the <code>timeout-forms</code> are executed and their values returned, and
+   whatever is left of <code>body</code> is not done, except for its
+   <code>unwind-protect</code>s.
+   If <code>body</code> returns, is values are returned and the timeout
+   is cancelled.   The timeout is also cancelled if <code>body</code> throws
+   out of the form.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="without-recursion-in-stack">without-recursion-in-stack</A></B></code>  </TD><TD valign=top align=left> ((uid arg recursion-value &optional (test (quote (function eq)))) &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Executes the <code>body</code> so that infinite recursions are detected
+   and prevented.  <code>UID</code> is a unique identifier used to distinguish
+   this without-recursion wrapper from others.  <code>Arg</code> is the
+   argument used to check to see whether a cycle has been found.  If a
+   cycle is found, <code>recursion-value</code> is returned.  Comparison
+   is performed according to <code>test</code>.<P>
+
+   In this formulation of without-recursion, instances of <code>arg</code> are
+   kept on a stack.  Repeat call to the form for a given value of
+   <code>arg</code> will only be detected dynamically within a call to the
+   form with the same value of <code>arg</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="without-recursion-using-trie">without-recursion-using-trie</A></B></code>  </TD><TD valign=top align=left> ((uid arg recursion-value) &body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>Executes the <code>body</code> so that infinite recursions are detected
+   and prevented.  <code>UID</code> is a unique identifier used to distinguish
+   this without-recursion wrapper from others.  <code>Arg</code> is the
+   argument used to check to see whether a cycle has been found.  If a
+   cycle is found, <code>recursion-value</code> is returned.<P>
+
+   In this formulation of without-recursion, instances of <code>arg</code> are
+   kept in a <code>trie</code>, and <i>any</i> repeat call to the form will
+   cause the <code>recursion-value</code> to be returned irrespective of the
+   path taken to find the second occurrence of the <code>arg</code>.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="without-scheduling">without-scheduling</A></B></code>  </TD><TD valign=top align=left> (&body body) </TR></TABLE> <TD valign=top align=right> <I>[macro]</I></TR></TABLE><DD>An implementation-independent macro to run the <code>body</code> in an
+   interrupts-deferred mode.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="word-matches-pattern">word-matches-pattern</A></B></code>  </TD><TD valign=top align=left> (string pattern &optional (start 0) (case-sensitive-p nil) (force-match-to-end-p nil)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>This predicate is true if a <code>string</code> matches the supplied
+   <code>pattern</code>, which must be a canonical pattern as returned by
+   <code><A HREF="#canonicalize-pattern">canonicalize-pattern</A></code>.  Matching is started at the index
+   <code>start</code>, and is case-sensitive if <code>case-sensitive-p</code>
+   is true.  If <code>force-match-to-end-p</code> is false, the pattern is
+   taken to have an implicit <code>:multiple</code> at the end, otherwise
+   the pattern must match the whole string.  Returns the index one past the
+   first matching sequence.
+</DL>
+</HTML>

@@ -1,0 +1,36 @@
+
+<HTML>
+<TITLE>Documentation for the OKBC-TEST package</TITLE>
+<H2>Documentation for the OKBC-TEST package</H2>
+
+This document contains documentation for the <code>OKBC-TEST</code> package
+in OKBC, which defines the OKBC test suite for the Lisp implementation.
+The test suite is expected to be useful primarily to OKBC back end
+authors.
+<H3>Table of Contents:</H3>
+<OL>
+  <LI><A HREF="#test"><code>test</code></A>
+  <LI><A HREF="#test-kb"><code>test-kb</code></A>
+</OL>
+<HR>
+<H3>Table of Functions:</H3>
+<OL>
+  <LI><A HREF="#test"><code>test</code></A>
+  <LI><A HREF="#test-kb"><code>test-kb</code></A>
+</OL>
+<HR>
+<DL>
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="test">test</A></B></code>  </TD><TD valign=top align=left> (okbc-test::kb-class &key (okbc-test::initargs nil) okbc-test::silent (okbc-test::copy t) (okbc-test::tell-and-ask t) (okbc-test::creator nil)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Runs a suite of tests on a new kb of type <code>kb-class</code> using
+:initargs. If :copy is true, then attempts to copy from the kb into a
+<code><A HREF="ok-back-lisp-package-docs.html#tuple-kb">ok-back:tuple-kb</A></code> (called <code>test-target-kb</code>).  If
+<code>tell-and-ask</code> is true, then the tests will
+then create another KB of the <code>kb-class</code> and test the tell&ask
+interface as well.  The <code>creator</code> may be a function of one
+argument, a kb-name, that should return an new kb of the type that is to be
+tested.  This is useful for testing non-standard kbs.
+<TABLE width=100%><DT><TR><TD valign=top><TABLE><TR><TD valign=top> <code><B><A NAME="test-kb">test-kb</A></B></code>  </TD><TD valign=top align=left> (kb okbc-test::silent &optional (okbc-test::new-kb nil) (okbc-test::ask-kb nil)) </TR></TABLE> <TD valign=top align=right> <I>[function]</I></TR></TABLE><DD>Runs the test suite on a particular KB.  If <code>silent</code> is
+   true, it supresses output.  If <code>new-kb</code> is provided, the
+   KB copying tests will be run.  If <code>ask-kb</code> is provided, the
+   tell&ask tests will be run.
+</DL>
+</HTML>

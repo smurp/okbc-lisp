@@ -1,0 +1,217 @@
+\chapter{The Knowledge-Base Behaviors}
+\label{ch:behaviors}
+
+Each behavior has a name that is a symbol in the keyword package, and
+is associated with a set of values that describe the different
+variations of that behavior that different FRSs provide.  For example,
+the behavior called {\tt :facets} describes what type of support the
+FRS provides for slot facets.  A value of \true\ for that behavior means
+facets are supported, and a value of \false\ means that facets are not
+supported. 
+
+The remainder of this chapter describes the behaviors in detail.  Each
+section describes a single behavior, or a group of related behaviors.
+
+\section{Frame Names}
+
+In some FRSs, a frame name uniquely identifies a frame, whereas, in
+others, a frame name is not necessarily unique in a KB.  In fact, some FRSs
+allow the frame name to be \false.  An application program can be
+considerable simplified if it is known in advance that the frame names
+are unique.  For example, given a frame name, a function such as
+\karg{get-frame-matching} is guaranteed to return at most one value
+which requires less processing than multiple values. The {\tt
+:unique-frame-names} behavior specifies if the frame names uniquely
+identify a frame.  The value \true\ means that frame names are unique
+within a KB, whereas, the value \false\ means that frame names are not
+necessarily unique within a KB.
+
+\section{Value Constraint Checking}
+
+Many FRSs provide run-time slot-value constraint checking.  Each time
+a slot value is changed (either locally, or through a change to
+inherited values), the FRS evaluates constraints that have been
+defined by the user to specify what values are allowable for a given
+slot.
+
+Constraint checking is described by two behaviors: {\tt
+:constraint-checking-time} controls when constraint checking should be
+performed, and  {\tt :constraint-report-time} controls when
+constraint violations should be reported to the user, as follows.
+
+Allowable values of {\tt :constraint-checking-time} are:
+
+\begin{itemize}
+\item  {\tt :immediate} Constraints
+are checked as soon as any side-effect causing GFP operation is
+executed. 
+
+\item {\tt :deferred} Constraint checking does not occur when a
+side-effect causing GFP operation is executed, but is delayed until
+either the \karg{check-constraints} operation is executed explicitly
+or the \karg{constraint-checking-type} is changed to {\tt :background}
+or {\tt :immediate}.
+
+\item {\tt :background}  Constraint checking is performed as a
+background process.  Violated constraints may be retrieved using the
+\karg{get-pending-constraint-violations} operation.
+
+\item {\tt :never} Constraints are never checked.
+
+\end{itemize}
+
+\section{Slot Units}
+
+In some FRSs, each slot is also represented by a frame.  The frames
+representing slots are usually called slot units.  Slot units are a
+useful way to define properties of slots independent of the frames
+they might be associated with.  Not all FRSs support slot units.
+Behavior of some GFP operations is affected depending on whether slot
+units are supporte.  For example, if an FRS supports slot units, the
+GFP operation such as \karg{get-kb-frames} will return the frames
+corresponding to slot units.  The {\tt :slot-units} behavior allows an
+FRS to declare whether slot units are supported. The value \true\
+means that slot units are supported, whereas, the value \false\ means
+that slot units are not supported.
+
+\section{Accessible Entities}
+
+\begin{figure}
+\centerline{\psfig{figure=accessible-frames.idraw,height=2in}}
+\caption{Entities accessible to get-kb-* operations}
+\label{fig:clos}
+\end{figure}  
+
+As discussed in Section~\ref{}, we partition the domain of discourse
+into classes and individuals.  All the entities in the domain of
+discourse are not necessarily frames For example, an FRS may not view
+numbers as frames.  The knowledge model of GFP does not specify
+whether slots and facets are frames or whether they are classes or
+individuals.  In Figure~\ref{fig:ddiscourse}, we visually show these
+distinctions.
+
+FRSs differ on the entities that can be accessed using a programmatic
+interface.  For example, in CLOS, to access an instance object, one needs
+to have a reference to it.  Without a reference, the instance objects are
+inaccessible.  Thus, in CLOS, it is not possible to loop over  all the 
+instance objects unless one maintained a list of references to all the
+frames.  In such a situation, it is difficult to give uniform semantics
+to GFP operations such as \kfn{get-kb-frames}, because for a CLOS back end
+all the frames may not be returned.  
+
+To represent the entities that are accessible to GFP operations, we
+define a behavior called \kfn{:accessible-frames}.  The
+\kfn{:accessible-frames} behavior can have four possible values:
+\karg{:findable-frames}, \karg{:all-frames},
+\karg{:include-system-entities}, \karg{:all-mentioned-entities}.  Let us explain
+the meaning of these behaviors by taking the example of 
+\karg{get-kb-classes}.
+For an FRS with a value \karg{:findable-frames} for this behavior, \kfn{get-kb-classes}
+will return, at least all the frames that can be retrieved without requiring a user to
+know its frame handle or a reference to frame object.  With a value \karg{:all-frames},
+\karg{get-kb-classes} will return at least all the classes that are known to be frames,
+that is, if \karg{(frame-p X)} is true for a class X, X is returned (Shown by the
+dotted box in Figure~\ref{fig:accessible-frames}).
+With a value \karg{:include-system-entities}, \karg{get-kb-classes} 
+will return at least all the classes that are frames and any system-defined classes.  If
+for an FRS, \karg{(framep X)} is true for every system defined class,
+the behavior values \karg{:all-frames} \karg{:include-system-entities}
+are equivalent.  With a value \karg{:all-mentioned-entities}
+\karg{get-kb-classes} will return at least all the classes that are frames,
+system-defined classes and any classes that are mentioned in some
+frame.
+
+A similar interpretation of this behavior is applicable to slot and facet operations.
+For example, when the value of  \kfn{:accessible-frames} behavior is \karg{:all-frames},
+\karg{get-kb-slots} will return at least those slots that are frames (Shown by the
+dotted box in Figure~\ref{fig:accessible-frames}).  Similarly, when
+the behavior is \karg{:include-system-entities},
+\karg{get-kb-slots} will return at least those slots that are frames
+and any system-defined slots.
+
+We use an {\em at least} restriction to define the set of entities
+returned, because that is the behavior compliant GFP implementations
+are expected to exhibit.  For example, when the behavior is
+\karg{:all-frames},  an implementation may return all the frames and
+some additional entities, and still be GFP compliant.
+
+\section{Facets}
+
+Facets are supported by a number for FRSs, as described in
+Section~\ref{sec:facets}.  The behavior called {\tt :facets} describes
+whether the facet operations described in that section are supported
+by the FRS.  The value \true\ means that facet services are required,
+whereas the value \false\ means that facet services are not required.
+
+%\section{Slot-Value Annotations}
+
+%The behavior called {\tt :annotations} specifies whether or not the
+%FRS supports manipulation of slot-value annotations.  The value \T\
+%specifies that annotation services are supported, whereas the value
+%\NIL\ specifies that these services are not supported.
+
+\section{Defaults}
+
+The behavior called {\tt :inheritance} describes the model of
+inheritance required by the application.  At present, the following
+values are supported.
+
+\bitem
+\item {\tt :override} --- The presence of any local value in the
+own slot of a frame overrides all inherited values from its parents.
+
+\item {\tt :when-consistent} --- Inheritance is blocked for those default
+values that, if inherited, would violate some constraint associated
+with the slot.
+\eitem
+
+\section{Class Slot Types}
+
+As described in Section~\ref{intro:inheritance}, there are two types
+of slots for classes: {\bf template} and {\bf own}.  A {\bf template}
+slot is inherited by all instances of the class while an {\bf own}
+slot describes values associated with that particular class but that
+are not inherited by the instances of that class.  
+
+Certain FRSs support both {\bf template} and {\bf own} slots for
+classes while others support {\bf template} slots only.  The behavior
+{\tt :class-slot-types} is used to indicate the types of slots
+supported by a given FRS.  Allowable values of {\tt :class-slot-types}
+are:
+
+\bitem
+
+\item {\tt :template} --- Classes support template slots only
+
+\item {\tt :template-and-own} --- Classes support both template and own
+slots 
+
+\eitem
+
+\section{Collection-Types}
+
+The behavior called {\tt :collection-types} specifies how the FRS
+interprets multiple values for a slot.  The possible values are:
+
+\bitem
+\item {\tt :list} --- The order of values within a slot is important,
+and duplicate values are permitted
+
+\item {\tt :set} --- The order of values within a slot is unimportant,
+and duplicate values are not permitted
+
+\item {\tt :multiset} --- The order of values within a slot is
+unimportant, and duplicate values are permitted (also known as a {\em
+bag})
+
+\item {\tt :none} -- The FRS does not support multiple-valued slots.
+\eitem
+
+Some FRSs may support more than one possible interpretation, in which
+case, the {\tt :collection-type} facet specifies how multiple values are
+to be interpreted for a particular slot.  The first behavior value
+specified is the default.  If a slot has a value for the {\tt :collection-type}
+facet, the facet value overrides the value of the {\tt :collection-type} facet.
+
+
+

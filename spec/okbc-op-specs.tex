@@ -1,0 +1,2351 @@
+
+
+\begin{okbcop}{add-class-superclass}{ class new-superclass \&key kb kb-local-only-p} { \void } { O } { W } {  }
+Adds the \karg{new-superclass} to the superclasses of \karg{class}.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{add-facet-value}{ frame slot facet value \&key kb (test :equal) (slot-type :own) (value-selector :known-true) kb-local-only-p} { \void } { O } { W } {  }
+If the specified facet does not already contain \karg{value}, 
+   then \karg{value} is added to the set of values of the facet.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{add-instance-type}{ frame new-type \&key kb kb-local-only-p} { \void } { O } { W } {  }
+Adds the \karg{new-type} to the types of \karg{frame}.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{add-slot-value}{ frame slot value \&key kb (test :equal) (slot-type :own) (add-before 0) (value-selector :known-true) kb-local-only-p} { \void } { O } { W } {  }
+\karg{Value} is added to the set of values of \karg{slot}.  If the
+   collection-type of \karg{slot} is {\tt :set}, then \karg{value} is
+   added only if \karg{slot} does not already contain \karg{value}.  
+   \karg{Add-before}, if supplied, should be \false\ or a nonnegative
+   integer.  If the collection-type of
+   \karg{slot} is {\tt :list}, \karg{value} is added immediately before
+   the value whose index is \karg{add-before}.  For example, if
+   \karg{add-before} is 1, the new value will be added between the first
+   and second old values.  If \karg{add-before} is greater than or equal
+   to the current number of slot values, or is \false, and the
+   collection-type of \karg{slot} is {\tt :list}, then \karg{value} is
+   added after all other values.  This operation may signal constraint
+   violation conditions (see Section~\ref{sec:errors}).  It is an error
+   to provide a nonpositive integer as a value for \karg{add-before}.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{all-connections}{ } { list-of-connections } {   } { R } { E }
+Returns a list of all of the known connections.
+\end{okbcop}
+
+\begin{okbcop}{allocate-frame-handle}{ frame-name frame-type \&key kb frame-handle} { frame-handle } { M } { W } {  }
+Allocates a frame handle in \karg{kb}.  It is not anticipated that this
+   operation will be called by OKBC applications, but rather by OKBC back end
+   implementations.  This operation can be used in two distinct ways:
+   \begin{enumerate}
+   \item Given a frame located in an arbitrary KB, typically different
+   from \karg{kb}, passing its \karg{frame-name}, \karg{frame-type}, and
+   \karg{frame-handle} will return a frame handle to represent that frame if
+   such a frame were to be created in \karg{kb}.  This is useful in OKBC
+   operations such as \kfn{copy-frame} and \kfn{copy-kb} where it is often
+   necessary to make forward references to frame objects.  
+   \item Providing just a \karg{frame-name} and a \karg{frame-type}
+   will return a frame handle to represent that frame if such a frame were
+   to be created in \karg{kb}.  This is useful when an implementation wants
+   to allocate a frame handle either during the frame creation process, or
+   to create forward references to frames when faulting them in from a
+   lazy persistent store.  \karg{Frame-name} may be \false.
+   \end{enumerate}
+   \karg{Frame-type} is the type of the frame as identified by the operation
+   \kfn{get-frame-type}; that is, it must be in the set \{{\tt :class},
+   {\tt :individual}, {\tt :slot}, {\tt :facet}\}.
+
+   The rationale for the arguments to this operation is as follows:
+   \bitem
+   \item \karg{frame-name} -- In some KRSs, the name of a frame cannot be
+          changed after the frame handle has been allocated.  OKBC therefore
+          mandates that the name be supplied.  If the
+          {\tt :frame-names-required} behavior has the value \false,
+          this argument may be \false.
+   \item \karg{frame-type} -- In some KRSs, the type of data structure used
+          to represent the frame handles of (say) classes is completely
+          different from that of (say) individual frames.  OKBC therefore
+          mandates that the frame type be specified.  Implementations that use
+          the same representation for all frame handles will be able to ignore
+          this argument, but it is not portable.
+   \item \karg{frame-handle} -- Some KRSs may choose to use a frame handle
+          provided as the value of the \karg{frame-handle} argument as the
+          new frame handle.  This allows implementations that do not have a
+          special data structure for frame handles to save memory and to
+          maximize the correspondence between the objects in different KBs.
+   \eitem
+   The contract of \kfn{allocate-frame-handle} does not require the callee to
+   return the same frame handle if called multiple times with identical
+   arguments.  Note that this is particularly important in case 2, above,
+   with \karg{frame-name} being \false.  It is the responsibility of
+   the caller to remember the
+   correspondence between its frames and the frame handles allocated.  A frame
+   handle allocated using \kfn{allocate-frame-handle} can be used as the
+   value of the \karg{handle} argument to \kfn{create-frame},
+   \kfn{create-class}, \kfn{create-slot}, \kfn{create-facet}, and
+   \kfn{create-individual}.  During the execution of these operations, it is
+   the responsibility of the \karg{kb} to preserve any necessary object
+   identity so that, for example,
+   \begin{verbatim}
+   new-handle = allocate-frame-handle(name, :class, kb, handle);
+   new-frame = create-class(name, .... :handle new-handle);
+   new-handle == get-frame-handle(new-frame) // this identity must hold!
+   \end{verbatim}
+\end{okbcop}
+
+\begin{okbcop}{ask}{ query \&key kb (reply-pattern query) (inference-level :taxonomic) (number-of-values :all) (error-p \true) where timeout (value-selector :either) kb-local-only-p} { reply-pattern-list exact-p more-status } { O } { R } { E }
+Asks a \karg{query} of the OKBC \karg{kb}.  \karg{Query} may be any
+   sentence in the OKBC Assertion Language that is \kfn{askable}.  A
+   \kcond{cannot-handle} error
+   may be signaled if it is not \karg{askable}. \karg{Reply-pattern} is an
+   expression mentioning KIF variables contained in \karg{query}.
+
+   \karg{Reply-pattern} is any list structure mentioning the variables
+   in the query, or just the name of a variable.  For example, consider
+   a query that is a sentence of the form,
+   \begin{verbatim}
+     (subclass-of ?x ?y)
+   \end{verbatim}
+   that is, find me the things that are subclasses of other things.  If there
+   is a match in the KB for {\tt ?x = human} and {\tt ?y = animal}.
+   -- the class {\tt human} is a subclass of the class {\tt animal} -- then
+   if the \karg{reply-pattern} were to be
+   \begin{verbatim}
+     (superclass-of ?y ?x)
+   \end{verbatim}
+   we would be returned a list of sentences of which one
+   would be {\tt (superclass-of animal human)}.  The explicit use of a reply
+   pattern in this manner allows the user to get either sentences
+   that can be conveniently reasserted using \kfn{tell}, or tuples of
+   matches in a shape that is convenient to the application.
+
+   When \karg{error-p} is \true, any errors resulting from the execution of
+   the query are signaled.  When error-p is \false, all possible attempts are
+   made to continue with the query and deliver as many results as were
+   requested.
+
+   If the resources used by \karg{ask} are a concern, the time (in
+   seconds) allowed to answer a query will be limited, if possible, as
+   specified by \karg{timeout}.  If the value of \karg{timeout} is
+   \false, an unlimited time is allowed for \karg{ask} to complete.
+
+   The \karg{where} clause can be used to specify a list of bindings to
+   be used for any variables appearing in the \karg{query}.  During query
+   evaluation, such variables are replaced by the values specified by
+   \karg{where}.  A valid value of \karg{where} is a list of 2-tuples,
+   with each tuple consisting of a variable and value pair.
+
+   \karg{Ask} returns three values.
+   \begin{enumerate}
+   \item \karg{reply-pattern-list} -- In this list, each element is an
+          instance of \karg{reply-pattern}, with all variables mentioned in
+          \karg{query} substituted.
+   \item \karg{exact-p} -- This has its normal interpretation.
+   \item \karg{more-status} -- This has its normal interpretation, except
+          that an additional option {\tt :timeout} may be returned for the
+          more-status value by \karg{ask} if the call terminates because
+          execution time exceeds the limit specified by the \karg{timeout}
+          argument.
+   \end{enumerate}
+   When \karg{ask} is given a syntactically invalid \karg{query}, it
+   signals the \kcond{syntax-error} error.  When \karg{ask} realizes that
+   the \karg{query} cannot be handled by the KRS, it signals a
+   \kcond{cannot-handle} error.
+
+   The following query matches four channel oscilloscopes with a
+   bandwidth greater than 80MHz.  It returns a list of pairs {\tt
+   (?osc ?bandwidth)} satisfying the query.
+   \begin{verbatim}
+   (ask '(and (oscilloscope ?osc)
+              (number-of-channels ?osc ?chans)
+              (= ?chans 4)
+              (bandwidth ?osc ?bandwidth)
+              (> ?bandwidth (* 80 mega-hertz)))
+         :reply-pattern '(?osc ?bandwidth)
+         :number-of-values 10 :kb kb)
+   \end{verbatim}
+   All KIF operators in the \karg{query} are parsed in a
+   package-insensitive manner.  For example, {\tt (and A B)} and {\tt
+   (:and A B)} have the same effect.  Object, relation, and function constant
+   references in \karg{query} are taken as arguments to 
+   \kfn{get-frames-matching}.  Frame references in the query must uniquely 
+   identify frames.  (See \kfn{get-frames-matching}.)
+\end{okbcop}
+
+\begin{okbcop}{askable}{ sentence \&key kb (value-selector :either) kb-local-only-p} { boolean } { O } { R } {  }
+The \karg{askable} operation returns \false\ if the KRS can
+   determine that \karg{ask}ing the \karg{sentence} would result in a
+   \kcond{cannot-handle} error being signaled, and \true\ otherwise.
+   It may also signal the \kcond{syntax-error} condition.  Even if
+   \karg{askable} returns \true,
+   \karg{ask} may still not be able to handle the \karg{sentence}.
+\end{okbcop}
+
+\begin{okbcop}{attach-facet}{ frame slot facet \&key kb (slot-type :own) kb-local-only-p} { \void } { M } { W } {  }
+Explicitly associates the \karg{facet} with \karg{slot} on \karg{frame},
+   in the sense of recording that values of the facet may be asserted with
+   \karg{frame} or with instances of \karg{frame} if \karg{slot-type} is
+   {\tt :template}.
+   As a result, \karg{facet} is returned by \kfn{get-slot-facets} at the
+   {\tt :direct} inference level, and \karg{slot-has-facet-p} will be
+   \true\ for \karg{facet} in \karg{slot} on \karg{frame}.  It is an
+   error to attempt to attach a non-existent facet.  Doing so should signal
+   a \kcond{facet-not-found} error.  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{attach-slot}{ frame slot \&key kb (slot-type :own) kb-local-only-p} { \void } { M } { W } {  }
+Explicitly associates the \karg{slot} with \karg{frame}, in the sense
+   of recording that values of slot may be asserted with \karg{frame} or
+   with instances of \karg{frame} if \karg{slot-type} is {\tt :template}.
+   As a result, \karg{slot} is returned by \kfn{get-frame-slots} at the
+   {\tt :direct} inference level, and \karg{frame-has-slot-p} will be
+   \true\ for \karg{slot} on \karg{frame}.  It is an error to attempt to
+   attach a non-existent slot.  Doing so should signal a
+   \kcond{slot-not-found} error.  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{call-procedure}{ procedure \&key kb arguments} { value } { O } { R } { E }
+Returns the \karg{value} resulting from applying
+   \karg{procedure} to
+   \karg{arguments}.  See section~\ref{ch:funspecs} for a definition of
+   procedures.
+\end{okbcop}
+
+\begin{okbcop}{class-p}{ thing \&key kb kb-local-only-p} { boolean } { M } { R } {  }
+Returns \true\ if \karg{thing} identifies a class.
+\end{okbcop}
+
+\begin{okbcop}{close-connection}{ connection \&key force-p (error-p \true)} { \void } { O } { R } {  }
+Closes the \karg{connection}.  If \karg{force-p} is \true, the connection
+   may be closed without waiting for any handshakes from the server.  A call
+   to close-connection on the local connection
+   is a no-op.  This allows the user to loop through \kfn{all-connections},
+   closing them all without fear of losing connectivity to KBs that share the
+   same address space as the application.  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{close-kb}{ \&key kb save-p} { \void } { M } { W } {  }
+Deletes any in-core/accessible representation of \karg{kb}, but does not
+   remove it from any persistent store if the persistent version still
+   constitutes a meaningful KB (i.e., temporary disk work files would be
+   deleted).  It is an error ever to use \karg{kb} again for any purpose.  If
+   this occurs, an \kcond{object-freed} error should be signaled.
+   Implementations may free any storage allocated for KB.  If \karg{save-p}
+   is \true, then any unsaved changes to \karg{kb} will be saved
+   before it is closed.  Note that the default value of \karg{save-p}
+   is \false.  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{coerce-to-class}{ thing \&key kb (error-p \true) kb-local-only-p} { class class-found-p } { O } { R } {  }
+Coerces \karg{thing} to a class.  This operation returns two values.
+   \bitem
+   \item \karg{class} -- If \karg{thing} identifies a class for \karg{kb},
+                           then this value is the class so identified, or
+                           \false otherwise.
+   \item \karg{class-found-p} -- If the class is found then \true,
+                                   otherwise \false.
+   \eitem
+   If \karg{error-p} is \true and the class is not found, then a
+   \kcond{class-not-found} error is signaled.
+
+   It is an error to call \kfn{coerce-to-class} with \karg{error-p} being
+   \true, and with a value of \karg{thing} that does not uniquely identify
+   a class.  If this happens, a \kcond{not-unique-error} error should be
+   signaled.
+
+   Note that in some KRS, \false\ may be a valid class.  No portable
+   program may assume that a returned value of \false\ for the first
+   (\karg{class}) returned value implies that \karg{class-found-p}
+   is \false.
+\end{okbcop}
+
+\begin{okbcop}{coerce-to-facet}{ thing \&key kb (error-p \true) kb-local-only-p} { facet facet-found-p } { O } { R } {  }
+Coerces \karg{thing} to a facet.  This operation returns two values.
+   \bitem
+   \item \karg{facet} -- If \karg{thing} identifies a facet for \karg{kb},
+                           then this value is the facet so identified, or
+                           \false otherwise.
+   \item \karg{facet-found-p} -- If the facet is found then \true,
+                                   otherwise \false.
+   \eitem
+   If \karg{error-p} is \true and the facet is not found, then a
+   \kcond{slot-not-found} error is signaled.
+
+   It is an error to call \kfn{coerce-to-facet} with \karg{error-p} being
+   \true, and with a value of \karg{thing} that does not uniquely identify
+   a facet.  If this happens, a \kcond{not-unique-error} error should be
+   signaled.
+
+   Note that in some KRS, \false\ may be a valid facet.  No portable
+   program may assume that a returned value of \false\ for the first
+   (\karg{facet}) returned value implies that \karg{facet-found-p} is
+   \false.
+\end{okbcop}
+
+\begin{okbcop}{coerce-to-frame}{ thing \&key kb (error-p \true) kb-local-only-p} { frame frame-found-p } { M } { R } {  }
+Coerces \karg{thing} to be a frame object, if such an object exists for
+   the underlying KRS, or a frame handle otherwise.  \karg{Thing} can be a
+   frame object or a frame handle.  This operation may be
+   less careful than \kfn{get-frame-in-kb} about ensuring that the
+   frame for \karg{thing} is actually in \karg{kb} when the supplied
+   \karg{thing} is a frame object.  \kfn{Coerce-to-frame} verifies that
+   \karg{thing} is the
+   appropriate {\it type} of frame object for \karg{kb}, but may not
+   actually determine whether the frame resides in \karg{kb}.  Therefore, this
+   operation may be faster than \kfn{get-frame-in-kb} for some KRSs.
+
+   For user convenience, implementors are encouraged to support the coercion
+   into a frame of any data-structure that uniquely identifies a frame in
+   the KRS as well as frame handles and frame objects.  It is not
+   portable to provide any value for \karg{thing} other than a frame
+   object or frame handle; \kfn{get-frames-matching} should be used instead.
+
+   If the {\tt :frame-names-required} behavior has the value \true\ for
+   \karg{kb}, the names of frames are always coercible to frames.
+   If the {\tt :frame-names-required} behavior is \false, frame names
+   (if defined) are not guaranteed to be coercible to frames.
+
+   This operation returns two values.
+   \bitem
+   \item \karg{frame} -- If \karg{thing} identifies a frame for \karg{kb},
+                           then this value is the frame so identified, or
+                           \false\ otherwise.
+   \item \karg{frame-found-p} -- If the frame is found then \true,
+                                   otherwise \false.
+   \eitem
+   If \karg{error-p} is \true\ and the frame is not found, then a
+   \kcond{not-coercible-to-frame} error is signaled.
+
+   It is an error to call \kfn{coerce-to-frame} with \karg{error-p} being
+   \true, and with a value of \karg{thing} that does not uniquely identify
+   a frame.  If this happens, a \kcond{not-unique-error} error should be
+   signaled.
+
+   Note that in some KRS, \false\ may be a valid frame object.  No portable
+   program may assume that a returned value of \false\ for the first
+   (\karg{frame}) returned value implies that \karg{frame-found-p} is
+   \false.
+\end{okbcop}
+
+\begin{okbcop}{coerce-to-individual}{ thing \&key kb (error-p \true) kb-local-only-p} { individual individual-found-p } { O } { R } {  }
+Coerces \karg{thing} to an individual.  This operation returns two values.
+   \bitem
+   \item \karg{individual} -- If \karg{thing} identifies an individual for
+          \karg{kb}, then this value is the individual so identified, or
+          \false otherwise.
+   \item \karg{individual-found-p} -- If the individual is found then \true,
+                                   otherwise \false.
+   \eitem
+   If \karg{error-p} is \true and the individual is not found, then a
+   \kfn{individual-not-found} error is signaled.
+
+   It is an error to call \kfn{coerce-to-individual} with \karg{error-p}
+   being \true, and with a value of \karg{thing} that does not uniquely
+   identify an individual.  If this happens, a \kcond{not-unique-error} error
+   should be signaled.
+
+   Note that in most KRS, \false\ is a valid individual.  No portable
+   program may assume that a returned value of \false\ for the first
+   (\karg{individual}) returned value implies that \karg{individual-found-p}
+   is \false.
+\end{okbcop}
+
+\begin{okbcop}{coerce-to-kb-value}{ string-or-value target-context \&key kb wildcards-allowed-p force-case-insensitive-p (error-p \true) (frame-action :error-if-not-unique) kb-local-only-p} { result-of-read success-p completions-alist } { O } { R } {  }
+This operation is called by applications that receive input, often from a
+   user in the form of typed input, or a value.  \kfn{Coerce-to-kb-value}
+   takes this input and delivers a value that is meaningful to the KRS.  This
+   allows applications to interact with users and prompt for expressions
+   containing frame references in a manner that will work predictably across
+   implementation languages, and in networked implementations.
+   \kfn{Coerce-to-kb-value} implements OKBC's reading model just as
+   \kfn{value-as-string} implements OKBC's printing model.
+
+   \karg{string-or-value} may be one of the following.
+   \bitem
+   \item an arbitrary OKBC value entity -- If this is a list, then the
+          coercion process applies recursively to the elements of the list.
+          For example, if in the KB the symbol {\tt fred} is coercible to the
+          frame {\tt \#<frame FRED 763736>}, the value {\tt (a fred 42)}
+          would be coerced to the KB value
+          {\tt (a \#<frame FRED 763736> 42)}.
+   \item a string -- This must be the printed representation of an OKBC entity,
+          possibly containing wildcards.  For example, the string
+          {\tt "(a fred 42)"} would be coerced to the same KB value as in
+          the example above.
+   \eitem
+
+   Note that there is an asymmetry in the way that arguments are handled,
+   in that a string as the value of \karg{string-or-value} will \em{always}
+   be interpreted as a pattern from which to read a value, i.e. it will not
+   be interpreted as an OKBC value entity.  This is useful in coercing strings
+   into KB values.  However, this means that applications that use
+   \kfn{coerce-to-kb-value} as a way to read in values entered by the user
+   must provide string quotes in order to get a string-valued result.  Thus,
+   to get the string "fred" returned by \kfn{coerce-to-kb-value} the
+   value of the \karg{string-or-value} argument would have to be
+   "\"fred\"".  This problem arises if a user interface application
+   is using a prompting model (such as the :string presentation type in CLIM)
+   that elicits a string from the user, perhaps because it already knows that
+   the value-type has to be a string.  If it does this, it will have to
+   quote the string before it passes it to \kfn{coerce-to-kb-value} or, of
+   course, not pass it to \kfn{coerce-to-kb-value} at all.
+
+   Given a \karg{string-or-value} and a \karg{target-context}, returns three
+   values.
+  \begin{enumerate}
+  \item \karg{result-of-read} -- the result of reading from the string or
+         value, interpreting objects in the \karg{target-context} for the
+         \karg{kb}
+  \item \karg{success-p} -- \false\ if an error occurred during the
+         coercion, and \true\ otherwise
+  \item \karg{completions-alist} -- an association list of possible
+         completions
+  \end{enumerate}
+  The first value returned (\karg{result-of-read}) will be an entity such
+  as a string, number, symbol, list (possibly containing other such values),
+  or frame.
+
+  \karg{Target-context} is one of \{{\tt :frame}, {\tt :class},
+  {\tt :slot}, {\tt :individual}, {\tt :facet}, {\tt :value}\} and
+  identifies the way in which the value to be extracted from
+  \karg{string-or-value} is to be interpreted.
+  \bitem
+  \item {\tt :frame} -- It is to be used as a \karg{frame} argument to
+  an OKBC operation.  It will be expected to resolve to a frame.
+  \item {\tt :slot} -- It is to be used as a \karg{slot} argument to
+  an OKBC operation.  It will be expected to resolve to a slot name if slots
+  are not represented as frames in \karg{kb}, or to a slot frame if slots
+  are represented as frames.
+  \item {\tt :facet} -- It is to be used as a \karg{facet} argument to
+  an OKBC operation.  It will be expected to resolve to a facet name if facets
+  are not represented as frames in \karg{kb}, or to a facet frame if facets
+  are represented as frames.
+  \item {\tt :class} -- It is to be used as a \karg{class} argument to
+  an OKBC operation.  It will be expected to resolve to a class name if classes
+  are not represented as frames in \karg{kb}, or to a class frame if classes
+  are represented as frames.
+  \item {\tt :individual} -- It is to be used as an \karg{individual}
+  argument to an OKBC operation.  It will be expected to resolve to an
+  individual, which may or may not be a frame.
+  \item {\tt :value} -- it is to be used as a \karg{value} argument to
+  an OKBC operation, such as \kfn{put-slot-value}.
+  \eitem
+  The \karg{frame-action} argument
+  controls how the reading process interprets entities that can be interpreted
+  as frames.  The \karg{result-of-read} value is \false\ if an
+  error occurs.  The third value returned (\karg{completions-alist}) is
+  \false\ if an error occurs, or otherwise is an association list of
+  the form
+  \begin{verbatim}
+  ((<<string1>> <<substring1>> <<frame1>> <<frame2>>... <<frameN>>)
+   (<<string2>> ....) ...)
+  \end{verbatim}
+  where {\tt <<stringX>>} are strings found in \karg{string-or-value}
+  that match the frames {\tt<<frame1>> ... <<frameN>>}
+  (possibly by using any specified wildcards), and \verb|<<substringX>>|
+  are the corresponding
+  longest matching initial substrings for each {\tt<<stringX>>} (see the
+  specification of \kfn{get-frames-matching}).
+  \bitem
+  \item \karg{Wildcards-allowed-p}
+    --- has the same meaning as in \kfn{get-frames-matching}.  Wildcards are
+        interpreted piecewise for the components extracted from
+        \karg{string-or-value}.  Thus, {\tt "(fr* j*)"} and
+        {\tt ("fr*" "j*")} both denote a list
+        expression with two wildcarded components, and would match
+        \verb|(fred joe)|.
+  \item \karg{Force-Case-Insensitive-P}
+    --- when \true\ causes frame identification comparison to be
+        case-insensitive, irrespective of the preferred case sensitivity of the
+        \karg{KB} itself.
+  \item \karg{Error-p}
+    --- when \true\ will signal a \kcond{kb-value-read-error} error if a
+        problem arises during the reading process, for example, due to
+        mismatched parentheses.
+  \item\karg{Frame-action}
+    --- is a keyword from the following list:
+        \bitem
+        \item {\tt :error-if-not-unique}
+          --- If any substring is found that matches more than one frame then
+            signal a \kcond{not-unique-error} error.
+        \item {\tt :do-not-coerce-to-frames}
+          --- Substrings of \karg{string-or-value} (if a string), or strings
+              and symbols in \karg{string-or-value} (if a nonstring) that
+              match frames are not converted into frames, but may be mapped
+              into strings or symbols.
+        \item {\tt :must-name-frames}
+          --- Any symbol or string value must be coercible to a frame.  If it
+              is not, a \kcond{not-coercible-to-frame} error is signaled.
+        \item {\tt :options-if-not-unique}
+          --- For each ambiguous frame reference in \karg{string-or-value},
+              give the possible matches in an entry in the
+              \karg{completions-alist} returned value.
+        \eitem
+  \eitem
+  For example, if in a KB there are frames called {\tt "FRED"},
+  {\tt "FREDDY"}, and {\tt "FRESH"} and the call
+  \begin{verbatim}
+  (coerce-to-kb-value "fr*" :frame-action :options-if-not-unique)
+  \end{verbatim}
+  is made, the values returned would be
+  \begin{enumerate}
+  \item \false  --- The coercion could not complete because of
+  the ambiguity.
+  \item \true --- The operation completed without error.
+  \item {\tt (("FR*" "FRE" FRED FREDDY FRESH))} --- Only one ambiguous
+         reference was found, and for that the longest matching substring for
+         the pattern {\tt "FR*"} is {\tt "FRE"}, and the matching frames
+         are \{FRED, FREDDY, FRESH\}.
+  \end{enumerate}
+  See also \kfn{get-frames-matching}, which is called to identify frames.
+\end{okbcop}
+
+\begin{okbcop}{coerce-to-slot}{ thing \&key kb (error-p \true) kb-local-only-p} { slot slot-found-p } { O } { R } {  }
+Coerces \karg{thing} to a slot.  This operation returns two values.
+   \bitem
+   \item \karg{slot} -- If \karg{thing} identifies a slot for \karg{kb},
+                           then this value is the slot so identified, or
+                           \false otherwise.
+   \item \karg{slot-found-p} -- If the slot is found then \true,
+                                   otherwise \false.
+   \eitem
+   If \karg{error-p} is \true and the slot is not found, then a
+   \kcond{slot-not-found} error is signaled.
+
+   It is an error to call \kfn{coerce-to-slot} with \karg{error-p} being
+   \true, and with a value of \karg{thing} that does not uniquely identify
+   a slot.  If this happens, a \kcond{not-unique-error} error should be
+   signaled.
+
+   Note that in some KRS, \false\ may be a valid slot.  No portable
+   program may assume that a returned value of \false\ for the first
+   (\karg{slot}) returned value implies that \karg{slot-found-p} is \false.
+\end{okbcop}
+
+\begin{okbcop}{coercible-to-frame-p}{ thing \&key kb kb-local-only-p} { boolean } { O } { R } {  }
+Returns \true\ when \karg{thing} can be coerced to a frame
+   by using \kfn{coerce-to-frame}, and otherwise returns \false.
+\end{okbcop}
+
+\begin{okbcfun}{connection-p}{ thing} { boolean } {   } { R } {  }
+Is \true\ if \karg{thing} is a connection, and \false\ otherwise.
+\end{okbcfun}
+
+\begin{okbcfun}{continuable-error-p}{ thing} { boolean } {   } { R } {  }
+Returns \true\ if \karg{thing} is a continuable error, and \false\
+   otherwise.  An error is said to be continuable only if the state of the KB
+   is known not to have been damaged by the error in such a way that the
+   behavior of subsequent OKBC operations becomes undefined.  Thus, although
+   the signalling of a continuable error will interrupt any processing
+   currently being performed, subsequent OKBC calls will be well defined.
+   After a noncontinuable error, the state of the KB and the behavior of the
+   KRS and application are undefined.
+\end{okbcfun}
+
+\begin{okbcop}{copy-frame}{ frame new-name \&key kb (to-kb (current-kb)) (error-p \true) (missing-frame-action :stop) frame-handle-mapping-table kb-local-only-p} { copy-of-frame allocated-frame-handle-alist } { O } { W } {  }
+Copies \karg{frame} from \karg{kb} to \karg{to-kb}.  The name of the new
+   frame in \karg{to-kb} will be \karg{new-name}.  \karg{Kb} and
+   \karg{to-kb} may be the same KB.  If the {\tt :frame-names-required}
+   behavior has the value \false\ for \karg{kb}, \karg{new-name} may be
+   \false.
+ 
+   If \karg{error-p} is \false, catches errors that occur, and 
+   continues copying to the extent possible.
+
+   The \karg{frame} may contain references to other frames that do not
+   reside in \karg{to-kb} -- for example,
+   its types, superclasses, or slot values.
+   \karg{Missing-frame-action} controls the behavior of \kfn{copy-frame} 
+   in this case.  It can take one of the following values:
+
+   {\tt :stop} -- Stop copying and signal a \kfn{frames-missing} error,
+                   depending on the value of \karg{error-p}.
+
+   {\tt :abort} -- Abort copying \karg{frame}, leaving the state of
+                    \karg{to-kb} unchanged.  Any side effects of
+                    \kfn{copy-frame} that have already been performed will
+                    be undone.  Signals a \kfn{frames-missing} error,
+                    depending on the value of \karg{error-p}.
+
+   {\tt :allocate} -- Allocate frame handles for any frame references that 
+                       do not yet exist in \karg{to-kb}.
+
+   {\tt :ignore} - Continue with the copying of the current frame, but
+                    ignore and remove any references to missing frames.
+
+   \karg{Frame-handle-mapping-table}, if supplied, is a hash table that maps
+   the frame handles in the \karg{kb} to frame handles in \karg{to-kb}, and
+   is used during compound copy operations, such as \kfn{copy-kb}.  If
+   copy-frame fails to find a referenced frame in \karg{to-kb}, it looks up
+   the reference in the \karg{Frame-handle-mapping-table} before allocating 
+   a new frame handle.
+
+   It returns two values.
+   \begin{enumerate}
+   \item \karg{Copy-of-frame} -- Identifies the newly created frame in
+      \karg{to-kb}.  If \karg{copy-frame} terminates because some frames were
+      missing, and \karg{missing-frame-action} was {\tt :abort},
+      \false\ is returned as a value of \karg{copy-of-frame}.
+   \item \karg{Allocated-frame-handle-alist} -- a list of 2-tuples\\ {\tt
+      (frame-handle-in-kb frame-handle-in-to-kb)} that maps frame handles in
+      \karg{kb} to frame handles in \karg{to-kb} that were allocated during
+      the copying process.  These mappings will also have been entered in
+      \karg{frame-handle-mapping-table} if it was supplied.
+   \end{enumerate} 
+\end{okbcop}
+
+\begin{okbcop}{copy-kb}{ from-kb to-kb \&key (error-p \true) (missing-frame-action :stop) kb-local-only-p} { \void } { O } { W } {  }
+Copies the frames in \karg{from-kb} into \karg{to-kb}.
+   The interpretation of \karg{Missing-frame-action} is the same as
+   for \kfn{copy-frame}.  If \karg{error-p} is \false, catches errors that
+   occur, and attempts to continue with copying.  Returns no values.
+
+   Note that the behavior {\tt are-frames} might have different values for
+   the two KBs.  Thus, if slots are represented as frames in
+   \karg{kb}, but are not represented as frames in \karg{to-kb}, the frames
+   representing slots in \karg{kb} will not be copied.
+\end{okbcop}
+
+\begin{okbcop}{create-class}{ name \&key kb direct-types direct-superclasses (primitive-p \true) doc template-slots template-facets own-slots own-facets handle pretty-name kb-local-only-p} { new-class } { M } { W } {  }
+Creates a class called \karg{name} as a direct subclass
+   of the list of classes (or class) \karg{direct-superclasses}.  For KRSs
+   that support the distinction between primitive and nonprimitive concepts,
+   \karg{primitive-p} specifies the primitiveness of the created class.
+   The parameters \karg{doc}, \karg{template-slots},
+   \karg{template-facets}, \karg{own-slots}, \karg{own-facets}, 
+   \karg{direct-types}, \karg{handle}, and \karg{pretty-name} have the
+   same meaning as for \kfn{create-frame}.  For KRSs that support metaclasses,
+   the \karg{direct-types} argument specifies the type(s) of the class
+   to be created (i.e., metaclasses).  Returns the \karg{new-class}.
+\end{okbcop}
+
+\begin{okbcop}{create-facet}{ name \&key kb frame-or-nil slot-or-nil (slot-type :own) direct-types doc own-slots own-facets handle pretty-name kb-local-only-p} { new-facet } { M } { W } {  }
+Creates a facet called \karg{name} on \karg {slot-or-nil} that is
+   associated with \karg{frame-or-nil}.  If \karg{frame-or-nil} is \false,
+   the facet's frame domain is unconstrained (i.e., the facet may apply to
+   \karg{slot-or-nil} in any frame).
+
+   If \karg{slot-or-nil} is \false, the slot domain of the facet is
+   unconstrained (i.e., the facet may apply to all slots in
+   \karg{frame-or-nil}, and if \karg{frame-or-nil} is also \false, may
+   apply to all slots in all frames.)
+   If {\tt :facet} is a member of the behavior values for the
+   {\tt :are-frames} behavior, \karg{direct-types},
+   \karg{doc}, \karg{own-slots}, \karg{own-facets}, \karg{handle} and
+   \karg{pretty-name} have the same interpretation as for \kfn{create-frame}.
+   If either \karg{frame-or-nil} or \karg{slot-or-nil} is \false,
+   \karg{slot-type} is ignored.  If either of the \karg{frame-or-nil} or
+   \karg{slot-or-nil} arguments is
+   \false, and the KRS does not support facets with unconstrained domains,
+   a \kcond{domain-required} error will be signaled.
+   If facets must be uniquely named and a facet named \karg{name} already
+   exists, a \kcond{facet-already-exists} error will be signalled.
+   Returns the \karg{new-facet}.
+\end{okbcop}
+
+\begin{okbcop}{create-frame}{ name frame-type \&key kb direct-types direct-superclasses doc template-slots template-facets own-slots own-facets (primitive-p \true) handle pretty-name kb-local-only-p} { new-frame } { O } { W } {  }
+Creates a new frame called \karg{name} of type \karg{frame-type}.
+   \karg{Frame-type} is one of \{{\tt :class}, {\tt :slot}, {\tt :facet},
+   {\tt :individual}\}.  A call to \karg{create-frame} is equivalent to
+   a call to one of \kfn{create-class}, \kfn{create-individual},
+   \kfn{create-slot}, or \kfn{create-facet} passing through the appropriate
+   arguments, depending on the value of \karg{frame-type}.  If
+   \karg{frame-type} is either {\tt :slot} or {\tt :facet}, the slot
+   (or facet) created will have unconstrained domains.
+
+   If the {\tt :frame-names-required} behavior has the value \false\ for
+   \karg{kb}, \karg{new-name} may be \false.  If the
+   {\tt :frame-names-required} behavior is \true\ for \karg{kb},
+   \karg{new-name} must uniquely name the new frame, and a
+   \kcond{frame-already-exists} error will be signaled if \karg{new-name}
+   is coercible to an existing frame.
+
+   \karg{Direct-types} is a list of classes (or class) of which this new
+   frame is to be a direct instance.
+   \karg{Direct-superclasses} is a list of classes (or class) of which the
+   new frame is to be a direct subclass.
+   \karg{Doc}, if specified, is a string documenting the new frame.
+   \karg{Pretty-name} is the pretty-name of the new frame.  Returns
+   \karg{new-frame}, which identifies the newly created frame.
+
+   \karg{Template-slots} and \karg{own-slots} each take a list of slot 
+   specifications.  A slot specification assigns a set of values to a
+   slot.  The syntax of a slot specification is
+   \begin{verbatim}
+        slot-spec ::= (slot slot-value-spec*)
+        slot-value-spec ::= default-slot-value | slot-value
+        default-slot-value ::= (:default slot-value)
+   \end{verbatim}
+   where {\tt slot} identifies a slot, or names a slot to be created.  If
+   {\tt slot} already exists, it is simply attached to the new frame, if
+   it does not currently exist, it is created and attached to the new frame.
+   Each {\tt slot-value} is an entity suitable as a value of
+   the specified slot.  Default slot values are identified by appearing in
+   a list whose first element is {\tt :default}.  Template slots are only
+   allowed for class frames -- that is, when \karg{frame-type} is
+   {\tt :class}.
+   
+   \karg{Template-facets} and \karg{own-facets} each take a list of facet 
+   specifications, which can assign a set of facet values.  A facet
+   specification has the form:
+   \begin{verbatim}
+        facet-spec ::= (slot fspec*)
+        fspec ::= (facet facet-value-spec*)
+        facet-value-spec ::= default-facet-value | facet-value
+        default-facet-value ::= (:default facet-value)
+   \end{verbatim}
+   where {\tt slot} identifies a slot, or names a slot to be created.  If
+   {\tt slot} already exists, it is simply attached to the new frame, if
+   it does not currently exist, it is created and attached to the new frame.
+   {\tt Facet} identifies a facet, or names a facet to be created.  If
+   {\tt facet} already exists, it is simply attached to \karg{slot} on
+   the new frame, if it does not currently exist, it is created and attached
+   to \karg{slot} on the new frame.  Each {\tt facet-value} is an object
+   suitable as a value of the specified facet.  Default facet values are
+   identified by appearing in a list whose first element is {\tt :default}.  
+   Template facets are allowed only for class frames -- that is, when
+   \karg{frame-type} is {\tt :class}.
+
+   All slot and facet names in slot and facet specs are defined in a unified
+   namespace that operates across all of the {\tt :own-slots},
+   {\tt :own-facets}, {\tt :template-slots}, and {\tt :template-facets}
+   arguments.  Thus, in the following  example, all occurrences of the slot
+   {\tt s1} and the facet {\tt f1} denote the same slot and facet
+   respectively.
+
+   The values specified in slot and facet specifications are interpreted
+   conjunctively.  Thus, in the following example, the slot
+   {\tt s1} will have three values; 42, 100 and 2001, rather than just
+   the value 2001.
+   \begin{verbatim}
+      (create-frame 'foo :class
+                    :own-slots '((s1 42 100)
+                                 (s1 2001))
+                    :own-facets '((s1 (:value-type :integer))
+                                  (s1 (f1 "Own hello")))
+                    :template-facets '((s1 (f1 "Template hello"))))
+   \end{verbatim}
+
+   \karg{Primitive-p} may be used only when creating a class.
+   When \karg{primitive-p} is \false, the KRS will make
+   the class nonprimitive, if possible.
+
+   \karg{Handle}, if supplied, is a previously allocated frame handle for the
+   new frame to be created.  This is used by network applications, and
+   operations such as \kfn{copy-frame} and \kfn{copy-kb}.  (See
+   \kfn{allocate-frame-handle}.)  It is an error to supply a value for the
+   \karg{handle} argument that is already coercible to a frame.  If this
+   occurs, a \kcond{frame-already-exists} error should be signaled.
+
+   Note that if \karg{frame-type} is either {\tt :slot} or {\tt :facet},
+   then a {\em frame} might not be created because slots (or facets) might not
+   be represented as frames in \karg{kb}.  If this is the case, and slots
+   (or facets) with unconstrained domains are not supported, a
+   \kcond{domain-required} error will be signaled.
+
+   It is an error to supply \karg{own-slots}, \karg{own-facets} if a frame
+   will not be created, according to the {\tt :are-frames} behavior, and a
+   \kcond{not-a-frame-type} error should be signaled.
+\end{okbcop}
+
+\begin{okbcop}{create-individual}{ name \&key kb direct-types doc own-slots own-facets handle pretty-name kb-local-only-p} { new-individual } { M } { W } {  }
+Creates an individual called \karg{name}.  The one or more classes 
+   that are the direct types of the instance are given by
+   \karg{direct-types}.  
+   The parameters \karg{doc}, \karg{own-slots}, \karg{own-facets},
+   \karg{handle}, and \karg{pretty-name} all have the same meaning as for
+   \kfn{create-frame}.  Returns \karg{new-individual}, which identifies the
+   new frame.
+\end{okbcop}
+
+\begin{okbcop}{create-kb}{ name \&key kb-type kb-locator initargs (connection (local-connection))} { new-kb } { O } { W } {  }
+Creates a new KB (see Section~\ref{sec:kb}) called \karg{name} whose
+   implementation type is \karg{kb-type}.  \karg{Kb-type} identifies the
+   underlying KRS that will be used to manipulate the KB.  Returns the
+   \karg{new-kb}.
+
+   Note that this operation creates a new {\em in-memory} KB; it does
+   not necessarily create a persistent version of the knowledge base on
+   external storage until \kfn{save-kb} or \kfn{save-kb-as} is called.
+
+   The \karg{name} of the KB is a symbol.
+
+   \karg{kb-locator}, if supplied, describes the new KB.  Kb-locators can be
+   created using \kfn{create-kb-locator}.
+   If \karg{kb-locator} is not supplied, a default kb-locator will be assigned
+   by the KRS for \karg{kb-type} and \karg{connection}.
+
+   \karg{Initargs} is a list of initializations for the new KB as
+   required by the \karg{kb-type}.  The mechanism underlying the
+   implementation of \kfn{create-kb} is not specified and the user cannot,
+   therefore, rely on any underlying native object system initialization
+   protocol being invoked.  The format and content of the initialization
+   arguments will be documented with the \karg{kb-type}.  For example,
+   if the KB being created allows the specification of parent (included) KBs,
+   a set of initialization arguments might be as follows:
+   \begin{verbatim}
+     (list :parent-kbs (list my-kb))
+   \end{verbatim}
+   Any KB created with \kfn{create-kb} can be found by using
+   either \kfn{find-kb} or \kfn{find-kb-of-type}, and it is included in
+   the values returned by \kfn{get-kbs}.  A KB created with
+   \kfn{create-kb} is a frame object in the \kfn{meta-kb}.
+
+   Implementation note:  It is the responsibility of the implementations of
+   \kfn{create-kb} to register new KBs in the Meta KB (for example, by using
+   \kfn{put-instance-types} to tell the Meta KB that the new KB is an instance
+   of \karg{kb-type}.
+\end{okbcop}
+
+\begin{okbcop}{create-kb-locator}{ thing \&key kb-type (connection (local-connection))} { kb-locator } { M } { R } {  }
+Returns a new \karg{kb-locator} associated with \karg{thing} for a kb of
+   type \karg{kb-type}.  If \karg{thing} is a KB, the kb-locator created is
+   associated with that KB in the \kfn{meta-kb}.  It is an error for
+   \karg{thing} to be an incomplete description of a kb-locator.
+
+   \karg{Thing} is a \karg{kb-type} and \karg{connection} specific
+   specification of a KB location sufficient to create and fully
+   initialize a KB locator.
+
+   For example, \karg{thing} may identify the pathname for a KB that
+   resides in a disk file.  Each back-end implementation must provide
+   documentation for all values of \karg{thing} that the \karg{kb-type}
+   and \karg{connection} will accept other than KBs, which are always
+   accepted.
+
+   Implementation note: Back end implementators may use any legal
+   OKBC value entity for the \karg{thing} argument as long as it
+   consists only of the primitive data types: integer, float, string,
+   symbol, true, false, or list.  Values of \karg{thing} of these data
+   types will always be transmitted by networked implementations without
+   substitution of remote references.  For example, the following
+   could be a legal value for for the \karg{thing} argument for some
+   \karg{kb-type}
+   \begin{verbatim}
+     (:db-file "/projects/foo/my-database.data" :db-type :oracle :name my-kb)
+   \end{verbatim}
+\end{okbcop}
+
+\begin{okbcop}{create-procedure}{ \&key kb arguments body environment} { procedure } { O } { R } {  }
+Defines and returns a procedure in the OKBC procedure language.  The
+   arguments are defined as follows:
+   \bitem
+   \item \karg{arguments} -- the argument list for the procedure.  The
+          argument list can be expressed in one of three forms.
+          \begin{enumerate}
+          \item A list of symbols
+          \item A string that is the printed representation of a list
+                 of symbols
+          \item \false -- the null argument list
+          \end{enumerate}
+          For example, the argument lists {\tt (a b c)}, and
+          {\tt "(a b c)"} are equivalent, as are {\tt "()"} and \false.
+          The string representation is provided for language bindings in
+          which it may be inconvenient to create lists of symbols.
+   \item \karg{body} -- The body for the procedure expressed in the syntax
+          defined in section~\ref{ch:funspecs}.  The body can be
+          provided in one of two forms:
+          \begin{enumerate}
+          \item A {\tt body-form}
+          \item A list of {\tt body-form}s
+          \item A string that is the printed representation of a sequence
+                 of {\tt body-form}s
+          \end{enumerate}
+          For example, the following procedure bodies are equivalent:
+          \begin{verbatim}
+          ((put-slot-values frame slot values :slot-type :own)
+           (get-slot-value frame slot :slot-type :own))
+          \end{verbatim}
+          and
+          \begin{verbatim}
+          "(put-slot-values frame slot values :slot-type :own)
+           (get-slot-value frame slot :slot-type :own)"
+          \end{verbatim}
+          The string representation is provided for language bindings in
+          which it may be inconvenient to create the complex list structure
+          required in the procedure language.
+   \item \karg{environment} -- A predefined set of bindings between variables
+          mentioned in the procedure \karg{body} and their associated values.
+          The environment is a list of 2-tuples of the form
+          \begin{verbatim}
+          ((var1 value1)
+           (var2 value2)
+           ....
+           (varn valuen))
+          \end{verbatim}
+          where {\tt varN} are the variables mentioned in \karg{body}, and
+          {\tt valueN} are the associated values for the variables.
+   \eitem
+   A procedure is a legal argument to any OKBC operator in a position that
+   expects a procedure.
+   For example,
+   \begin{verbatim}
+    (call-procedure
+      #'(lambda (frame) (get-frame-pretty-name frame :kb kb))
+      :kb kb :arguments (list my-frame))
+   \end{verbatim}
+   and
+   \begin{verbatim}
+    (call-procedure
+      (create-procedure :arguments '(frame)
+                        :body '(get-frame-pretty-name frame :kb kb))
+      :kb my-kb :arguments (list my-frame))
+   \end{verbatim}
+   are semantically identical.
+
+   The main differences between
+   procedures and lambda expressions in Lisp are as follows:
+   \benum
+   \item All bindings in procedures are dynamic, not lexical.
+   \item Only a restricted set of operations is available in procedures.
+   \item Lambda defines a {\em lexical} closure over any free references.
+     \karg{procedure} defines a {\em dynamic} closure over its free
+     references.  The environment of the procedure is
+     prefilled with bindings for the names of the arguments to
+     the OKBC operator in which it is being executed.  In the above
+     case, \karg{call-procedure} takes arguments \karg{KB},
+     \karg{Arguments}, and \karg{Kb-local-only-p}
+     which will take on the values \code{my-kb}, \code{(my-frame)}, and
+     \code{nil} (the default), respectively.
+   \item Lambda expressions are meaningful only within the Lisp system
+     in which the OKBC system is running.  procedures are
+     executable on any (possibly network-connected) OKBC KB.
+   \item procedures are package-insensitive in all respects
+   other than quoted constants.
+   \eenum
+
+   Note that persistent side effects to \code{<<var1>>} and \code{<<var2>>}
+   cannot be made from within the procedure.  The arguments and variables
+   mentioned in the procedure exist in a different space from the variables
+   in a user program.  The only ways to establish associations between values
+   in a user program and variables in a procedure are through the use of the
+   \karg{environment} argument to \kfn{create-procedure}, or by the
+   \karg{arguments} argument to \kfn{call-procedure}.
+\end{okbcop}
+
+\begin{okbcop}{create-slot}{ name \&key kb frame-or-nil (slot-type :all) direct-types doc own-slots own-facets handle pretty-name kb-local-only-p} { new-slot } { M } { W } {  }
+Creates a slot called \karg{name} in the frame specified by
+   \karg{frame-or-nil}.  Returns the \karg{new-slot}.  If the slot to be
+   created is to be represented as a frame ({\tt :slot} is a member of the
+   {\tt :are-frames} behavior), \karg{direct-types},
+   \karg{doc}, \karg{own-slots}, \karg{own-facets}, \karg{handle}, and
+   \karg{pretty-name} have the same interpretation as for \kfn{create-frame}.
+   If \karg{frame-or-nil} is \false, \karg{slot-type} is ignored, and the
+   slot's domain is ignored.  If the
+   \karg{frame} argument is \false, and the KRS does not support slots with
+   unconstrained domains, a \kcond{domain-required} error will be signaled.
+   If slots must be uniquely named and a slot named \karg{name} already
+   exists, a \kcond{slot-already-exists} error will be signalled.
+\end{okbcop}
+
+\begin{okbcfun}{current-kb}{ } { kb } {   } { R } {  }
+Returns the current KB.  The current KB is set using \kfn{goto-kb}.
+\end{okbcfun}
+
+\begin{okbcop}{decontextualize}{ value from-context \&key kb} { decontextualized-value } { M } { R } {  }
+Given a value from \karg{kb}, returns a
+   \karg{decontextualized-value}, which contains no KB or KRS-specific
+   data structures.  In particular,
+   any references to frame objects will be replaced with KRS-independent frame
+   handles (produced using \karg{frs-independent-frame-handle}), and all
+   values outside the standard set of OKBC data types that have
+   no interpretation outside \karg{kb} will be
+   replaced with remote-value references.  Any frame references that are
+   the result of an KRS-specific mapping of a canonically named frame will be
+   replaced with the canonical name.  Thus, for example, a facet
+   frame called {\tt cardinality-of-slot} would be mapped back to a frame
+   handle for the canonical facet-reference {\tt :cardinality}.
+
+   \karg{From-context} is one of \{{\tt :frame}, {\tt :slot},
+   {\tt :facet}, {\tt :value}\}.  It identifies the context of the argument
+   to be decontextualized.  For example, if the
+   decontextualization is to be applied to a slot value, then
+   \karg{from-context} should be {\tt :value}.  If the
+   decontextualization is to be applied to a slot (i.e., something that would
+   be used as a \karg{slot} argument to an operation such as
+   \kfn{get-slot-values}), then \karg{from-context} should be {\tt :slot}.
+
+   It is not anticipated that this operation will be called by OKBC
+   applications, but rather by OKBC back end implementations.  It is used to
+   ensure correct operation in networked applications and during communication
+   between KBs of different kb-types.
+\end{okbcop}
+
+\begin{okbcop}{delete-facet}{ facet \&key kb kb-local-only-p} { \void } { M } { W } {  }
+Deletes the facet from all frames containing that facet, and the facet frame
+   itself if the facet is represented as a frame. As a result of
+   \kfn{delete-facet}, \karg{facet} will return \false\ for calls to
+   \kfn{facet-p}, and \karg{facet} is not returned by any of the
+   facet-returning operations, such as \kfn{get-kb-facets} and
+   \kfn{get-slot-facets}.  It is no longer possible to access any values of
+   \karg{facet}.  Returns no values.
+
+   Many implementations may, in fact, delete the values associated the
+   facet in frames as well as making the facet no longer facet-p.  Other
+   implementations will simply make these values inaccessible.
+\end{okbcop}
+
+\begin{okbcop}{delete-frame}{ frame \&key kb kb-local-only-p} { \void } { M } { W } {  }
+Deleting a frame from a KB is difficult to specify in a portable way.
+   After calling \kfn{delete-frame}, the \karg{frame} argument
+   will no longer be a valid frame reference (\karg{frame-p} will return
+   \false).  As a consequence, the value of \karg{frame} will
+   not be a valid argument to any OKBC operation requiring a frame reference,
+   such as \kfn{get-frame-slots}.  It will no longer be possible to access
+   any of the properties (e.g., slots, facets) of
+   \karg{frame}.  Implementations will delete at least the
+   properties documented as being returned by \kfn{get-frame-details}
+   from the \karg{kb}.
+
+   Note that after a call to \kfn{delete-frame}, references
+   to \karg{frame} may still remain in the KB.  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{delete-slot}{ slot \&key kb kb-local-only-p} { \void } { M } { W } {  }
+Deletes the slot from all frames containing that slot, and the slot frame
+   itself if the slot is represented as a frame. As a result of
+   \kfn{delete-slot}, \karg{slot} will return \false\ for calls to
+   \kfn{slot-p}, and \karg{slot} is not returned by any of the
+   slot-returning operations, such as \kfn{get-kb-slots} and
+   \kfn{get-frame-slots}.  It is no longer possible to access any values of
+   \karg{slot} or any facets or facet values on \karg{slot}.
+   Returns no values.
+
+   Many implementations may, in fact, delete the values associated the
+   slot in frames as well as making the slot no longer slot-p.  Other
+   implementations will simply make these values inaccessible.
+\end{okbcop}
+
+\begin{okbcop}{detach-facet}{ frame slot facet \&key kb (slot-type :own) kb-local-only-p} { \void } { M } { W } {  }
+Removes any explicit association between the \karg{facet} and
+   \karg{slot} on \karg{frame}.  As a result, \karg{facet} is not returned
+   by \kfn{get-slot-facets} at inference-level {\tt :direct} unless there are
+   facet values associated with \karg{facet} in \karg{slot} on
+   \karg{frame}.
+\end{okbcop}
+
+\begin{okbcop}{detach-slot}{ frame slot \&key kb (slot-type :own) kb-local-only-p} { \void } { M } { W } {  }
+Removes any explicit association between the \karg{slot} and
+   \karg{frame}.  As a result, \karg{slot} is not returned by
+   \kfn{get-frame-slots} at inference-level {\tt :direct} unless there are
+   slot or facet values associated with \karg{slot} in \karg{frame}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-all-connections}{ } { enumerator } {   } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{all-connections}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-ask}{ query \&key kb (reply-pattern query) (inference-level :taxonomic) (number-of-values :all) (error-p \true) where timeout (value-selector :either) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{ask}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-call-procedure}{ procedure \&key kb arguments} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{call-procedure}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-class-instances}{ class \&key kb (inference-level :taxonomic) (number-of-values :all) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-class-instances}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-class-subclasses}{ class \&key kb (inference-level :taxonomic) (number-of-values :all) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-class-subclasses}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-class-superclasses}{ class \&key kb (inference-level :taxonomic) (number-of-values :all) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-class-superclasses}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-facet-values}{ frame slot facet \&key kb (inference-level :taxonomic) (slot-type :own) (number-of-values :all) (value-selector :either) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-facet-values}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-facet-values-in-detail}{ frame slot facet \&key kb (inference-level :taxonomic) (slot-type :own) (number-of-values :all) (value-selector :either) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-facet-values-in-detail}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-frame-slots}{ frame \&key kb (inference-level :taxonomic) (slot-type :all) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-frame-slots}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-frames-matching}{ pattern \&key kb (wildcards-allowed-p \true) (selector :all) force-case-insensitive-p kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-frames-matching}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-instance-types}{ frame \&key kb (inference-level :taxonomic) (number-of-values :all) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-instance-types}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-kb-classes}{ \&key kb (selector :system-default) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-kb-classes}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-kb-direct-children}{ \&key kb} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-kb-direct-children}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-kb-direct-parents}{ \&key kb} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-kb-direct-parents}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-kb-facets}{ \&key kb (selector :system-default) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-kb-facets}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-kb-frames}{ \&key kb kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-kb-frames}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-kb-individuals}{ \&key kb (selector :system-default) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-kb-individuals}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-kb-roots}{ \&key kb (selector :all) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-kb-roots}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-kb-slots}{ \&key kb (selector :system-default) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-kb-slots}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-kb-types}{ \&key (connection (local-connection))} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-kb-types}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-kbs}{ \&key (connection (local-connection))} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-kbs}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-kbs-of-type}{ \&key kb-type (connection (local-connection))} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-kbs-of-type}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-list}{ list} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements of the \karg{list}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-slot-facets}{ frame slot \&key kb (inference-level :taxonomic) (slot-type :own) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-slot-facets}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-slot-values}{ frame slot \&key kb (inference-level :taxonomic) (slot-type :own) (number-of-values :all) (value-selector :either) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-slot-values}.
+\end{okbcop}
+
+\begin{okbcop}{enumerate-slot-values-in-detail}{ frame slot \&key kb (inference-level :taxonomic) (slot-type :own) (number-of-values :all) (value-selector :either) kb-local-only-p} { enumerator } { O } { R } {  }
+Returns an enumerator for the elements returned by 
+\kfn{get-slot-values-in-detail}.
+\end{okbcop}
+
+\begin{okbcop}{eql-in-kb}{ arg0 arg1 \&key kb kb-local-only-p} { boolean } { O } { R } {  }
+Returns \true\ iff \karg{arg0} and \karg{arg1}
+   identify the same frame in \karg{kb}, or are the same object (==, EQLness),
+   and otherwise returns \false.
+   \karg{Arg0} and \karg{arg1} may be any combination of objects coercible
+   to frames.
+\end{okbcop}
+
+\begin{okbcop}{equal-in-kb}{ arg0 arg1 \&key kb kb-local-only-p} { boolean } { O } { R } {  }
+Returns \true\ iff \karg{arg0} and \karg{arg1}
+   identify the same frame in \karg{kb}, or are the same object (==, EQLness),
+   or they are strings containing the same characters (case sensitively), or
+   both are lists with the same structure, and each of the elements
+   recursively is true according to \kfn{equal-in-kb}.  Returns \false\
+   otherwise.
+\end{okbcop}
+
+\begin{okbcop}{equalp-in-kb}{ arg0 arg1 \&key kb kb-local-only-p} { boolean } { O } { R } {  }
+Returns \true\ iff \karg{arg0} and \karg{arg1}
+   identify the same frame in \karg{kb}, or are the same object (==, EQLness),
+   or they are strings containing the same characters (case-insensitively), or
+   both are lists with the same structure, and each of the elements
+   recursively is true according to \kfn{equalp-in-kb}.  Returns
+   \false\ otherwise.
+\end{okbcop}
+
+\begin{okbcop}{establish-connection}{ connection-type \&key initargs} { connection } { O } { R } {  }
+Establishes and returns a connection of type \karg{connection-type}.
+   \karg{Initargs} are initialization arguments for the connection if one
+   is created, are used to initialize the connection in a manner
+   specific to the connection type, and are documented with the definition
+   of the connection type itself.  No guarantee is made that the connection
+   will be newly created.  An existing, open connection with the same
+   initializations may be returned.
+
+   For example, to initialize some form of network connection, the value of
+   \karg{initargs} might be a property list of the form
+   \verb|(:host "my-host" :port 1234 :username "joe")|.
+
+   Although the format of \karg{initargs} is implementation-specific, OKBC
+   nevertheless mandates a set of standard names for commonly used
+   initializations.
+   \begin{itemize}
+   \item [{\tt HOST}] -- A string naming the host on which the server is
+                          to be found
+   \item [{\tt PORT}] -- An integer indicating a TCP/IP port on which the
+                          server is to be found
+   \item [{\tt USERNAME}] -- A string for the login name of the user on
+                              the OKBC server
+   \item [{\tt PASSWORD}] -- The password of the user on the server
+   \end{itemize}
+
+   Establishing a local connection requires no initialization arguments and
+   can be done more conveniently using \kfn{local-connection}.
+\end{okbcop}
+
+\begin{okbcop}{expunge-kb}{ kb-locator \&key kb-type (connection (local-connection)) (error-p \true)} { \void } { M } { W } {  }
+Given a \karg{kb-locator}, removes the KB identified by that locator
+   and any backup copies of it from permanent storage.  Returns no values.
+   Any currently open KB identified by the locator will be unaffected,
+   and may be saved to other locations using \kfn{save-kb-as}.  If
+   \karg{error-p} is \false, \kfn{expunge-kb} catches errors that
+   occur, and attempts to continue with the deletion process.
+\end{okbcop}
+
+\begin{okbcop}{facet-has-value-p}{ frame slot facet \&key kb (inference-level :taxonomic) (slot-type :own) (value-selector :either) kb-local-only-p} { boolean exact-p } { O } { R } {  }
+Returns \true\ iff the specified facet has a value for the specified slot
+   and frame, and otherwise returns \false.
+\end{okbcop}
+
+\begin{okbcop}{facet-p}{ thing \&key kb kb-local-only-p} { boolean } { M } { R } {  }
+Returns \true\ iff \karg{thing} is a facet, and \false\ otherwise.
+\end{okbcop}
+
+\begin{okbcop}{fetch}{ enumerator \&key (number-of-values :all)} { list-of-values } { O } { R } {  }
+Returns a \karg{list-of-values} of at most
+   \karg{number-of-values} values remaining in the enumerator.  If the
+   enumerator was exhausted before the call,
+   an \kcond{enumerator-exhausted} error will be signaled.  Note that unlike
+   other operations taking a \karg{number-of-values} argument, this operation
+   does not return a \karg{more-status} value.
+\end{okbcop}
+
+\begin{okbcop}{find-kb}{ name-or-kb-or-kb-locator \&key (connection (local-connection))} { kb-or-false } { O } { R } {  }
+Returns the first KB that can be found matching
+   \karg{name-or-kb-or-kb-locator}.
+   If the argument is a KB, that KB is returned.  If no matching KB can be
+   found, \karg{kb-or-false} is \false.
+\end{okbcop}
+
+\begin{okbcop}{find-kb-locator}{ thing \&key kb-type (connection (local-connection))} { kb-locator } { M } { R } {  }
+Returns the \karg{kb-locator} associated with \karg{thing} if such
+   a kb-locator exists for a KB of type \karg{kb-type}, and \false\
+   otherwise.
+
+   Always returns a kb-locator if \karg{thing} is a KB.  Implementations
+   are encouraged to accept other values for \karg{thing} such as a pathname
+   that identifies the location of the KB to the system.  Such usage is
+   convenient, but is not portable.  It is not portable for an OKBC application
+   to use anything other than a KB locator, or a KB for this argument.
+\end{okbcop}
+
+\begin{okbcop}{find-kb-of-type}{ name-or-kb \&key kb-type (connection (local-connection))} { kb-or-false } { O } { R } {  }
+If \karg{name-or-kb} is the name of a KB of type \karg{kb-type} (or a
+   subtype of \karg{kb-type}) that is
+   currently known to the system through the \karg{connection},
+   \kfn{find-kb-of-type} returns the KB.  If no such KB can be found,
+   \karg{kb-or-false} is \false.
+\end{okbcop}
+
+\begin{okbcop}{follow-slot-chain}{ frame slot-chain \&key kb (union-multiple-values \true) (inference-level :taxonomic) (value-selector :either) kb-local-only-p} { values } { O } { R } {  }
+Allows a program to traverse a chain of slot references,
+   gathering own slot values.  For example, imagine that we wish to determine
+   the sisters of the father of the mother of John.  The following two calls
+   accomplish this goal:
+   \begin{verbatim}
+   (follow-slot-chain 'john '(mother father sisters))
+	
+   (get-slot-values
+      (get-slot-value
+        (get-slot-value 'john 'mother)
+        'father)
+      'sisters)
+   \end{verbatim}
+   This operation is complicated by the fact that slots can have multiple
+   values.  For example, imagine that John has two mothers---adopted and
+   biological.  If {\tt union-multiple-values} is \false\ and a slot
+   has more than one value, a \kcond{cardinality-violation} error is signaled;
+   if \true, then the slot chain becomes a tree, and the union of
+   all values found at the leaves of the tree is returned.
+\end{okbcop}
+
+\begin{okbcop}{frame-has-slot-p}{ frame slot \&key kb (inference-level :taxonomic) (slot-type :own) kb-local-only-p} { boolean } { O } { R } {  }
+Returns \true\ iff \karg{slot} is a slot in \karg{frame},
+   otherwise returns \false.
+\end{okbcop}
+
+\begin{okbcop}{frame-in-kb-p}{ thing \&key kb kb-local-only-p} { boolean } { O } { R } {  }
+Returns \true\ when \karg{thing} is both coercible to
+   a frame, and that frame is known to be resident in \karg{kb}, and otherwise
+   returns \false.  See \kfn{get-frame-in-kb}.
+\end{okbcop}
+
+\begin{okbcop}{free}{ enumerator} { \void } { O } { R } {  }
+Indicates that the \karg{enumerator} will no longer be used.  The
+   \karg{enumerator} and any cache of unseen values may be thrown away.
+   After calling \kfn{free}, it is an error to provide \karg{enumerator}
+   as an argument to any operation, and if this is done, an
+   \kcond{object-freed} error should be signaled.  It is especially important
+   to call \kfn{free} in a network setting when a program has finished
+   with the enumerator and its values have not been exhausted, so that
+   the server can reclaim space allocated to the enumerator.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{frs-independent-frame-handle}{ frame \&key kb kb-local-only-p} { frame-handle } { O } { R } {  }
+Given a frame, returns \karg{frame-handle}, which is a KRS-independent
+   OKBC frame handle object.  \karg{Frame-handle} may now be used in network
+   applications to refer to \karg{frame} or in communication between KBs.
+   The correspondence between \karg{frame} and \karg{frame-handle} is
+   maintained, so that subsequent calls with the same frame will return the
+   same frame-handle.
+
+   It is not anticipated that this operation will ever be called by user
+   applications, but must be used by back ends to implement
+   \kfn{decontextualize}.
+
+   Note:  This operation is named \kfn{frs-independent-frame-handle} for
+   historical reasons.  Frame Representation Systems are now uniformly
+   called Knowledge Representation Systems with the exception of in the names
+   of this operator and \kfn{frs-name}.
+\end{okbcop}
+
+\begin{okbcop}{frs-name}{ \&key kb-type (connection (local-connection))} { krs-name } { O } { R } {  }
+Returns the \karg{krs-name} of the underlying KRS associated with the
+   \karg{kb-type}, which is accessed over \karg{connection}.
+   \karg{Krs-name} is a string.  For example,
+   given {\tt loom-kb} as the kb-type, it might return the string
+   {\tt "LOOM"}.  This operation is used by user interfaces that need to
+   display a printed representation of the underlying KRS for a particular
+   kb-type.
+
+   Note:  This operation is named \kfn{frs-name} for
+   historical reasons.  Frame Representation Systems are now uniformly
+   called Knowledge Representation Systems with the exception of in the names
+   of this operator and \kfn{frs-independent-frame-handle}.
+\end{okbcop}
+
+\begin{okbcop}{get-behavior-supported-values}{ behavior \&key kb} { behavior-values } { M } { R } {  }
+Returns a list of the supported values of the \karg{behavior} 
+   the KB is capable of supporting.  For example, the KB might support both
+   the \karg{:immediate} and \karg{:never} variants of the behavior
+   \karg{:constraint-checking-time}.  These two options would be returned
+   as a list.  The returned value \karg{behavior-values} is always a list,
+   even when no variants are supported -- that is, it is \emptylist.
+\end{okbcop}
+
+\begin{okbcop}{get-behavior-values}{ behavior \&key kb} { behavior-values } { M } { R } {  }
+Returns a list of active values of the \karg{behavior} under
+   which the KB is currently operating.  For example, the KB might support
+   both the \karg{:immediate} and \karg{:never} variants of the behavior
+   \karg{:constraint-checking-time}, but only one of these modes can be
+   enabled at a given time.  A list containing, for example, just
+   \karg{:never} would be returned.
+   The returned value \karg{behavior-values} is always a list, even when
+   no variants are active -- that is, it is the \emptylist.
+\end{okbcop}
+
+\begin{okbcop}{get-class-instances}{ class \&key kb (inference-level :taxonomic) (number-of-values :all) kb-local-only-p} { list-of-instances exact-p more-status } { M } { R } { E }
+Returns a \karg{list-of-instances} for \karg{class}.
+\end{okbcop}
+
+\begin{okbcop}{get-class-subclasses}{ class \&key kb (inference-level :taxonomic) (number-of-values :all) kb-local-only-p} { list-of-subclasses exact-p more-status } { M } { R } { E }
+Returns the \karg{list-of-subclasses} of \karg{class}.
+\end{okbcop}
+
+\begin{okbcop}{get-class-superclasses}{ class \&key kb (inference-level :taxonomic) (number-of-values :all) kb-local-only-p} { list-of-superclasses exact-p more-status } { M } { R } { E }
+Returns the \karg{list-of-superclasses} of \karg{class}.
+\end{okbcop}
+
+\begin{okbcop}{get-classes-in-domain-of}{ slot \&key kb frame-attachment (inference-level :taxonomic) kb-local-only-p} { classes } { O } { R } {  }
+Returns a list of \karg{classes} that are known to be in the domain of 
+   \karg{slot} with respect to \karg{frame-attachment} (if supplied).  If
+   \karg{frame-attachment} is supplied, it may be used as a hint to the KRS
+   to limit the amount of computation performed by constraining the search
+   for classes to the superclasses or types of \karg{frame-attachment}.  
+   Each class returned (and any subclass) is guaranteed to be a legal
+   \karg{frame} argument for a slot operation on \karg{slot} with
+   \karg{slot-type} {\tt :template}, e.g., \kfn{put-slot-values}.
+\end{okbcop}
+
+\begin{okbcop}{get-facet-value}{ frame slot facet \&key kb (inference-level :taxonomic) (slot-type :own) (value-selector :either) kb-local-only-p} { value-or-false exact-p } { O } { R } {  }
+Returns the sole member of the set of values
+   of the specified facet.  It is most commonly used when that set is 
+   expected to have only one member.  When the facet has no value,
+   \karg{value-or-false} is \false.  It is an error to
+   call this operation on a non-single-valued facet; if it is called, a
+   \kcond{cardinality-violation} error should be signaled.
+\end{okbcop}
+
+\begin{okbcop}{get-facet-values}{ frame slot facet \&key kb (inference-level :taxonomic) (slot-type :own) (number-of-values :all) (value-selector :either) kb-local-only-p} { values exact-p more-status } { O } { R } { E }
+Returns the set of values of the specified facet,
+   in no guaranteed order.  It always returns a (possibly empty) list
+   of values.
+\end{okbcop}
+
+\begin{okbcop}{get-facet-values-in-detail}{ frame slot facet \&key kb (inference-level :taxonomic) (slot-type :own) (number-of-values :all) (value-selector :either) kb-local-only-p} { list-of-specs exact-p more-status default-p } { M } { R } { E }
+Returns the \karg{list-of-specs} describing the values
+   of the \karg{facet} of \karg{slot} within \karg{frame}, in no guaranteed
+   order.   It always returns a list of specifications as values.  If the
+   specified slot has no values, \emptylist\ is returned.
+
+   Each spec is a 3-tuple of the form (value direct-p default-p).
+   \bitem
+   \item value -- a value of the facet
+   \item direct-p -- a flag that is \true\ if the value is known to be
+                      directly asserted for the facet in the \karg{frame} and
+                      \false\ otherwise
+   \item default-p -- a flag that is \true\ if the value is known to be
+                       a default value, and \false\ otherwise
+   \eitem
+   The fourth returned value (\karg{default-p}) is true if the
+   \karg{list-of-specs} is \emptylist, and the fact that there are no values
+   is itself a default.
+\end{okbcop}
+
+\begin{okbcop}{get-frame-details}{ frame \&key kb (inference-level :taxonomic) (number-of-values :all) kb-local-only-p} { details exact-p } { O } { R } {  }
+Returns a property list (list of alternating keywords and values)
+   describing the \karg{frame}.  The properties of the frame are computed
+   using the \karg{inference-level}, \karg{number-of-values-p}, and
+   \karg{kb-local-only-p} arguments, whenever applicable to the appropriate
+   OKBC operator used to compute any given property.  The set of properties
+   computed is at least the following:
+
+   \begin{tabular}{ll}
+   {\em Property}         & {\em Operation(s) used to compute property} \\
+   {\tt :handle}          & \kfn{get-frame-handle}      \\
+   {\tt :name}            & \kfn{get-frame-name}        \\
+   {\tt :pretty-name}     & \kfn{get-frame-pretty-name} \\
+   {\tt :frame-type}      & \kfn{get-frame-type}        \\
+   {\tt :primitive-p}     & \kfn{primitive-p}           \\
+   {\tt :superclasses}    & \kfn{get-class-superclasses}      \\
+   {\tt :subclasses}      & \kfn{get-class-subclasses}        \\
+   {\tt :types}           & \kfn{get-instance-types}             \\
+   {\tt :own-slots}       & \kfn{get-frame-slots}, \kfn{get-slot-values}\\
+   {\tt :template-slots}  & \kfn{get-frame-slots}, \kfn{get-slot-values}\\
+   {\tt :own-facets}      & \kfn{get-frame-slots}, \kfn{get-slot-values}, \kfn{get-slot-facets}, \kfn{get-facet-values} \\
+   {\tt :template-facets} & \kfn{get-frame-slots}, \kfn{get-slot-values}, \kfn{get-slot-facets}, \kfn{get-facet-values} \\
+   {\tt :sentences}       & \kfn{get-frame-sentences}   \\
+   \end{tabular}
+
+   The {\tt :own-slots}, {\tt :own-facets}, {\tt :template-slots}, and
+   {\tt :template-facets} properties returned are slot and facet
+   specifications as defined for \kfn{create-frame}.  This operation is most
+   useful in low-bandwidth or high-latency applications.  A single call to
+   \kfn{get-frame-details} is often sufficient to display all the
+   interesting features of a frame.  The value of the {\tt :sentences}
+   component is a set of non-OKBC sentences, i.e. what would be returned by
+   \kfn{get-frame-sentences} with the {\tt :okbc-sentences-p} argument set
+   to \false\.
+\end{okbcop}
+
+\begin{okbcop}{get-frame-handle}{ frame \&key kb kb-local-only-p} { frame-handle } { O } { R } {  }
+Returns a \karg{frame-handle} that uniquely identifies the \karg{frame}
+   argument in \karg{kb}.
+\end{okbcop}
+
+\begin{okbcop}{get-frame-in-kb}{ thing \&key kb (error-p \true) kb-local-only-p} { frame frame-found-p } { M } { R } {  }
+Returns two values.  The first value is the \karg{frame}
+   identified by \karg{thing} if such a frame is found, or \false.
+   The second value (\karg{frame-found-p}) is \true\ iff \karg{thing} is
+   coercible to a frame, and that frame is resident in \karg{KB}.  In
+   all cases it is verified that the frame does, in fact, reside in \karg{kb}.
+   Otherwise, the \karg{frame-found-p} value is {\tt nil} (unless 
+   \karg{error-p} is \true, in which case the operation signals a
+   \kcond{not-coercible-to-frame} error because
+   \karg{thing} is not a valid frame in \karg{kb}).
+\end{okbcop}
+
+\begin{okbcop}{get-frame-name}{ frame \&key kb kb-local-only-p} { frame-name } { M } { R } {  }
+Returns \karg{frame-name}, an entity that is the name of the frame
+   identified by \karg{frame}, usually a symbol or string.
+\end{okbcop}
+
+\begin{okbcop}{get-frame-pretty-name}{ frame \&key kb kb-local-only-p} { string } { M } { R } {  }
+Returns a string that is a pretty, printed representation for \karg{frame}
+   -- that is, the name is suitable for use within a user interface for
+   display purposes.
+
+   There is no guarantee that it will be possible to find a unique frame
+   given only its pretty-name, but \kfn{get-frames-matching} can be used to
+   find frames matching such strings when possible.
+\end{okbcop}
+
+\begin{okbcop}{get-frame-sentences}{ frame \&key kb (number-of-values :all) (okbc-sentences-p \true) (value-selector :either) kb-local-only-p} { list-of-sentences exact-p more-status } { O } { R } {  }
+Returns a list of all the logical sentences associated with a \karg{frame}.
+   The sentences may have been asserted using \karg{tell}, or any other
+   OKBC update operation.  If \karg{okbc-sentences-p} is \true, then all
+   sentences are returned, including the ones that are equivalent to
+   basic OKBC operations.  The sentences equivalent to OKBC operations are
+   defined in Table~\ref{tab:tell-semantics}.  If \karg{okbc-sentences-p} is
+   \false, sentences that are equivalent to OKBC operations are not
+   returned.  This is very useful for user interface applications that do not
+   want to present redundant information.  If no matching sentences are
+   found, \karg{list-of-sentences} will be \emptylist.
+\end{okbcop}
+
+\begin{okbcop}{get-frame-slots}{ frame \&key kb (inference-level :taxonomic) (slot-type :all) kb-local-only-p} { list-of-slots exact-p } { M } { R } { E }
+Returns \karg{list-of-slots}, a list of all the own, template, or own
+   and template slots that are associated with \karg{frame}, depending on the
+   value of \karg{slot-type}.
+\end{okbcop}
+
+\begin{okbcop}{get-frame-type}{ thing \&key kb kb-local-only-p} { frame-type } { O } { R } {  }
+When \karg{thing} identifies a frame, returns either
+   {\tt :slot}, {\tt :facet}, {\tt :class}, or {\tt :individual},
+   depending on the type of the frame.
+   When \karg{thing} does not identify a frame, \karg{frame-type} is 
+   \false.  {\tt :Slot} and {\tt :facet} will be returned only in
+   those systems that support the values {\tt :slot} and {\tt :facet},
+   respectively, for the {\tt :are-frames} behavior.
+\end{okbcop}
+
+\begin{okbcop}{get-frames-matching}{ pattern \&key kb (wildcards-allowed-p \true) (selector :all) force-case-insensitive-p kb-local-only-p} { matching-frames longest-matching-substring } { O } { R } { E }
+Given a \karg{pattern}, which is a string or a symbol,
+  finds a set of matching frames for that pattern.
+  The match of a frame to a pattern could take into account the frame's name
+  (if meaningful), printed representation, pretty-name, or any KB-specific
+  feature such as a list of synonyms.
+
+  Returns the following two values:
+  \begin{enumerate}
+  \item \karg{matching-frames} -- The list of matching frames (which is
+         \emptylist\ if no matches are found).
+  \item \karg{longest-matching-substring} -- The longest matching initial
+         substring.  This returned value is useful in applications that use
+         get-frames-matching to implement a completion facility, or prompt
+         users for frames (\false\ if no matches are found).
+  \end{enumerate}
+  \karg{Wildcards-allowed-p}
+     --- When \true, the pattern may contain * (zero or more characters)
+         and ? (exactly one character) wildcards.  Wildcard characters are
+         escaped with the backslash character.  If this argument is \false,
+         the * and ? characters simply denote themselves and need not be
+         escaped.
+  \karg{Selector}
+     --- May be a procedure (see Section~\ref{ch:funspecs}) of
+         signature
+         (candidate-name, kb, kb-local-only-p)
+         that returns \true\ if the candidate name is to be
+         accepted and \false\ otherwise, or one of the following keywords:
+         \bitem
+           \item {\tt :all} -- Select all frames
+           \item {\tt :class} -- Select only class frames
+           \item {\tt :individual} -- Select only individual frames
+           \item {\tt :slot} -- Select only slot frames
+           \item {\tt :facet} -- Select only facet frames
+         \eitem
+  \karg{Force-Case-Insensitive-P}
+     --- When \true, cause the comparison is to be case-insensitive, 
+         irrespective of the IO syntax of the KB.
+\end{okbcop}
+
+\begin{okbcop}{get-frames-with-facet-value}{ slot facet value \&key kb (inference-level :taxonomic) (slot-type :own) (value-selector :either) kb-local-only-p} { frames exact-p } { O } { R } {  }
+Returns the set of frames in which the specified facet value is accessible
+   on the specified slot.
+   If the system is unable to find any frame/slot/facet combinations with the
+   specified value, \emptylist\ is returned.
+   This operation allows user interfaces to take users from a value
+   displayed as a facet value on a particular frame/slot to the place
+   that asserted the value.
+\end{okbcop}
+
+\begin{okbcop}{get-frames-with-slot-value}{ slot value \&key kb (inference-level :taxonomic) (slot-type :own) (value-selector :either) kb-local-only-p} { frames exact-p } { O } { R } {  }
+Returns the set of frames in which the specified slot value is accessible.
+   If the system is unable to find any frame/slot combinations with the
+   specified value, \emptylist\ is returned.
+   This operation allows user interfaces to take users from a value
+   displayed as a slot value on a particular frame to the place that
+   asserted the value.
+\end{okbcop}
+
+\begin{okbcop}{get-instance-types}{ frame \&key kb (inference-level :taxonomic) (number-of-values :all) kb-local-only-p} { list-of-types exact-p more-status } { M } { R } { E }
+Returns the \karg{list-of-types} of \karg{frame}, that is, the list of 
+   classes of which \karg{frame} is an instance.
+\end{okbcop}
+
+\begin{okbcop}{get-kb-behaviors}{ \&key (kb-type-or-kb (current-kb)) (connection (local-connection))} { list-of-behaviors } { M } { R } {  }
+When \karg{kb-type-or-kb} is either a KB or a kb-type, returns
+   \karg{list-of-behaviors}, which is a list of keywords naming all
+   the behaviors recognized by this KB, or identified by the kb-type,
+   respectively.
+\end{okbcop}
+
+\begin{okbcop}{get-kb-classes}{ \&key kb (selector :system-default) kb-local-only-p} { list-of-classes } { O } { R } { E }
+Returns \karg{list-of-classes}, a list of the classes in the KB.
+   \karg{Selector} can be one of the following:
+   \bitem
+   \item {\tt :all} -- Returns all classes
+   \item {\tt :frames} -- Returns classes that are represented as frames
+   \item {\tt :system-default} -- Returns either all classes or
+          only class frames, according to which is the KRS's default
+   \eitem
+\end{okbcop}
+
+\begin{okbcop}{get-kb-direct-children}{ \&key kb} { list-of-child-kbs } { O } { R } { E }
+Returns the \karg{list-of-child-kbs} -- that is, the list of KBs that
+    directly include \karg{kb}.  Note that certain KB implementations may
+    allow circular inclusion dependencies in KBs.  The semantics of KB
+    inclusion are not specified by OKBC, but where possible, processing can
+    be limited to a particular KB by the use of the \karg{kb-local-only-p}
+    argument.
+\end{okbcop}
+
+\begin{okbcop}{get-kb-direct-parents}{ \&key kb} { list-of-parent-kbs } { O } { R } { E }
+Returns the \karg{list-of-parent-kbs} -- that is, the list of KBs directly
+    included by \karg{kb}.  Note that certain KB implementations may allow
+    circular inclusion dependencies in KBs.  The semantics of KB inclusion
+    are not specified by OKBC, but where possible, processing can be limited
+    to a particular KB by the use of the \karg{kb-local-only-p} argument.
+\end{okbcop}
+
+\begin{okbcop}{get-kb-facets}{ \&key kb (selector :system-default) kb-local-only-p} { list-of-facets } { O } { R } { E }
+Returns the \karg{list-of-facets} in \karg{kb}.
+   \karg{Selector} can be one of the following:
+   \bitem
+   \item {\tt :all} -- Returns all facets
+   \item {\tt :frames} -- Returns facets that are represented as frames
+   \item {\tt :system-default} -- Returns either all facets or
+          only facets represented as frames, according to which is the KRS's
+          default
+   \eitem
+\end{okbcop}
+
+\begin{okbcop}{get-kb-frames}{ \&key kb kb-local-only-p} { list-of-frames } { M } { R } { E }
+Returns the \karg{list-of-frames} in the KB, including class, slot,
+   facets and individual frames, when present.
+\end{okbcop}
+
+\begin{okbcop}{get-kb-individuals}{ \&key kb (selector :system-default) kb-local-only-p} { list-of-individuals } { O } { R } { E }
+Returns \karg{list-of-individuals}, a list of the individual frames in
+   \karg{kb}.  \karg{Selector} can be one of the following:
+   \bitem
+   \item {\tt :all} -- Returns all accessible individuals
+   \item {\tt :frames} -- Returns only individuals that are frames
+   \item {\tt :system-default} -- Returns either all individuals or
+          only individual frames, according to which is the KRS's default
+   \eitem
+\end{okbcop}
+
+\begin{okbcop}{get-kb-roots}{ \&key kb (selector :all) kb-local-only-p} { list-of-roots } { O } { R } { E }
+Every KB has one or more frames at the top (root) of the
+   KB.  A frame $C$ is a root of the KB $K$ if there exists no class $D$ such
+   that $D$ is a superclass of $C$ and $D$ is in the KB $K$ and if there
+   exists no class $E$ such that $E$ is a type of $C$ and $E$ is in the
+   KB $K$, or available in $K$ when \karg{kb-local-only-p} is \false.  This
+   operation identifies and returns those roots, the \karg{list-of-roots}.
+   Note that this means that unparented individuals, slots and facets will
+   also be returned.
+
+   Some KRSs allow {\em user-defined} classes to be roots of a KB, whereas
+   other KRSs always import certain {\em system-defined} classes (for example,
+   {\em thing}) into each KB and force all
+   user classes to be subclasses of {\em thing.} These system-defined classes
+   may normally be invisible to the user in some KRSs.  The
+   \karg{selector} argument controls which root classes are returned as
+   follows:
+
+   \bitem
+   \item {\tt selector = :all} returns all the true root classes of the 
+          KB, regardless of whether they are {\em system-defined} or 
+          {\em user-defined}.
+   \item {\tt selector = :user} returns the user-defined
+   root classes of the KB, namely all classes $C$ available in the KB such that
+   $C$ was defined by a user application as opposed to being a built-in
+   part of every KB, and such that there exists no class $D$ that is both
+   {\em user-defined} and a superclass of $C$.  That is, there may
+   exist {\em system-defined} superclasses of $C$.
+   \eitem
+
+   If \karg{kb-local-only-p} is \true, the list returned may return only
+   the root classes defined in \karg{kb} itself; classes that were
+   inherited from other (included) KBs may be excluded.  This means
+   that a class that has superclasses in some KB included by \karg{kb},
+   but has no superclasses defined in \karg{kb}, may be returned as a
+   root class if \karg{kb-local-only-p} is \true.
+
+   %%%%Old definition:
+   %%%%Returns the set of classes in \karg{kb} that have no superclasses in
+   %%%%the specified KB.
+\end{okbcop}
+
+\begin{okbcop}{get-kb-slots}{ \&key kb (selector :system-default) kb-local-only-p} { list-of-slots } { O } { R } { E }
+Returns the \karg{list-of-slots} that are defined in the KB.
+   \karg{Selector} can be one of the following:
+   \bitem
+   \item {\tt :all} -- Returns all slots
+   \item {\tt :frames} -- Returns slots that are represented frames
+   \item {\tt :system-default} -- Returns either all slots or
+          only slot frames, according to which is the KRS's default
+   \eitem
+\end{okbcop}
+
+\begin{okbcop}{get-kb-type}{ thing \&key (connection (local-connection))} { kb-type } { O } { R } {  }
+Returns the \karg{kb-type} object for \karg{thing}, which may be a KB,
+   a kb-locator, or a kb-type name.  KB-type names are KRS-specific, and
+   will be documented with the KRS being used.  KB-type names need never be
+   used, since a kb-type can be selected by a user or application by using
+   the \kfn{get-kb-types} and \kfn{frs-name} operations.  It is not
+   portable to specify a kb-type name as a literal in an OKBC program.
+\end{okbcop}
+
+\begin{okbcop}{get-kb-types}{ \&key (connection (local-connection))} { list-of-kb-types } { O } { R } { E }
+Returns a list of KB types for each of the known KRSs accessible
+   through the \karg{connection}.  \karg{List-of-kb-types} contains one
+   kb-type entry for each KRS known through the connection, and possibly also
+   kb-type objects representing supertypes of the KRSs supported.
+\end{okbcop}
+
+\begin{okbcop}{get-kbs}{ \&key (connection (local-connection))} { list-of-kbs } { O } { R } { E }
+Returns a \karg{list-of-kbs} containing all the known KBs accessible 
+   through the \karg{connection}, irrespective of the KB's implementation
+   type.  Note: the connection from which each of the KBs returned was derived
+   is not necessarily the same as the value of the \karg{connection}
+   argument.  Later processing of any of these KBs should be done with
+   respect to the connection returned when the \kfn{connection} operation
+   is applied to the KB.
+\end{okbcop}
+
+\begin{okbcop}{get-kbs-of-type}{ \&key kb-type (connection (local-connection))} { list-of-kbs } { M } { R } { E }
+Returns \karg{list-of-kbs}, the list of all the known KBs whose type
+   matches \karg{kb-type}, and that are accessible through the
+   \karg{connection}.
+\end{okbcop}
+
+\begin{okbcop}{get-procedure}{ name \&key kb} { procedure } { O } { R } {  }
+Returns the \karg{procedure} that is the procedure association for
+   the \karg{name}, or \false\ if there is no such procedure association.
+   See \kfn{register-procedure}, \kfn{unregister-procedure}, and
+   \kfn{call-procedure}.
+\end{okbcop}
+
+\begin{okbcop}{get-slot-facets}{ frame slot \&key kb (inference-level :taxonomic) (slot-type :own) kb-local-only-p} { list-of-facets exact-p } { M } { R } { E }
+Returns the \karg{list-of-facets} associated with \karg{slot} in
+   \karg{frame}.
+\end{okbcop}
+
+\begin{okbcop}{get-slot-type}{ frame slot \&key kb (inference-level :taxonomic) kb-local-only-p} { slot-type } { O } { R } {  }
+Returns one of \{{\tt :own}, {\tt :template}, \false\} to
+   identify the \karg{slot-type} of the slot on question.  If there are both
+   an own and a template slot on \karg{frame} identified by \karg{slot}, then
+   {\tt :own} is returned.
+   If no such slot is known, then \false\ is returned.
+\end{okbcop}
+
+\begin{okbcop}{get-slot-value}{ frame slot \&key kb (inference-level :taxonomic) (slot-type :own) (value-selector :either) kb-local-only-p} { value-or-false exact-p } { O } { R } {  }
+Returns the single member of the set of values
+   of the \karg{slot}.  This operation is meaningful only for single-valued
+   slots.  It is an error to call \kfn{get-slot-value} on a non-single-valued 
+   slot, and implementations should signal a \kcond{cardinality-violation} if 
+   this occurs.  When there is no value for the slot, \karg{value-or-false} 
+   is \false.
+\end{okbcop}
+
+\begin{okbcop}{get-slot-values}{ frame slot \&key kb (inference-level :taxonomic) (slot-type :own) (number-of-values :all) (value-selector :either) kb-local-only-p} { list-of-values exact-p more-status } { O } { R } { E }
+Returns the \karg{list-of-values} of \karg{slot}
+   within \karg{frame}.  If the {\tt :collection-type} of the slot is
+   {\tt :list}, and only {\tt :direct} own slots have been asserted, then
+   order is preserved; otherwise, the values are returned in no guaranteed
+   order.  \kfn{Get-slot-values} always returns a list of
+   values.  If the specified slot has no values, \emptylist\ is 
+   returned.
+\end{okbcop}
+
+\begin{okbcop}{get-slot-values-in-detail}{ frame slot \&key kb (inference-level :taxonomic) (slot-type :own) (number-of-values :all) (value-selector :either) kb-local-only-p} { list-of-specs exact-p more-status default-p } { M } { R } { E }
+Returns the \karg{list-of-specs} describing the values
+   of \karg{slot} within \karg{frame}.  If the {\tt :collection-type} 
+   of the slot is {\tt :list}, and only {\tt :direct} own slots have been 
+   asserted, then order is preserved; otherwise, the values are returned in 
+   no guaranteed order. \kfn{Get-slot-values-in-detail} always returns a
+   list of specifications as its \karg{list-of-specs} value.  If the specified
+   slot has no values, \emptylist\ is returned.
+
+   Each spec is a 3-tuple of the form (value direct-p default-p).
+   \bitem
+   \item value -- A value of the slot
+   \item direct-p -- A flag that is \true\ if the value is known to be
+                      directly asserted for the slot and \false\ otherwise 
+   \item default-p -- A flag that is \true\ if the value is known to be
+                       a default value, and \false\ otherwise
+   \eitem
+   The \karg{default-p} returned value is true if the \karg{list-of-specs}
+   is \emptylist, and the fact that there are no values is itself a default.
+\end{okbcop}
+
+\begin{okbcop}{goto-kb}{ kb} { \void } { O } { W } {  }
+Makes \karg{kb} the current KB.  After a call to \kfn{goto-kb}, the value
+   of a call to \kfn{current-kb} will be \karg{kb}.  The newly established
+   \kfn{current-kb} will be used as the default value for the \karg{kb}
+   argument by language bindings that support argument defaulting.  Returns
+   no values.
+\end{okbcop}
+
+\begin{okbcop}{has-more}{ enumerator} { boolean } { O } { R } {  }
+Returns \true\ if the \karg{enumerator} has more values, otherwise
+   returns \false.
+\end{okbcop}
+
+\begin{okbcop}{individual-p}{ thing \&key kb kb-local-only-p} { boolean } { O } { R } {  }
+Returns \true\ if \karg{thing} identifies an individual entity, and
+   returns \false\ if \karg{thing} identifies a class.
+\end{okbcop}
+
+\begin{okbcop}{instance-of-p}{ thing class \&key kb (inference-level :taxonomic) kb-local-only-p} { boolean exact-p } { O } { R } {  }
+Returns \true\ if \karg{thing} is an instance of \karg{class}, otherwise
+   returns \false.
+\end{okbcop}
+
+\begin{okbcop}{kb-modified-p}{ \&key kb} { boolean } { O } { R } {  }
+Returns \true\ if \karg{kb} has been modified since it was last saved.
+\end{okbcop}
+
+\begin{okbcop}{kb-p}{ thing} { boolean } { O } { R } {  }
+Returns \true\ if \karg{thing} is a KB, otherwise returns \false.
+\end{okbcop}
+
+\begin{okbcfun}{local-connection}{ } { connection } {   } { R } {  }
+Returns a connection to the local OKBC implementation.
+\end{okbcfun}
+
+\begin{okbcop}{member-behavior-values-p}{ behavior value \&key kb} { boolean } { O } { R } {  }
+Returns \true\ when \karg{value} is one of the variants of
+   \karg{behavior} that is currently active for \karg{kb}, and returns
+   \false\ otherwise.
+\end{okbcop}
+
+\begin{okbcop}{member-facet-value-p}{ frame slot facet value \&key kb (inference-level :taxonomic) (test :equal) (slot-type :own) (value-selector :either) kb-local-only-p} { boolean exact-p } { O } { R } {  }
+Returns \true\ iff \karg{value} is a value in the specified \karg{facet}
+   of \karg{slot} on \karg{frame}, as determined by the predicate 
+   \karg{test}, and returns \false\ otherwise.
+\end{okbcop}
+
+\begin{okbcop}{member-slot-value-p}{ frame slot value \&key kb (inference-level :taxonomic) (test :equal) (slot-type :own) (value-selector :either) kb-local-only-p} { boolean exact-p } { O } { R } {  }
+Returns \true\ iff \karg{value} is a value in \karg{slot} of
+   \karg{frame}, as determined by the predicate \karg{test}, and returns
+   \false\ otherwise.
+\end{okbcop}
+
+\begin{okbcop}{meta-kb}{ \&key (connection (local-connection))} { meta-kb } { O } { R } {  }
+Returns the \karg{Meta-KB} for the server accessed through the
+   \karg{connection}.
+\end{okbcop}
+
+\begin{okbcop}{next}{ enumerator} { value } { O } { R } {  }
+Return the next value for the \karg{enumerator}.  It is an error to
+   call \kfn{next} if \kfn{has-more} would return \false\ for the
+   enumerator.  If \kfn{next} is called on an enumerator that has been 
+   exhausted, an \kcond{enumerator-exhausted} error should be signaled.
+\end{okbcop}
+
+\begin{okbcop}{okbc-condition-p}{ thing} { boolean } { O } { R } {  }
+Returns \true\ if \karg{thing} is an OKBC-defined condition object, and
+   \false\ otherwise.
+\end{okbcop}
+
+\begin{okbcop}{open-kb}{ kb-locator \&key kb-type (connection (local-connection)) (error-p \true)} { kb } { M } { W } {  }
+Given a \karg{kb-locator}, a \karg{kb-type}, and a
+   \karg{connection}, returns a KB object
+   for that KB locator that will behave as if all the objects in the
+   KB are accessible (the implementation is not actually required to load the
+   whole KB into memory).
+
+   Implementations are at liberty to accept other values in place of the
+   \karg{kb-locator}, such as a pathname that identifies the location of
+   the KB to the system.  Such usage is convenient, but is not portable.  It
+   is not portable for an OKBC application to use anything other than
+   a KB locator for this argument.  If \karg{error-p} is \false, catches
+   errors that occur, and attempts to continue with the opening/loading
+   process.  If the KB could not be successfully opened, returns \false.
+\end{okbcop}
+
+\begin{okbcop}{openable-kbs}{ \&key kb-type (connection (local-connection)) place} { list-of-kb-locators } { M } { R } {  }
+Given a \karg{kb-type} and a \karg{connection}, returns
+   \karg{list-of-kb-locators}, a list of frame handles to
+   frames in the \kfn{meta-kb} that are instances of the class 
+   {\tt kb-locator}.
+   Each kb-locator instance describes one openable KB, identified at the
+   time of the call.  Subsequent calls to openable-kbs will refresh the
+   set of kb-locator instances in the meta-kb.  Kb-locators refering to
+   KBs of \karg{kb-type} that are no longer openable will be removed.  KBs
+   of \karg{kb-type} that have become openable since the last call will
+   become represented in the \kfn{meta-kb}.
+
+   \karg{Place} allows the application to communicate to the KRS in an
+   KRS-specific way where to look for the openable KBs (e.g., a directory).
+   The use of the \karg{place} argument is not portable.
+   If a particular \karg{kb-type} does not understand the value of
+   the \karg{place} argument supplied, \kfn{openable-kbs} returns
+   \emptylist, that is, there are no known openable KBs consistent
+   with the supplied \karg{place}.
+\end{okbcop}
+
+\begin{okbcop}{prefetch}{ enumerator \&key (number-of-values :all) increment} { \void } { O } { R } {  }
+The \kfn{prefetch} operator is an important optimization in network
+   settings.  The client will attempt to prefetch sufficient elements in
+   \karg{enumerator} from the server so that \karg{number-of-values} elements
+   will be immediately available (cached) at the \karg{enumerator}, using
+   only a single network call rather than executing network calls for each 
+   element.
+
+   If it is discovered that there are fewer than \karg{number-of-values}
+   elements cached locally by \karg{enumerator}, a minimum chunk of
+   \karg{increment} elements will be prefetched, when available.  Thus, if
+   the enumerator already holds five elements locally, and the call
+   \verb|(prefetch enumerator 7 20)|
+   is made, the fact that seven elements are requested, but only five are 
+   available means that a request will in fact be made to the server for more
+   elements, and at least another 20 (as opposed to 2) elements will be 
+   prefetched.  When \karg{increment} is \false, the number of elements 
+   prefetched will be the difference between the number currently cached in 
+   the enumerator and \karg{number-of-values}.
+
+   Note that unlike other operations taking a \karg{number-of-values} 
+   argument, this operation does not return a \karg{more-status} value.  
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{primitive-p}{ class \&key kb kb-local-only-p} { boolean } { M } { R } {  }
+Returns \true\ iff \karg{class} is a class whose definition is
+   primitive, and \false\ otherwise.  For KRSs that do not distinguish
+   primitive from defined classes, \kfn{primitive-p}
+   must return \true\ for all classes.
+\end{okbcop}
+
+\begin{okbcop}{print-frame}{ frame \&key kb (slots :filled) (facets :filled) (stream \true) (inference-level :taxonomic) (number-of-values :all) (value-selector :either) kb-local-only-p} { false-or-string } { O } { R } {  }
+Prints a textual representation to \karg{stream} of the
+   \karg{frame}.  A warning is printed when \karg{frame} is not
+   coercible to a frame.  Stream objects as values to the \karg{stream}
+   argument are generally system- and implementation-specific, so stream
+   objects will not in general be
+   transmissible in networked implementations.  Two special values for the
+   \karg{stream} argument are also supported.  If \karg{stream} is \false,
+   then \kfn{print-frame} prints to a string stream and
+   that string is returned as \karg{false-or-string}.
+   If \karg{stream} is \true, \kfn{print-frame} attempts to print to the
+   standard output stream {\em of the server on which} \kfn{print-frame}
+   {\em runs.}  When \karg{kb} is
+   a network-acessed KB, this latter option is unlikely to have a useful
+   effect.  Unless \karg{stream} is \false, \karg{false-or-string} is
+   \false.
+
+   The \karg{slots} and \karg{facets} arguments control which slots (facets) 
+   are to be displayed.  They can each take on one of the following values:
+   \bitem
+   \item {\tt :all} -- Shows all applicable slots (facets)
+   \item {\tt :none} -- Shows no slots (facets)
+   \item {\tt :filled} -- Shows the subset of slots (facets) that have at
+   least one value for \karg{frame}
+   \item list of slots (facets) -- Only the listed slots (facets) are shown,
+   if present
+   \eitem
+\end{okbcop}
+
+\begin{okbcfun}{procedure-p}{ thing} { boolean } {   } { R } {  }
+Is \true\ if \karg{thing} is a procedure, and \false\ otherwise.
+\end{okbcfun}
+
+\begin{okbcop}{put-behavior-values}{ behavior values \&key kb} { \void } { M } { R } {  }
+Sets the list of active \karg{values} of the \karg{behavior} under
+   which the KB is to operate.  The elements in \karg{values} must be a
+   subset of the values returned by a call to
+   \kfn{get-behavior-supported-values} for the same \karg{behavior}.
+   If they are not, an \kcond{illegal-behavior-values} error will be signaled.
+   Note that for some behaviors, the order of values is significant (e.g.,
+    {\tt :collection-type}).  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{put-class-superclasses}{ class new-superclasses \&key kb kb-local-only-p} { \void } { M } { W } {  }
+Changes \karg{class} to be a subclass of all the classes listed in
+   \karg{new-superclasses}.  If \karg{frame} was a subclass of any
+   superclasses not mentioned in \karg{new-superclasses}, these superclasses
+   are removed.
+   This operation may signal constraint violation conditions
+   (see Section~\ref{sec:errors}).  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{put-facet-value}{ frame slot facet value \&key kb (slot-type :own) (value-selector :known-true) kb-local-only-p} { \void } { O } { W } {  }
+Sets the values of the specified facet to be a singleton set
+   consisting of a single element: \karg{value}.  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{put-facet-values}{ frame slot facet values \&key kb (slot-type :own) (value-selector :known-true) kb-local-only-p} { \void } { M } { W } {  }
+Sets the values of the specified facet to be
+   \karg{values}, which is assumed to be a set.  Any existing facet values
+   that are not in \karg{values} will be removed.  The order of the elements of
+   \karg{values} will not necessarily be maintained by the KRS.
+   This operation may signal constraint violation conditions
+   (see Section~\ref{sec:errors}).  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{put-frame-details}{ frame details \&key kb kb-local-only-p} { \void } { O } { W } {  }
+Redefines \karg{frame} to have the specified \karg{details}.
+   \karg{Details} is a property list as specified for
+   \kfn{get-frame-details}.  This operation is useful for systems that allow
+   transaction-oriented editing of multiple aspects of a frame.
+   The properties {\tt :handle}, {\tt :frame-type}, and {\tt :primitive-p}
+   are ignored, since these may not be put.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{put-frame-name}{ frame new-name \&key kb kb-local-only-p} { renamed-frame } { M } { W } {  }
+Changes the name of \karg{frame} to be \karg{new-name}.  All references
+   to \karg{frame} in \karg{kb} (e.g., in slot values) will point to the
+   frame named \karg{new-name}.  Returns the frame with the new name,
+   \karg{renamed-frame}.  It is not necessary that the frame object identified
+   by \karg{frame} be identical ({\tt ==}/{\tt EQLness}) to the frame
+   object called \karg{new-name}, only that the KB consistently use the
+   new frame instead of the old one.
+   
+   Implementation note:  KRSs that use frame names as frame handles must
+   replace {\em all} references to the old name of \karg{frame} with
+   \karg{new-name}.  This specification allows for implementations that
+   are forced to replace the representation of the frame with a new, renamed
+   version.
+\end{okbcop}
+
+\begin{okbcop}{put-frame-pretty-name}{ frame name \&key kb kb-local-only-p} { \void } { M } { W } {  }
+Stores the \karg{name}, a string, as the new pretty-name of the
+   \karg{frame}.  OKBC mandates no constraints on the new pretty-\karg{name},
+   but to maximize the liklihood that applications will interoperate smoothly,
+   implementations are encouraged to make pretty-names be short, and are
+   strongly encouraged to include no whitespace characters other than the space
+   characters, or any display device-specific control characters.  Returns no
+   values.
+\end{okbcop}
+
+\begin{okbcop}{put-instance-types}{ frame new-types \&key kb kb-local-only-p} { \void } { M } { W } {  }
+Changes \karg{frame} to be an instance of all the classes listed in
+   \karg{new-types}.  If \karg{frame} was an instance of any types not
+   mentioned in \karg{new-types}, these types are removed.
+   This operation may signal constraint violation conditions
+   (see Section~\ref{sec:errors}).  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{put-slot-value}{ frame slot value \&key kb (slot-type :own) (value-selector :known-true) kb-local-only-p} { \void } { O } { W } {  }
+Sets the values of \karg{slot} in \karg{frame} to be a singleton set
+   consisting of a single element:  \karg{value}.
+   This operation may signal constraint violation conditions
+   (see Section~\ref{sec:errors}).  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{put-slot-values}{ frame slot values \&key kb (slot-type :own) (value-selector :known-true) kb-local-only-p} { \void } { M } { W } {  }
+Sets the values of \karg{slot} in \karg{frame} to
+   be \karg{values}.  Any existing slot values that are not in \karg{values}
+   will be removed.  The order of the elements
+   of \karg{values} will not necessarily be maintained by the KRS, unless the
+   {\tt :collection-type} of the slot is {\tt :list}.
+   This operation may signal constraint violation conditions
+   (see Section~\ref{sec:errors}).  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{register-procedure}{ name procedure \&key kb} { \void } { O } { W } {  }
+Associates the \karg{procedure} with \karg{name} in \karg{kb}.
+   Subsequent calls to \kfn{call-procedure} may invoke the procedure merely by
+   using the name.  If \karg{name} is \false, then \karg{procedure}
+   must be a {\em named} procedure, in which case the \karg{name}
+   argument will default to the name of the procedure.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{remove-class-superclass}{ class superclass-to-remove \&key kb kb-local-only-p} { \void } { O } { W } {  }
+Removes \karg{superclass-to-remove} from the superclasses of \karg{class}.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{remove-facet-value}{ frame slot facet value \&key kb (test :equal) (slot-type :own) (value-selector :known-true) kb-local-only-p} { \void } { O } { W } {  }
+If \karg{value} is currently a member of the set of direct values of
+   the specified facet, then \karg{value} is removed from the values of
+   the facet.  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{remove-instance-type}{ frame type-to-remove \&key kb kb-local-only-p} { \void } { O } { W } {  }
+Removes \karg{type-to-remove} from the types of \karg{frame} -- that is,
+   makes \karg{frame} no longer be an instance of \karg{type-to-remove}.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{remove-local-facet-values}{ frame slot facet \&key kb (slot-type :own) (value-selector :known-true) kb-local-only-p} { \void } { O } { W } {  }
+Removes all direct values of \karg{facet} in \karg{slot} of \karg{frame}.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{remove-local-slot-values}{ frame slot \&key kb (slot-type :own) (value-selector :known-true) kb-local-only-p} { \void } { O } { W } {  }
+Removes all direct values in \karg{slot} of \karg{frame}.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{remove-slot-value}{ frame slot value \&key kb (test :equal) (slot-type :own) (index :all) (value-selector :known-true) kb-local-only-p} { \void } { O } { W } {  }
+If \karg{value} is currently a member of the set of direct values of
+   \karg{slot}, then \karg{value} is removed from the values of
+   \karg{slot}.  Only values matching the \karg{test} are removed.
+   If \karg{index} is {\tt :all}, then all occurrences of
+   \karg{value} will be removed.  Otherwise, \karg{index} should be
+   an integer index into the values list, and only the value at that
+   position, if it matches \karg{value}, will be removed (the first
+   value of the slot has index 0).  The index argument is used only by slots
+   whose {\tt :collection-type} is {\tt :list}.  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{rename-facet}{ facet new-name \&key kb kb-local-only-p} { renamed-facet } { M } { W } {  }
+Renames the facet for all frames containing that facet.
+   \bitem
+   \item If the facet identified by \karg{facet} is represented as a frame,
+          that frame is renamed.
+   \item If the facet identified by \karg{facet} is not represented as
+          a frame, \kfn{facet-p} applied to \karg{facet} will return
+          \false\, and \karg{facet} will not be returned by any of
+          the facet-returning operations, such as \kfn{get-kb-facets}.
+          \karg{New-name} will now identify the
+          facet, and will be returned by operations such as
+          \kfn{get-kb-facets} and \kfn{get-frame-facets}.
+   \eitem
+   All the facet values and facet values associated with \karg{facet} are
+   preserved under the \karg{new-name}.  For example, for any frame in
+   the KB, the values returned by \kfn{get-facet-values} for \karg{facet}
+   before the rename are identical to the values returned  for
+   \karg{new-name} after the rename.  In addition, the {\em attached-to}
+   relationship is preserved -- that is, if \karg{facet} is attached to a
+   frame before the rename, \karg{new-name} is attached to that frame
+   after the rename.  In some implementations, references to \karg{facet}
+   may still remain in the KB after \karg{rename-facet}.  Returns the
+   \karg{renamed-facet}.
+\end{okbcop}
+
+\begin{okbcop}{rename-slot}{ slot new-name \&key kb kb-local-only-p} { renamed-slot } { M } { W } {  }
+Renames the slot for all frames containing that slot.
+   \bitem
+   \item If the slot identified by \karg{slot} is represented as a frame,
+          that frame is renamed.
+   \item If the slot identified by \karg{slot} is not represented as
+          a frame, \kfn{slot-p} applied to \karg{slot} will return \false\,
+          and \karg{slot} will not be returned by any of the slot-returning
+          operations, such as \kfn{get-kb-slots} and \kfn{get-frame-slots}.
+          \karg{New-name} will now identify the slot, and will be returned by
+          operations such as \kfn{get-kb-slots} and \kfn{get-frame-slots}.
+   \eitem
+   All the slot values and facet values associated with \karg{slot} are
+   preserved under the \karg{new-name}.  For example, for any frame in
+   the KB, the values returned by \kfn{get-slot-values} for \karg{slot}
+   before the rename are identical to the values returned  for
+   \karg{new-name} after the rename.  In addition, the {\em attached-to}
+   relationship is preserved -- that is, if \karg{slot} is attached to a
+   frame before the rename, \karg{new-name} is attached to that frame
+   after the rename.  In some implementations, references to \karg{slot}
+   may still remain in the KB after \karg{rename-slot}.  Returns the
+   \karg{renamed-slot}.
+\end{okbcop}
+
+\begin{okbcop}{replace-facet-value}{ frame slot facet old-value new-value \&key kb (test :equal) (slot-type :own) (value-selector :known-true) kb-local-only-p} { \void } { O } { W } {  }
+If \karg{old-value} is currently a member of the set of direct values of
+   the specified facet, then \karg{old-value} is replaced by 
+   \karg{new-value} in the facet.  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{replace-slot-value}{ frame slot old-value new-value \&key kb (test :equal) (slot-type :own) (index :all) (value-selector :known-true) kb-local-only-p} { \void } { O } { W } {  }
+If \karg{old-value} is currently a member of the set of direct values of
+   \karg{slot}, then \karg{old-value} is replaced by \karg{new-value} in
+   \karg{slot}.  If \karg{index} is {\tt :all} then all occurrences of
+   \karg{old-value} will be replaced.  Otherwise, \karg{index} should be
+   an integer index into the values list, and only the value at that
+   position, if it matches \karg{old-value}, will be replaced (the first
+   value of the slot has index 0).
+   This operation may signal constraint violation conditions
+   (see Section~\ref{sec:errors}).  The \karg{index} argument is used only
+   by slots whose {\tt :collection-type} is {\tt :list}.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{revert-kb}{ \&key kb (error-p \true)} { reverted-kb } { O } { W } {  }
+This operation is called when the user wishes to discard any changes
+   made to a KB since it was last saved, and revert to the previously saved
+   state.
+
+   Equivalent to successive calls to \kfn{close-kb} and then \kfn{open-kb}.
+   The \karg{reverted-kb} returned has the same content as \karg{kb} had at
+   the time it was last saved (or empty, if the kb had never
+   been saved).  No guarantee is made that the \karg{reverted-kb}
+   will have the same identity (==, EQLness) as \karg{kb},
+   but some implementations may choose to recycle the existing KB object.
+   After a call to \kfn{revert-kb}, portable applications must refer only
+   to the \karg{reverted-kb} object rather than \karg{kb} in case it was
+   not recycled.  References to the original \karg{kb} may result in
+   an \kcond{object-freed} condition being signaled.
+   If \karg{error-p} is \false, tries to catch errors that occur, and
+   attempts to continue with reverting to the extent possible.
+\end{okbcop}
+
+\begin{okbcop}{save-kb}{ \&key kb (error-p \true)} { boolean } { M } { W } {  }
+Saves the contents of the KB to persistent storage.  No commitment is
+   made as to the location of the KB in persistent storage, other than that
+   it will be openable given the name, kb-type and connection first used
+   to access it.  No commitment is made as to whether the save operation
+   results in a complete dump of the KB, or whether it results only in a
+   dump of the changes made since the KB was last saved.  If \karg{error-p}
+   is \false, tries to catch errors that occur, and attempts to continue 
+   with saving to the extent possible.
+   Returns \true\ iff the KB was saved successfully, and \false\
+   otherwise.
+\end{okbcop}
+
+\begin{okbcop}{save-kb-as}{ new-name-or-locator \&key kb} { \void } { M } { W } {  }
+Saves the entire contents of the KB to persistent storage under the 
+   \karg{new-name-or-locator}.  \karg{New-name-or-locator} is either a new
+   name for the KB, or a new kb-locator.  The in-core KB is renamed so that
+   \kfn{find-kb-of-type} will return \karg{kb} when passed the new name of
+   the KB.  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{slot-has-facet-p}{ frame slot facet \&key kb (inference-level :taxonomic) (slot-type :own) kb-local-only-p} { boolean } { O } { R } {  }
+Returns \true\ iff \karg{facet} is a valid facet for \karg{slot} on
+   \karg{frame}, and \false\ otherwise.  What constitutes a valid facet is
+   KB-specific, but a facet with a value locally asserted, or with a value
+   that is accessible from a template slot will return \true\ for this
+   operation.
+\end{okbcop}
+
+\begin{okbcop}{slot-has-value-p}{ frame slot \&key kb (inference-level :taxonomic) (slot-type :own) (value-selector :either) kb-local-only-p} { boolean exact-p } { O } { R } {  }
+Returns \true\ iff \karg{slot} on \karg{frame} has at least one
+   value, otherwise returns \false.
+\end{okbcop}
+
+\begin{okbcop}{slot-p}{ thing \&key kb kb-local-only-p} { boolean } { M } { R } {  }
+Returns \true\ iff \karg{thing} is a slot, and
+   otherwise returns \false.
+\end{okbcop}
+
+\begin{okbcop}{subclass-of-p}{ subclass superclass \&key kb (inference-level :taxonomic) kb-local-only-p} { boolean exact-p } { O } { R } {  }
+Returns \true\ if class \karg{subclass} is a subclass of class 
+   \karg{superclass}, and returns \false\ otherwise.
+\end{okbcop}
+
+\begin{okbcop}{superclass-of-p}{ superclass subclass \&key kb (inference-level :taxonomic) kb-local-only-p} { boolean exact-p } { O } { R } {  }
+Returns \true\ if class \karg{subclass} is a subclass of class
+   \karg{superclass}, and returns \false\ otherwise.
+\end{okbcop}
+
+\begin{okbcop}{tell}{ sentence \&key kb frame (value-selector :known-true) kb-local-only-p} { \void } { O } { R } {  }
+The \karg{tell} operation asserts the \karg{sentence} to be true in
+   the knowledge base \karg{kb}.  Some KRSs may allow users to attach a
+   sentence to a specific frame in the KB.  If that is possible and desired, 
+   the \karg{frame} argument may be supplied.  When \karg{kb-local-only-p}
+   is \true, the \karg{sentence} should be asserted in the \karg{kb}, even
+   if \karg{kb} includes another KB containing the \karg{sentence}.  When the
+   \karg{sentence} argument is syntactically invalid, \karg{tell} signals
+   a \kcond{syntax-error} error.  A KRS may not accept all valid sentences
+   of the OKBC Assertion Language, and for such cases, \karg{tell} raises the
+   condition \kcond{cannot-handle}.  Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{tellable}{ sentence \&key kb (value-selector :known-true) kb-local-only-p} { boolean } { O } { R } {  }
+The \karg{tellable} operation returns \false\ if the KRS can
+   determine that \karg{tell}ing the \karg{sentence} would result in a
+   \kcond{cannot-handle} error being signaled, and \true\ otherwise.
+   It may raise a \kcond{syntax-error} error as specified with the
+   definition of \karg{tell}.  Even if \karg{tellable} returns
+   \true, \karg{tell} may still not be able to handle the
+   \karg{sentence}. 
+\end{okbcop}
+
+\begin{okbcop}{type-of-p}{ class thing \&key kb (inference-level :taxonomic) kb-local-only-p} { boolean exact-p } { O } { R } {  }
+Returns \true\ if \karg{thing} is an instance of \karg{class}, otherwise
+   returns \false.
+\end{okbcop}
+
+\begin{okbcop}{unregister-procedure}{ name \&key kb} { \void } { O } { W } {  }
+Removes any procedure association for the \karg{name} in \karg{kb}.
+   Returns no values.
+\end{okbcop}
+
+\begin{okbcop}{untell}{ sentence \&key kb frame (value-selector :known-true) kb-local-only-p} { boolean } { O } { R } {  }
+The \karg{untell} operation can be used to remove assertions from the
+   knowledge base.  Returns \true\ if the sentence was removed, and 
+   \false\ otherwise.
+
+   The effect of \karg{untell}ing a sentence of the OKBC Assertion Language
+   is equivalent to the effect of executing an equivalent OKBC operation.  
+   The OKBC operations equivalent to \karg{untell}ing a sentence in the
+   Assertion Language are specified in Section~\ref{sec:untell-semantics}.
+   For example, the operation
+   \begin{verbatim}
+   (Untell `(slot-name frame-name ,slot-value))
+   \end{verbatim}
+   is equivalent to the OKBC operation {\tt (remove-slot-value 'frame-name
+   'slot-name slot-value :slot-type :own).}
+
+   The effect of \karg{untell}ing an arbitrary \karg{tellable} sentence
+   is not predictable across implementations.  For a given sentence {\tt
+   s}, executing {\tt (untell s :kb kb)} after executing {\tt (tell s :kb
+   kb)} should remove the sentence {\tt s} from the {\tt kb}.  That is, a
+   second call to \karg{untell} should return {\tt nil}.  This
+   does not mean that {\tt s} is no longer true, as it may be implied by
+   other assertions in the KB.
+
+   Some KRSs may allow users to attach an assertion to a frame in the KB.
+   If the \karg{sentence} was attached to a frame, the \karg{frame}
+   argument must be supplied.  The default value for \karg{frame} is
+   \false.  When the \karg{sentence} argument is syntactically invalid, it
+   may signal the \kfn{syntax-error} error.
+\end{okbcop}
+
+\begin{okbcop}{value-as-string}{ value \&key kb (purpose :user-interface) (pretty-p (eql purpose :user-interface)) kb-local-only-p} { string location-list } { O } { R } {  }
+Given some \karg{value}, returns two values, a string that is a printed
+   representation of that value, and a list of three-tuples.
+   In the second \karg{location-list} value, one tuple is supplied for each
+   frame reference encountered in \karg{value} in the order they appear
+   in the printed representation.  Each three-tuple is of the form
+   {\tt (index0 index1 frame)}, where {\tt index0} is the zero-indexed
+   start index of a printed representation of the
+   {\tt frame} in the printed representation and {\tt index1} is the
+   index one past the end.  For example, printing the list {\tt (\#<frame1>)}
+   might deliver the values "(Frame1)" and {\tt ((1 8 \#<frame1>))}.
+
+   This operation is useful for user interfaces that have no way in
+   general to print the arbitrary data structures that might be returned by,
+   for example, \kfn{get-slot-values}.  The second value allows user
+   interfaces to print the string with mouse-sensitive regions that point to
+   frames.\\
+   \karg{Purpose}
+          -- The \karg{purpose} argument can be one of \{{\tt :file},
+             {\tt :user-interface}\}.  When it is {\tt :file}, it allows the
+             KB to print data in a manner that will be readable again (e.g.,
+             for dumping to files),
+             preserving object identity where necessary.  The output will
+             therefore typically fully escape strings, and will probably
+             package qualify symbols.  When \karg{purpose} is
+             {\tt :user-interface}, the string returned will be as pretty
+             and readable as possible for a user interface, but such
+             output will probably not be readable by OKBC.\\
+   \karg{Pretty-p}
+           -- When \true, OKBC will attempt to print everything in as pretty a
+              manner as possible.  This includes printing frames by using their
+              pretty-names, and by printing strings without escaping or
+              quotes.
+\end{okbcop}

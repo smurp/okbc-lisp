@@ -1,0 +1,59 @@
+\newcommand{\Algernon}{A{\footnotesize LGERNON}}
+\newcommand{\Arlo}{A{\footnotesize RLO}}
+\newcommand{\Art}{A{\footnotesize RT}}
+\newcommand{\BBstar}{BB*}
+\newcommand{\Back}{B{\footnotesize ACK}}
+\newcommand{\Class}{C{\footnotesize LASS}}
+\newcommand{\Classic}{C{\footnotesize LASSIC}}
+\newcommand{\Crl}{C{\footnotesize RL}}
+\newcommand{\CycL}{C{\footnotesize YC}L}
+\newcommand{\Framekit}{F{\footnotesize RAMEKIT}}
+\newcommand{\Frappe}{F{\footnotesize RAPPE}}
+\newcommand{\Frobs}{F{\footnotesize ROBS}}
+\newcommand{\Frl}{F{\footnotesize RL}}
+\newcommand{\Goldworks}{G{\footnotesize OLDWORKS}}
+\newcommand{\Hprl}{H{\footnotesize PRL}}
+\newcommand{\Hyperclass}{H{\footnotesize YPERCLASS}}
+\newcommand{\Josie}{J{\footnotesize OSIE}}
+\newcommand{\Klone}{K{\footnotesize L-ONE}}
+\newcommand{\Kltwo}{K{\footnotesize L-TWO}}
+\newcommand{\Kappa}{K{\footnotesize APPA}}
+\newcommand{\Kb}{K{\footnotesize B}}
+\newcommand{\Krep}{K{\footnotesize -REP}}
+\newcommand{\Kandor}{K{\footnotesize ANDOR}}
+\newcommand{\Kola}{K{\footnotesize OLA}}
+\newcommand{\Kris}{K{\footnotesize RIS}}
+\newcommand{\Kreme}{K{\footnotesize REME}}
+\newcommand{\Knowledgecraft}{K{\footnotesize NOWLEDGE}C{\footnotesize RAFT}}
+\newcommand{\Krypton}{K{\footnotesize RYPTON}}
+\newcommand{\Krl}{K{\footnotesize RL}}
+\newcommand{\Loom}{L{\footnotesize OOM}}
+\newcommand{\Loops}{L{\footnotesize OOPS}}
+\newcommand{\Meson}{M{\footnotesize ESON}}
+\newcommand{\Mops}{M{\footnotesize OPS}}
+\newcommand{\Munin}{M{\footnotesize UNIN}}
+\newcommand{\Nikl}{N{\footnotesize IKL}}
+\newcommand{\Nexpert}{N{\footnotesize EXPERT}}
+\newcommand{\Opus}{O{\footnotesize PUS}}
+\newcommand{\Orion}{O{\footnotesize RION}}
+\newcommand{\Ozone}{O{\footnotesize ZONE}}
+\newcommand{\Parka}{P{\footnotesize ARKA}}
+\newcommand{\Parmenides}{P{\footnotesize ARMENIDES}}
+\newcommand{\Penguin}{P{\footnotesize ENGUIN}}
+\newcommand{\Proteus}{P{\footnotesize ROTEUS}}
+\newcommand{\Rhet}{R{\footnotesize HET}}
+\newcommand{\RLL}{R{\footnotesize LL}}
+\newcommand{\RUP}{R{\footnotesize UP}}
+\newcommand{\Sbone}{S{\footnotesize B-ONE}}
+\newcommand{\Sneps}{SNePS}
+\newcommand{\Sphinx}{S{\footnotesize PHINX}}
+\newcommand{\Srl}{S{\footnotesize RL}}
+\newcommand{\Statice}{S{\footnotesize TATICE}}
+\newcommand{\Strobe}{S{\footnotesize TROBE}}
+\newcommand{\Telos}{T{\footnotesize ELOS}}
+\newcommand{\Theo}{T{\footnotesize HEO}}
+\newcommand{\Units}{U{\footnotesize NITS}}
+\newcommand{\UnitPackage}{U{\footnotesize NIT} Package}
+
+\newcommand{\allInstance}{\prec\prec}
+\newcommand{\allSub}{\ll}
